@@ -1,4 +1,5 @@
 import postgres from "postgres";
+import { evaluateProviderBudgets, parseProviderBudgetConfig, type ProviderUsage } from "./provider-budget.js";
 
 const connectionString = process.env.DATABASE_ADMIN_URL ?? process.env.DATABASE_MIGRATION_URL ?? process.env.DATABASE_URL;
 if (!connectionString) throw new Error("DATABASE_ADMIN_URL, DATABASE_MIGRATION_URL, or DATABASE_URL is required");
@@ -27,9 +28,27 @@ try {
     database`select count(*) filter (where status='received')::int as unprocessed,
       min(received_at) filter (where status='received') as oldest_unprocessed_at,
       count(*) filter (where status='failed')::int as failed from billing_provider_event`,
-    database`select provider, sum(request_count)::int as requests, min(window_started_at) as first_window, max(window_started_at) as latest_window
-      from location_provider_usage group by provider order by provider`,
+    database`with usage as (
+      select provider, 'request'::text as meter, sum(request_count)::float8 as units, null::float8 as actual_cost_usd
+        from location_provider_usage where window_started_at >= date_trunc('month', now()) group by provider
+      union all select 'exa', 'search', count(*)::float8, coalesce(sum(cost_usd), 0)::float8
+        from research_run where completed_at >= date_trunc('month', now())
+      union all select 'nws', 'forecast_fetch', count(*)::float8, null::float8
+        from weather_forecast_snapshot where retrieved_at >= date_trunc('month', now())
+      union all select 'resend', 'accepted_email', count(*)::float8, null::float8
+        from notification_delivery_intent where accepted_at >= date_trunc('month', now())
+      union all select 'resend', 'accepted_email', count(*)::float8, null::float8
+        from notification_digest where accepted_at >= date_trunc('month', now())
+      union all select 'stripe', 'provider_event', count(*)::float8, null::float8
+        from billing_provider_event where received_at >= date_trunc('month', now())
+    ) select provider, meter, sum(units)::float8 as units,
+      case when count(actual_cost_usd) > 0 then sum(actual_cost_usd)::float8 else null end as actual_cost_usd
+      from usage group by provider, meter order by provider`,
   ]);
+  const observedUsage: ProviderUsage[] = (providerUsage as unknown as Array<{ provider: ProviderUsage["provider"]; meter: string; units: number; actual_cost_usd: number | null }>).map((row) => ({ provider: row.provider, meter: row.meter, units: row.units, actualCostUsd: row.actual_cost_usd }));
+  if (!observedUsage.some(({ provider }) => provider === "geoapify")) observedUsage.push({ provider: "geoapify", meter: "request", units: 0 });
+  observedUsage.push({ provider: "maptiler", meter: "map_session", units: null });
+  const providerBudgets = evaluateProviderBudgets(observedUsage, parseProviderBudgetConfig(process.env.PROVIDER_BUDGETS_JSON));
   process.stdout.write(`${JSON.stringify({
     generatedAt: new Date().toISOString(),
     catalogCoverage: catalog,
@@ -40,7 +59,8 @@ try {
     deliverySuppressions,
     recentDeliveryHistory,
     billingLag: billing[0] ?? { unprocessed: 0, oldest_unprocessed_at: null, failed: 0 },
-    providerUsage,
+    providerUsage: observedUsage,
+    providerBudgets,
   }, null, 2)}\n`);
 } finally {
   await database.end();

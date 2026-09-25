@@ -46,7 +46,7 @@ Stripe subscription reconciliation is now also queued after the signed receipt i
 
 - `pnpm check`: passed.
   - Root Node suite: 65 passed, 0 failed.
-  - Root Vitest operational/nationwide/source-normalization suite: 24 passed, 0 failed.
+  - Root Vitest operational/nationwide/source-normalization/budget suite: 27 passed, 0 failed.
   - Worker with both PostgreSQL integration environments enabled: 149 passed, 0 skipped.
   - Database: 134 passed, 13 skipped environment-specific cases.
   - Integrations: 92 passed, 5 skipped protected live-provider cases.
@@ -54,7 +54,7 @@ Stripe subscription reconciliation is now also queued after the signed receipt i
   - All other workspace suites and production builds passed.
 - Local product browser path: passed on desktop Chromium, Firefox and WebKit plus the Pixel 7 Chromium touch-emulation profile, including account, garden, location, touch/click boundary drawing, bed revision, sourced plan, print link, progress, Free/Pro downgrade preservation and deletion. A WCAG 2.0/2.1 A/AA scan runs on the loaded garden editor in all four profiles and passes. These automated profiles do not replace physical-device and screen-reader review.
 - Clean-database migration rehearsal: the full journal applies to a disposable database, producing 72 public tables with 39 tables reporting forced RLS. The disposable database was removed after inspection.
-- Supported-upgrade rehearsal: the repeatable `pnpm validation:migrations` check installed the application through migration 0049, inserted a representative located/monitored garden, upgraded through migration 0055, preserved the garden, verified all 56 journal entries plus later digest/recommendation/climate-provenance columns, and removed the isolated database. Full evidence is in `docs/build/migration-upgrade-rehearsal.md`.
+- Supported-upgrade rehearsal: the repeatable `pnpm validation:migrations` check installed the application through migration 0049, inserted a representative located/monitored garden, upgraded through migration 0056, preserved the garden, verified all 57 journal entries plus later digest/recommendation/climate-provenance/regional-context columns, and removed the isolated database. Full evidence is in `docs/build/migration-upgrade-rehearsal.md`.
 - Product operations snapshot: executed successfully and returned aggregate crop coverage, forecast freshness, monitoring due work, event backlog, delivery outcomes, billing lag and provider usage without customer locations or message content.
 - Trestle SetupPlan validation/diff, architecture check and local doctor were rerun after the official climate import; the plan remains converged and doctor reported 106 passed, 0 warnings and 0 failures.
 

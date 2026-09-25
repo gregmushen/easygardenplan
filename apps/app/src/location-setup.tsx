@@ -68,7 +68,7 @@ export function LocationSetup(props: { garden: Garden; organizationId: string; o
   const confirm = async () => {
     setBusy(true); setMessage(undefined);
     try {
-      const result = await request<{ garden: Garden }>(`/api/gardens/${props.garden.id}/location`, props.organizationId, { method: "PUT", body: JSON.stringify({ expectedRevision: props.garden.revision, location: { coordinate: { latitude, longitude }, timezone, source: selection ? "geocoded" : "manual_pin", ...(selection ? { providerPlaceId: selection.providerPlaceId, formattedAddress: selection.formattedAddress } : {}) } }) });
+      const result = await request<{ garden: Garden }>(`/api/gardens/${props.garden.id}/location`, props.organizationId, { method: "PUT", body: JSON.stringify({ expectedRevision: props.garden.revision, location: { coordinate: { latitude, longitude }, timezone, source: selection ? "geocoded" : "manual_pin", regionIds: selection?.regionIds ?? [], ...(selection ? { providerPlaceId: selection.providerPlaceId, formattedAddress: selection.formattedAddress } : {}) } }) });
       props.onUpdated(result.garden);
       const association = await request<{ climate: ClimateSummary }>(`/api/gardens/${props.garden.id}/climate/associate`, props.organizationId, { method: "POST", body: "{}" });
       setClimate(association.climate);

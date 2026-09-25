@@ -53,7 +53,7 @@ export class PlanningRepository {
   }
 
   private async snapshot(database: Database, gardenId: string, seasonYear: number): Promise<PlanInputSnapshot> {
-    const [plot] = await database.select({ id: garden.id, revision: garden.revision, timezone: garden.timezone }).from(garden).where(and(eq(garden.id, gardenId), eq(garden.organizationId, this.organizationId))).limit(1);
+    const [plot] = await database.select({ id: garden.id, revision: garden.revision, timezone: garden.timezone, regionIds: garden.regionIds }).from(garden).where(and(eq(garden.id, gardenId), eq(garden.organizationId, this.organizationId))).limit(1);
     if (!plot) throw new PlanningInputError("Garden not found");
     if (!plot.timezone) throw new PlanningInputError("Confirm the garden location and timezone before planning");
     const selections = await database.select().from(cropSelection).where(and(eq(cropSelection.organizationId, this.organizationId), eq(cropSelection.gardenId, gardenId))).orderBy(desc(cropSelection.priority), asc(cropSelection.id));
@@ -63,7 +63,7 @@ export class PlanningRepository {
     const [climate] = await database.select().from(climateAssociation).where(and(eq(climateAssociation.organizationId, this.organizationId), eq(climateAssociation.gardenId, gardenId), eq(climateAssociation.active, true))).limit(1);
     const catalog = await new KnowledgeRepository(database).published(this.catalogReleaseId);
     if (!catalog.releaseId) throw new PlanningInputError("No reviewed crop catalog has been published");
-    return planInputSnapshotSchema.parse({ gardenId, gardenRevision: plot.revision, timezone: plot.timezone, seasonYear, catalogReleaseId: catalog.releaseId, climate: climate ? { associationId: climate.id, version: climate.version, state: climate.state, hardinessZone: climate.hardinessZone, springFrostLocalDate: climate.springFrostLocalDate, autumnFrostLocalDate: climate.autumnFrostLocalDate, source: climate.source } : null, algorithmVersion: "grid-v1", selections: selections.map((item) => ({ id: item.id, cropId: item.cropId, varietyId: item.varietyId, method: item.method, quantity: item.quantity, preferredBedId: item.preferredBedId, bedRestriction: item.bedRestriction, priority: item.priority, revision: item.revision })), beds, rules: catalog.rules });
+    return planInputSnapshotSchema.parse({ gardenId, gardenRevision: plot.revision, timezone: plot.timezone, regionIds: plot.regionIds, seasonYear, catalogReleaseId: catalog.releaseId, climate: climate ? { associationId: climate.id, version: climate.version, state: climate.state, hardinessZone: climate.hardinessZone, springFrostLocalDate: climate.springFrostLocalDate, autumnFrostLocalDate: climate.autumnFrostLocalDate, source: climate.source } : null, algorithmVersion: "grid-v1", selections: selections.map((item) => ({ id: item.id, cropId: item.cropId, varietyId: item.varietyId, method: item.method, quantity: item.quantity, preferredBedId: item.preferredBedId, bedRestriction: item.bedRestriction, priority: item.priority, revision: item.revision })), beds, rules: catalog.rules });
   }
 
   async generate(gardenId: string, seasonYear: number) {

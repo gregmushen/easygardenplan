@@ -18,6 +18,7 @@ export const geocodeCandidateSchema = z.object({
   timezone: z.string().min(1).optional(),
   confidence: z.number().min(0).max(1).nullable(),
   resultType: z.string().nullable(),
+  regionIds: z.array(z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u)).default([]),
   attribution: z.string().min(1),
 });
 
@@ -27,6 +28,7 @@ export const confirmedLocationSchema = z.object({
   source: z.enum(["geocoded", "manual_pin"]),
   providerPlaceId: z.string().optional(),
   formattedAddress: z.string().max(500).optional(),
+  regionIds: z.array(z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u)).max(10).default([]),
 }).superRefine((value, context) => {
   try { new Intl.DateTimeFormat("en-US", { timeZone: value.timezone }); }
   catch { context.addIssue({ code: "custom", path: ["timezone"], message: "Timezone must be a valid IANA timezone" }); }

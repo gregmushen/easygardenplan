@@ -18,6 +18,7 @@ Date: 2026-09-25
 - Extended database and browser tests to prove billing rows and the private garden/household disappear after deletion.
 - Retained the existing bounded and audited recovery controls: committed-event age checks, tenant-scoped webhook replay, lease recovery, artifact recovery evidence and scheduled isolated backup verification.
 - Added `pnpm operations:product`, an aggregate-only operator snapshot for crop coverage, forecast freshness, overdue/retrying gardens, event backlog, delivery outcomes, billing lag and geocoder usage. It does not emit customer locations or message content.
+- Added a validated monthly provider rate-card and budget evaluator to the same snapshot. It accounts for Geoapify, Exa, NWS, Resend and Stripe meters, prefers Exa's provider-reported cost, and marks browser-only MapTiler usage as unmeasured until an invoice/session source is connected. Evidence is in `provider-budget-readiness.md`.
 
 ## Proof recorded
 
@@ -35,5 +36,5 @@ Date: 2026-09-25
 - Record distinct staging drills for stale weather, failed delivery, delayed billing and expired work.
 - Review attribution visually against a live paid-plan map; the policy and print-export rights review is complete and printed diagrams are enforced as application geometry without provider imagery.
 - Record a successful isolated production restore from the scheduled Trestle backup workflow.
-- Connect provider billing exports to the request-count snapshot so the operator view can report actual cost as well as usage.
+- Enter reviewed contracted rates, connect MapTiler billing/session usage, and validate thresholds under representative staging load. The evaluator and fail-visible missing-data states are implemented.
 - Review production analytics/error tooling after it is selected; automated logger fixtures already cover credential and payload redaction.

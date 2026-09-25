@@ -363,7 +363,7 @@ Implementation note: at the pinned baseline, `trestle plan init` rejects the sta
 - [x] Complete account, preferences, attribution, privacy, terms/support and deletion flows.
 - [x] Add product-specific doctor/readiness checks for Geoapify, MapTiler, Exa, climate datasets, NWS, Stripe and Resend.
 - [x] Add dashboards/queries for crop coverage, forecast freshness, overdue eligible gardens, evaluation backlog, delivery outcomes, billing lag and provider usage.
-- [ ] Add provider unit costs and budget thresholds after launch credentials and contracted rates are known.
+- [ ] Enter reviewed provider unit costs and budget thresholds after launch credentials and contracted rates are known. The validated rate-card, usage meters and alert states are implemented.
 - [x] Add bounded operational replay/recovery actions that honor current authority, event age and recommendation validity.
 - [x] Review logs, analytics and error reporting for exact coordinates, addresses, email content and provider secrets.
 - [x] Verify MapTiler attribution and ensure printed exports do not include provider imagery without established rights.

@@ -30,6 +30,7 @@ export class LocationRepository {
       locationSource: location.source,
       locationProviderPlaceId: location.providerPlaceId ?? null,
       formattedAddress: location.formattedAddress ?? null,
+      regionIds: location.regionIds,
       locationConfirmed: true,
       revision: sql`${garden.revision} + 1`,
       updatedAt: new Date(),

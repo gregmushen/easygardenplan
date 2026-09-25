@@ -11,6 +11,7 @@ Status: **in progress**. The complete synthetic product path and explicit review
 - The deterministic `grid-v1` planner uses full spacing footprints, polygon containment, exclusions, pairwise clearance, stable ordering and a bounded effort budget.
 - Missing and conflicting spacing/window rules remain explicit. Requested quantity always equals placed plus unplaced quantity, and heuristic exhaustion has a distinct reason from missing constraints.
 - Published rules can carry explicit reviewed override relationships to prior published rules for the same crop, rule type and growing method. Those relationships become immutable at publication.
+- Frozen plan inputs now include normalized garden region identifiers, and the planner selects a scoped rule only when its recorded region intersects that frozen context. Mismatches remain explicit in the rule-selection trace.
 - Rule resolution removes only explicitly overridden applicable candidates. Every spacing and planting-window decision persists a trace identifying selected, overridden, inapplicable and unresolved conflicting candidates, and the proposal UI exposes that trace.
 - Local-calendar evaluation covers multiple windows, cross-year ranges, explicit leap-day clamping, frost-relative offsets and missing anchors without using elapsed 24-hour arithmetic.
 - Proposal activation is serialized, re-verifies the current frozen inputs, persists stale results as stale, permits only one active plan per garden and requires every unresolved limitation to be acknowledged.

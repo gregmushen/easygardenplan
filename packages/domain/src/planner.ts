@@ -11,7 +11,7 @@ function ruleApplicabilityReason(input: PlanInputSnapshot, selection: PlanInputS
   if (!rule.applicability.methods.includes(selection.method)) return "growing_method_does_not_match";
   if (rule.payload.state !== "known") return `knowledge_state_${rule.payload.state}`;
   if (rule.varietyId !== null && rule.varietyId !== selection.varietyId) return "variety_does_not_match";
-  if (rule.applicability.regionIds.length > 0) return "region_context_not_available";
+  if (rule.applicability.regionIds.length > 0 && !rule.applicability.regionIds.some((regionId) => input.regionIds.includes(regionId))) return input.regionIds.length ? "region_does_not_match" : "region_context_not_available";
   if (rule.applicability.hardinessZones.length > 0 && (!input.climate?.hardinessZone || !rule.applicability.hardinessZones.includes(input.climate.hardinessZone))) return "hardiness_zone_does_not_match";
   return null;
 }

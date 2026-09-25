@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { boolean, index, integer, pgPolicy, pgTable, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
+import { boolean, index, integer, jsonb, pgPolicy, pgTable, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
 
 import { organization } from "./auth-schema.js";
 
@@ -14,6 +14,7 @@ export const garden = pgTable("garden", {
   locationSource: text("location_source", { enum: ["geocoded", "manual_pin"] }),
   locationProviderPlaceId: text("location_provider_place_id"),
   formattedAddress: text("formatted_address"),
+  regionIds: jsonb("region_ids").$type<string[]>().default([]).notNull(),
   units: text("units"),
   conditions: text("conditions"),
   monitoringEnabled: boolean("monitoring_enabled"),

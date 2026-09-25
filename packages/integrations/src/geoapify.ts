@@ -10,6 +10,8 @@ const responseSchema = z.object({
     result_type: z.string().nullish(),
     rank: z.object({ confidence: z.number().min(0).max(1).nullish() }).nullish(),
     timezone: z.object({ name: z.string().min(1) }).nullish(),
+    country_code: z.string().nullish(),
+    state_code: z.string().nullish(),
   })),
 });
 
@@ -47,6 +49,7 @@ export class GeoapifyGeocoder implements Geocoder {
       timezone: result.timezone?.name,
       confidence: result.rank?.confidence ?? null,
       resultType: result.result_type ?? null,
+      regionIds: result.country_code?.toLowerCase() === "us" ? ["us", ...(result.state_code ? [`us-${result.state_code.toLowerCase()}`] : [])] : [],
       attribution: "Geocoding by Geoapify; data © OpenStreetMap contributors",
     }));
   }

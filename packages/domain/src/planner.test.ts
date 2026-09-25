@@ -13,6 +13,14 @@ describe("deterministic planner", () => {
     expect((await generatePlan({ ...input, rules: [] })).selections[0]).toMatchObject({ placed: 0, reasonCodes: ["missing_spacing_rule"] });
     expect((await generatePlan(input, 1)).selections[0]!.reasonCodes).toEqual(["search_budget_exhausted"]);
   });
+  it("selects region-scoped rules only when the frozen garden region matches", async () => {
+    const regional = { ...input.rules[0]!, applicability: { ...input.rules[0]!.applicability, regionIds: ["us-sc"] } };
+    const matching = await generatePlan({ ...input, regionIds: ["us", "us-sc"], rules: [regional] });
+    expect(matching.placements).toHaveLength(4);
+    const mismatching = await generatePlan({ ...input, regionIds: ["us", "us-wa"], rules: [regional] });
+    expect(mismatching.selections[0]).toMatchObject({ placed: 0, reasonCodes: ["missing_spacing_rule"] });
+    expect(mismatching.ruleSelectionTrace.find(({ ruleType }) => ruleType === "spacing")?.candidates[0]).toMatchObject({ outcome: "not_applicable", reason: "region_does_not_match" });
+  });
   it("uses an explicit reviewed override and records why each candidate was selected or excluded", async () => {
     const replacement = { ...input.rules[0]!, id: id(13), familyId: id(14), version: 2, payload: { state: "known", type: "spacing", withinRowMeters: { minimum: 0.5, maximum: 0.5, minimumInclusive: true, maximumInclusive: true }, pattern: "individual", sourceUnit: "meters" }, overridesRuleVersionIds: [id(7)] };
     const result = await generatePlan({ ...input, rules: [input.rules[0]!, replacement] });

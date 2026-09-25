@@ -1,0 +1,1 @@
+ALTER TABLE "garden" ADD COLUMN "region_ids" jsonb DEFAULT '[]'::jsonb NOT NULL;

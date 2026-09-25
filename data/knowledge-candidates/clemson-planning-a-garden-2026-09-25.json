@@ -1,0 +1,2280 @@
+{
+  "schemaVersion": 1,
+  "normalizationVersion": 1,
+  "status": "editorial_candidates",
+  "disclaimer": "Source-scoped candidate facts require editorial review before catalog publication.",
+  "source": {
+    "url": "https://hgic.clemson.edu/factsheet/planning-a-garden/",
+    "title": "Planning a Garden",
+    "publisher": "Clemson Cooperative Extension Home & Garden Information Center",
+    "sourceType": "university_extension",
+    "accessedAt": "2026-09-25T00:00:00.000Z",
+    "contentChecksumSha256": "ef906adc814cc3b8d9ad94492b40fc0a396fc4fda9b67316ab0c81e5822f548f"
+  },
+  "scope": {
+    "regionIds": [
+      "us-sc"
+    ],
+    "sourceTable": "Table 2"
+  },
+  "counts": {
+    "crops": 39,
+    "candidates": 77,
+    "omissions": 1
+  },
+  "candidates": [
+    {
+      "cropSlug": "asparagus",
+      "commonName": "Asparagus",
+      "ruleType": "spacing",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Asparagus: 18 inches between plants and 36 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.4572,
+          "maximum": 0.4572,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 0.9144,
+          "maximum": 0.9144,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "beans-snap",
+      "commonName": "Beans, Snap",
+      "ruleType": "spacing",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Beans, Snap: 2 inches between plants and 36 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.0508,
+          "maximum": 0.0508,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 0.9144,
+          "maximum": 0.9144,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "beans-snap",
+      "commonName": "Beans, Snap",
+      "ruleType": "maturity",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Beans, Snap: approximately 50-60 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 50,
+          "maximum": 60,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "sowing",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "beans-pole",
+      "commonName": "Beans, Pole",
+      "ruleType": "spacing",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Beans, Pole: 4 inches between plants and 36 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.1016,
+          "maximum": 0.1016,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 0.9144,
+          "maximum": 0.9144,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "beans-pole",
+      "commonName": "Beans, Pole",
+      "ruleType": "maturity",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Beans, Pole: approximately 60-70 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 60,
+          "maximum": 70,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "sowing",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "beans-half-runner",
+      "commonName": "Beans, Half Runner",
+      "ruleType": "spacing",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Beans, Half Runner: 2 inches between plants and 36 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.0508,
+          "maximum": 0.0508,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 0.9144,
+          "maximum": 0.9144,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "beans-half-runner",
+      "commonName": "Beans, Half Runner",
+      "ruleType": "maturity",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Beans, Half Runner: approximately 55-65 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 55,
+          "maximum": 65,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "sowing",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "beans-lima",
+      "commonName": "Beans, Lima",
+      "ruleType": "spacing",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Beans, Lima: 3 inches between plants and 36 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.0762,
+          "maximum": 0.0762,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 0.9144,
+          "maximum": 0.9144,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "beans-lima",
+      "commonName": "Beans, Lima",
+      "ruleType": "maturity",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Beans, Lima: approximately 65-75 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 65,
+          "maximum": 75,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "sowing",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "beans-pole-lima",
+      "commonName": "Beans, Pole Lima",
+      "ruleType": "spacing",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Beans, Pole Lima: 6 inches between plants and 36 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.1524,
+          "maximum": 0.1524,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 0.9144,
+          "maximum": 0.9144,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "beans-pole-lima",
+      "commonName": "Beans, Pole Lima",
+      "ruleType": "maturity",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Beans, Pole Lima: approximately 70-75 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 70,
+          "maximum": 75,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "sowing",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "beans-edible-soy",
+      "commonName": "Beans, Edible Soy",
+      "ruleType": "spacing",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Beans, Edible Soy: 3 inches between plants and 36 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.0762,
+          "maximum": 0.0762,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 0.9144,
+          "maximum": 0.9144,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "beans-edible-soy",
+      "commonName": "Beans, Edible Soy",
+      "ruleType": "maturity",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Beans, Edible Soy: approximately 60-70 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 60,
+          "maximum": 70,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "sowing",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "beets",
+      "commonName": "Beets",
+      "ruleType": "spacing",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Beets: 2 inches between plants and 30 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.0508,
+          "maximum": 0.0508,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 0.762,
+          "maximum": 0.762,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "beets",
+      "commonName": "Beets",
+      "ruleType": "maturity",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Beets: approximately 50-60 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 50,
+          "maximum": 60,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "sowing",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "broccoli",
+      "commonName": "Broccoli",
+      "ruleType": "spacing",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Broccoli: 18 inches between plants and 36 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.4572,
+          "maximum": 0.4572,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 0.9144,
+          "maximum": 0.9144,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "broccoli",
+      "commonName": "Broccoli",
+      "ruleType": "maturity",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Broccoli: approximately 60-70 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 60,
+          "maximum": 70,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "sowing",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "brussels-sprouts",
+      "commonName": "Brussels Sprouts",
+      "ruleType": "spacing",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Brussels Sprouts: 18 inches between plants and 36 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.4572,
+          "maximum": 0.4572,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 0.9144,
+          "maximum": 0.9144,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "brussels-sprouts",
+      "commonName": "Brussels Sprouts",
+      "ruleType": "maturity",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Brussels Sprouts: approximately 90-100 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 90,
+          "maximum": 100,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "sowing",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "cabbage",
+      "commonName": "Cabbage",
+      "ruleType": "spacing",
+      "methods": [
+        "indoor_start",
+        "purchased_start"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Cabbage: 12 inches between plants and 36 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.3048,
+          "maximum": 0.3048,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 0.9144,
+          "maximum": 0.9144,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "cabbage",
+      "commonName": "Cabbage",
+      "ruleType": "maturity",
+      "methods": [
+        "indoor_start",
+        "purchased_start"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Cabbage: approximately 60-80 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 60,
+          "maximum": 80,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "transplant",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "cantaloupe",
+      "commonName": "Cantaloupe",
+      "ruleType": "spacing",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Cantaloupe: 24 inches between plants and 60 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.6096,
+          "maximum": 0.6096,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 1.524,
+          "maximum": 1.524,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "cantaloupe",
+      "commonName": "Cantaloupe",
+      "ruleType": "maturity",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Cantaloupe: approximately 75-85 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 75,
+          "maximum": 85,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "sowing",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "carrots",
+      "commonName": "Carrots",
+      "ruleType": "spacing",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Carrots: 1 inches between plants and 30 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.0254,
+          "maximum": 0.0254,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 0.762,
+          "maximum": 0.762,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "carrots",
+      "commonName": "Carrots",
+      "ruleType": "maturity",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Carrots: approximately 60-70 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 60,
+          "maximum": 70,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "sowing",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "cauliflower",
+      "commonName": "Cauliflower",
+      "ruleType": "spacing",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Cauliflower: 18 inches between plants and 36 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.4572,
+          "maximum": 0.4572,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 0.9144,
+          "maximum": 0.9144,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "cauliflower",
+      "commonName": "Cauliflower",
+      "ruleType": "maturity",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Cauliflower: approximately 60-70 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 60,
+          "maximum": 70,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "sowing",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "collards",
+      "commonName": "Collards",
+      "ruleType": "spacing",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Collards: 8 inches between plants and 36 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.2032,
+          "maximum": 0.2032,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 0.9144,
+          "maximum": 0.9144,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "collards",
+      "commonName": "Collards",
+      "ruleType": "maturity",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Collards: approximately 60-70 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 60,
+          "maximum": 70,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "sowing",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "cucumbers",
+      "commonName": "Cucumbers",
+      "ruleType": "spacing",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Cucumbers: 12 inches between plants and 60 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.3048,
+          "maximum": 0.3048,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 1.524,
+          "maximum": 1.524,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "cucumbers",
+      "commonName": "Cucumbers",
+      "ruleType": "maturity",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Cucumbers: approximately 50-60 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 50,
+          "maximum": 60,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "sowing",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "eggplant",
+      "commonName": "Eggplant",
+      "ruleType": "spacing",
+      "methods": [
+        "indoor_start",
+        "purchased_start"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Eggplant: 18 inches between plants and 36 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.4572,
+          "maximum": 0.4572,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 0.9144,
+          "maximum": 0.9144,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "eggplant",
+      "commonName": "Eggplant",
+      "ruleType": "maturity",
+      "methods": [
+        "indoor_start",
+        "purchased_start"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Eggplant: approximately 70-80 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 70,
+          "maximum": 80,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "transplant",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "kale",
+      "commonName": "Kale",
+      "ruleType": "spacing",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Kale: 1 inches between plants and 36 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.0254,
+          "maximum": 0.0254,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 0.9144,
+          "maximum": 0.9144,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "kale",
+      "commonName": "Kale",
+      "ruleType": "maturity",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Kale: approximately 50-55 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 50,
+          "maximum": 55,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "sowing",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "lettuce-leaf",
+      "commonName": "Lettuce, Leaf",
+      "ruleType": "spacing",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Lettuce, Leaf: 2 inches between plants and 30 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.0508,
+          "maximum": 0.0508,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 0.762,
+          "maximum": 0.762,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "lettuce-leaf",
+      "commonName": "Lettuce, Leaf",
+      "ruleType": "maturity",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Lettuce, Leaf: approximately 40-70 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 40,
+          "maximum": 70,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "sowing",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "lettuce-head",
+      "commonName": "Lettuce, Head",
+      "ruleType": "spacing",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Lettuce, Head: 12 inches between plants and 30 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.3048,
+          "maximum": 0.3048,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 0.762,
+          "maximum": 0.762,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "lettuce-head",
+      "commonName": "Lettuce, Head",
+      "ruleType": "maturity",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Lettuce, Head: approximately 30-50 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 30,
+          "maximum": 50,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "sowing",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "lettuce-mustard",
+      "commonName": "Lettuce, Mustard",
+      "ruleType": "spacing",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Lettuce, Mustard: 2 inches between plants and 30 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.0508,
+          "maximum": 0.0508,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 0.762,
+          "maximum": 0.762,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "lettuce-mustard",
+      "commonName": "Lettuce, Mustard",
+      "ruleType": "maturity",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Lettuce, Mustard: approximately 40-60 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 40,
+          "maximum": 60,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "sowing",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "onions-green",
+      "commonName": "Onions, Green",
+      "ruleType": "spacing",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Onions, Green: 2 inches between plants and 30 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.0508,
+          "maximum": 0.0508,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 0.762,
+          "maximum": 0.762,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "onions-green",
+      "commonName": "Onions, Green",
+      "ruleType": "maturity",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Onions, Green: approximately 35-45 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 35,
+          "maximum": 45,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "sowing",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "onions-bulb",
+      "commonName": "Onions, Bulb",
+      "ruleType": "spacing",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Onions, Bulb: 3 inches between plants and 30 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.0762,
+          "maximum": 0.0762,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 0.762,
+          "maximum": 0.762,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "onions-bulb",
+      "commonName": "Onions, Bulb",
+      "ruleType": "maturity",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Onions, Bulb: approximately 100-120 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 100,
+          "maximum": 120,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "sowing",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "okra",
+      "commonName": "Okra",
+      "ruleType": "spacing",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Okra: 9 inches between plants and 36 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.2286,
+          "maximum": 0.2286,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 0.9144,
+          "maximum": 0.9144,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "okra",
+      "commonName": "Okra",
+      "ruleType": "maturity",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Okra: approximately 60-70 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 60,
+          "maximum": 70,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "sowing",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "peanuts",
+      "commonName": "Peanuts",
+      "ruleType": "spacing",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Peanuts: 4 inches between plants and 30 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.1016,
+          "maximum": 0.1016,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 0.762,
+          "maximum": 0.762,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "peanuts",
+      "commonName": "Peanuts",
+      "ruleType": "maturity",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Peanuts: approximately 100-120 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 100,
+          "maximum": 120,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "sowing",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "peas-garden",
+      "commonName": "Peas, Garden",
+      "ruleType": "spacing",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Peas, Garden: 1 inches between plants and 36 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.0254,
+          "maximum": 0.0254,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 0.9144,
+          "maximum": 0.9144,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "peas-garden",
+      "commonName": "Peas, Garden",
+      "ruleType": "maturity",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Peas, Garden: approximately 65-80 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 65,
+          "maximum": 80,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "sowing",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "peas-southern",
+      "commonName": "Peas, Southern",
+      "ruleType": "spacing",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Peas, Southern: 4 inches between plants and 46 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.1016,
+          "maximum": 0.1016,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 1.1684,
+          "maximum": 1.1684,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "peas-southern",
+      "commonName": "Peas, Southern",
+      "ruleType": "maturity",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Peas, Southern: approximately 75-85 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 75,
+          "maximum": 85,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "sowing",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "pepper",
+      "commonName": "Pepper",
+      "ruleType": "spacing",
+      "methods": [
+        "indoor_start",
+        "purchased_start"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Pepper: 18 inches between plants and 36 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.4572,
+          "maximum": 0.4572,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 0.9144,
+          "maximum": 0.9144,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "pepper",
+      "commonName": "Pepper",
+      "ruleType": "maturity",
+      "methods": [
+        "indoor_start",
+        "purchased_start"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Pepper: approximately 60-70 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 60,
+          "maximum": 70,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "transplant",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "potatoes-irish",
+      "commonName": "Potatoes, Irish",
+      "ruleType": "spacing",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Potatoes, Irish: 12 inches between plants and 36 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.3048,
+          "maximum": 0.3048,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 0.9144,
+          "maximum": 0.9144,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "potatoes-irish",
+      "commonName": "Potatoes, Irish",
+      "ruleType": "maturity",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Potatoes, Irish: approximately 90-110 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 90,
+          "maximum": 110,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "sowing",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "potatoes-sweet",
+      "commonName": "Potatoes, Sweet",
+      "ruleType": "spacing",
+      "methods": [
+        "indoor_start",
+        "purchased_start"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Potatoes, Sweet: 8 inches between plants and 36 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.2032,
+          "maximum": 0.2032,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 0.9144,
+          "maximum": 0.9144,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "potatoes-sweet",
+      "commonName": "Potatoes, Sweet",
+      "ruleType": "maturity",
+      "methods": [
+        "indoor_start",
+        "purchased_start"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Potatoes, Sweet: approximately 120 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 120,
+          "maximum": 120,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "transplant",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "radish",
+      "commonName": "Radish",
+      "ruleType": "spacing",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Radish: 1 inches between plants and 24 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.0254,
+          "maximum": 0.0254,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 0.6096,
+          "maximum": 0.6096,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "radish",
+      "commonName": "Radish",
+      "ruleType": "maturity",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Radish: approximately 25-30 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 25,
+          "maximum": 30,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "sowing",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "rutabaga",
+      "commonName": "Rutabaga",
+      "ruleType": "spacing",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Rutabaga: 12 inches between plants and 36 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.3048,
+          "maximum": 0.3048,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 0.9144,
+          "maximum": 0.9144,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "rutabaga",
+      "commonName": "Rutabaga",
+      "ruleType": "maturity",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Rutabaga: approximately 100-110 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 100,
+          "maximum": 110,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "sowing",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "spinach",
+      "commonName": "Spinach",
+      "ruleType": "spacing",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Spinach: 2 inches between plants and 30 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.0508,
+          "maximum": 0.0508,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 0.762,
+          "maximum": 0.762,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "spinach",
+      "commonName": "Spinach",
+      "ruleType": "maturity",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Spinach: approximately 50-60 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 50,
+          "maximum": 60,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "sowing",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "sweet-corn",
+      "commonName": "Sweet Corn",
+      "ruleType": "spacing",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Sweet Corn: 10 inches between plants and 36 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.254,
+          "maximum": 0.254,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 0.9144,
+          "maximum": 0.9144,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "sweet-corn",
+      "commonName": "Sweet Corn",
+      "ruleType": "maturity",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Sweet Corn: approximately 80-95 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 80,
+          "maximum": 95,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "sowing",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "squash-summer",
+      "commonName": "Squash, Summer",
+      "ruleType": "spacing",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Squash, Summer: 15 inches between plants and 36 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.381,
+          "maximum": 0.381,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 0.9144,
+          "maximum": 0.9144,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "squash-summer",
+      "commonName": "Squash, Summer",
+      "ruleType": "maturity",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Squash, Summer: approximately 50-60 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 50,
+          "maximum": 60,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "sowing",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "squash-winter",
+      "commonName": "Squash, Winter",
+      "ruleType": "spacing",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Squash, Winter: 48 inches between plants and 60 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 1.2192,
+          "maximum": 1.2192,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 1.524,
+          "maximum": 1.524,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "squash-winter",
+      "commonName": "Squash, Winter",
+      "ruleType": "maturity",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Squash, Winter: approximately 90-120 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 90,
+          "maximum": 120,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "sowing",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "tomato",
+      "commonName": "Tomato",
+      "ruleType": "spacing",
+      "methods": [
+        "indoor_start",
+        "purchased_start"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Tomato: 24 inches between plants and 60 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.6096,
+          "maximum": 0.6096,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 1.524,
+          "maximum": 1.524,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "tomato",
+      "commonName": "Tomato",
+      "ruleType": "maturity",
+      "methods": [
+        "indoor_start",
+        "purchased_start"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Tomato: approximately 70-80 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 70,
+          "maximum": 80,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "transplant",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "turnips",
+      "commonName": "Turnips",
+      "ruleType": "spacing",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Turnips: 2 inches between plants and 30 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.0508,
+          "maximum": 0.0508,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 0.762,
+          "maximum": 0.762,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "turnips",
+      "commonName": "Turnips",
+      "ruleType": "maturity",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Turnips: approximately 60-70 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 60,
+          "maximum": 70,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "sowing",
+        "sourceUnit": "calendar_days"
+      }
+    },
+    {
+      "cropSlug": "watermelon",
+      "commonName": "Watermelon",
+      "ruleType": "spacing",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "inches",
+      "normalizedClaim": "Watermelon: 60 inches between plants and 60 inches between rows in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 1.524,
+          "maximum": 1.524,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "betweenRowMeters": {
+          "minimum": 1.524,
+          "maximum": 1.524,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "row",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "cropSlug": "watermelon",
+      "commonName": "Watermelon",
+      "ruleType": "maturity",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-sc"
+      ],
+      "locator": "Table 2",
+      "originalUnits": "calendar days",
+      "normalizedClaim": "Watermelon: approximately 80-100 days to harvest in the source chart.",
+      "payload": {
+        "state": "known",
+        "type": "maturity",
+        "days": {
+          "minimum": 80,
+          "maximum": 100,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "anchor": "sowing",
+        "sourceUnit": "calendar_days"
+      }
+    }
+  ],
+  "omissions": [
+    {
+      "crop": "Asparagus",
+      "ruleType": "maturity",
+      "reason": "Not normalized from non-day value: 2 years"
+    }
+  ]
+}
