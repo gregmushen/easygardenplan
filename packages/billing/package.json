@@ -1,0 +1,19 @@
+{
+  "name": "@easygardenplan/billing",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./plans": "./src/plans.ts"
+  },
+  "scripts": {
+    "build": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@easygardenplan/db": "workspace:*",
+    "@easygardenplan/integrations": "workspace:*",
+    "drizzle-orm": "0.45.3"
+  }
+}

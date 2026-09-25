@@ -1,0 +1,53 @@
+import { readFile } from "node:fs/promises";
+
+import { queuesEnabled, r2Enabled, workflowsEnabled } from "./queue-config.mjs";
+import { fetchSameOriginWithRetry } from "./smoke-http.mjs";
+import { assertOperationalHealth } from "./smoke-operational.mjs";
+
+const apiURL = process.env.API_URL;
+const appURL = process.env.APP_URL;
+const siteURL = process.env.SITE_URL;
+const deployEnvironment = process.env.TRESTLE_DEPLOY_ENV;
+if (!apiURL || !appURL) throw new Error("API_URL and APP_URL are required");
+if (!deployEnvironment || !["preview", "staging", "production"].includes(deployEnvironment)) throw new Error("TRESTLE_DEPLOY_ENV must identify the deployed environment");
+const manifest = await readFile(new URL("../.trestle/project.yaml", import.meta.url), "utf8");
+const declaredCapabilities = { queues: queuesEnabled(manifest), r2: r2Enabled(manifest), workflows: workflowsEnabled(manifest) };
+
+const health = await fetch(`${apiURL}/api/health`, { headers: { origin: appURL } });
+if (!health.ok) throw new Error(`API health failed: ${health.status}`);
+const healthBody = await health.json();
+if (healthBody.status !== "ok") throw new Error("API health payload is invalid");
+if (health.headers.get("access-control-allow-origin") !== appURL) throw new Error("API CORS origin is incorrect");
+
+const operational = await fetch(`${apiURL}/api/health/operational`);
+if (!operational.ok) throw new Error(`Operational health failed: ${operational.status}`);
+assertOperationalHealth(await operational.json(), deployEnvironment, declaredCapabilities);
+
+for (const route of ["/api/me", "/api/billing/subscription"]) {
+  const response = await fetch(`${apiURL}${route}`, { headers: { origin: appURL } });
+  if (response.status !== 401) throw new Error(`Anonymous request to ${route} was not rejected: ${response.status}`);
+}
+
+const resendWebhook = await fetch(`${apiURL}/api/webhooks/resend`, { method: "POST", headers: { "content-type": "application/json" }, body: "{}" });
+if (resendWebhook.status !== 400) throw new Error(`Unsigned Resend webhook was not rejected as configured: ${resendWebhook.status}`);
+const stripeWebhook = await fetch(`${apiURL}/webhooks/stripe`, { method: "POST", headers: { "content-type": "application/json" }, body: "{}" });
+if (stripeWebhook.status !== 400) throw new Error(`Unsigned Stripe webhook was not rejected as configured: ${stripeWebhook.status}`);
+
+for (const route of ["/", "/sign-in"]) {
+  const response = await fetchSameOriginWithRetry(`${appURL}${route}`);
+  if (!response.ok) throw new Error(`Web smoke failed for ${route}: ${response.status}`);
+  if (!(response.headers.get("content-type") ?? "").includes("text/html")) throw new Error(`${route} did not return HTML`);
+}
+
+if (siteURL) {
+  for (const route of ["/", "/features", "/pricing", "/about", "/privacy", "/terms", "/robots.txt"]) {
+    const response = await fetchSameOriginWithRetry(`${siteURL}${route}`);
+    if (!response.ok) throw new Error(`Site smoke failed for ${route}: ${response.status}`);
+  }
+  const homepage = await (await fetchSameOriginWithRetry(siteURL)).text();
+  if (!homepage.includes(`${appURL}/sign-in`) || !homepage.includes(`${appURL}/sign-up`)) {
+    throw new Error("Site authentication links do not point to APP_URL");
+  }
+}
+
+console.log(`Smoke passed for ${[siteURL, appURL, apiURL].filter(Boolean).join(", ")}`);

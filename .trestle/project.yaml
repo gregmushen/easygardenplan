@@ -1,0 +1,95 @@
+schemaVersion: 1
+project:
+  name: easygardenplan
+apps:
+  site: apps/site
+  app: apps/app
+  worker: apps/worker
+packages:
+  contracts: packages/contracts
+  auth: packages/auth
+  authz: packages/authz
+  billing: packages/billing
+  context: packages/context
+  domain: packages/domain
+  data: packages/data
+  db: packages/db
+  events: packages/events
+  integrations: packages/integrations
+  theme: packages/theme
+site:
+  framework: astro
+  rendering: static
+  starter: southwind
+tenancy:
+  model: organization
+  enforcement: postgres-rls
+database:
+  engine: postgresql
+  defaultProvider: neon
+capabilities:
+  # Optional capabilities. Enable r2, queues, and workflows as their bindings
+  # are provisioned; admin adds the platform admin (create-trestlejs --admin,
+  # or trestle apply with a SetupPlan that enables it).
+  r2: false
+  queues: false
+  workflows: false
+  durableObjects: false
+  admin: false
+environments:
+  - local
+  - preview
+  - staging
+  - production
+secrets:
+  DATABASE_URL:
+    target: worker
+    shareWith: [admin]
+    required: [local, staging, production]
+  DATABASE_DRIVER:
+    target: worker
+    shareWith: [admin]
+    required: [local, preview, staging, production]
+  BETTER_AUTH_SECRET:
+    target: worker
+    shareWith: [admin]
+    required: [local, preview, staging, production]
+    rotation: dual-value
+  # The optional platform admin's database login, granted only trestle_platform.
+  # Required only when capabilities.admin is enabled.
+  DATABASE_ADMIN_URL:
+    target: admin
+    required: [staging, production]
+  BETTER_AUTH_URL:
+    target: worker
+    required: [local, preview, staging, production]
+  ARTIFACT_SIGNING_SECRET:
+    target: worker
+    required: []
+  WEBHOOK_SECRET_KEY:
+    target: worker
+    required: []
+  RESEND_API_KEY:
+    target: worker
+    required: [preview, staging, production]
+  RESEND_WEBHOOK_SECRET:
+    target: worker
+    required: [preview, staging, production]
+  STRIPE_SECRET_KEY:
+    target: worker
+    required: [preview, staging, production]
+  STRIPE_WEBHOOK_SECRET:
+    target: worker
+    required: [preview, staging, production]
+  DATABASE_MIGRATION_URL:
+    target: ci
+    required: [staging, production]
+  NEON_API_KEY:
+    target: ci
+    required: [preview, staging, production]
+  R2_RECOVERY_ACCESS_KEY_ID:
+    target: ci
+    required: []
+  R2_RECOVERY_SECRET_ACCESS_KEY:
+    target: ci
+    required: []

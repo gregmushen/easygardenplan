@@ -1,0 +1,166 @@
+import { describe, expect, it } from "vitest";
+import { CloudflareR2ArtifactStore, InMemoryArtifactMetadataRepository, LocalArtifactStore, createArtifactSigner } from "./index.js";
+
+describe("tenant-owned artifact storage", () => {
+  it("stores, copies, and deletes local artifacts within one tenant", async () => { const store = new LocalArtifactStore(); const body = new Uint8Array([1, 2, 3]); const metadata = await store.put({ id: "a", organizationId: "org-a", key: "report.pdf", contentType: "application/pdf", body }); body[0] = 9; expect(metadata).toMatchObject({ organizationId: "org-a", size: 3 }); expect((await store.get("org-a", "a"))?.body[0]).toBe(1); expect(await store.delete("org-a", "a")).toBe(true); expect(await store.get("org-a", "a")).toBeNull(); await expect(store.put({ id: "a", organizationId: "org-a", key: "report.pdf", contentType: "application/pdf", body })).rejects.toThrow("unavailable"); });
+  it("fails closed for cross-tenant reads, deletes, and identifier replacement", async () => { const store = new LocalArtifactStore(); await store.put({ id: "a", organizationId: "org-a", key: "a.txt", contentType: "text/plain", body: new Uint8Array() }); expect(await store.get("org-b", "a")).toBeNull(); expect(await store.delete("org-b", "a")).toBe(false); await expect(store.put({ id: "a", organizationId: "org-b", key: "b.txt", contentType: "text/plain", body: new Uint8Array() })).rejects.toThrow("unavailable"); await expect(store.put({ id: "a", organizationId: "org-a", key: "a.txt", contentType: "text/plain", body: new Uint8Array() })).rejects.toThrow("unavailable"); });
+  it("reserves immutable metadata before uploading a uniquely keyed R2 object", async () => {
+    const calls: unknown[] = [];
+    const bytes = new Uint8Array([4, 5]);
+    const metadata = new InMemoryArtifactMetadataRepository();
+    const bucket = { put: async (...args: unknown[]) => { calls.push(args); expect(await metadata.get("org-a", "a")).toBeNull(); await expect(metadata.put({ id: "a", organizationId: "org-a", key: "replacement", contentType: "text/plain", size: 0, createdAt: new Date() })).rejects.toThrow("unavailable"); }, get: async () => ({ size: 2, arrayBuffer: async () => bytes.buffer }), delete: async (key: string) => { calls.push(key); } };
+    const store = new CloudflareR2ArtifactStore(bucket, metadata);
+    const created = await store.put({ id: "a", organizationId: "org-a", key: "x.bin", contentType: "application/octet-stream", body: bytes });
+    expect(created.key).toMatch(/^org-a\/a\/[0-9a-f-]{36}\/x\.bin$/u);
+    expect(calls[0]).toEqual([created.key, bytes, expect.objectContaining({ customMetadata: { artifactId: "a", organizationId: "org-a" } })]);
+    expect((await store.get("org-a", "a"))?.body).toEqual(bytes);
+    expect(await store.get("org-b", "a")).toBeNull();
+    await expect(store.put({ id: "a", organizationId: "org-b", key: "x.bin", contentType: "application/octet-stream", body: bytes })).rejects.toThrow("unavailable");
+    expect(calls).toHaveLength(1);
+    expect(await store.delete("org-a", "a")).toBe(true);
+    await expect(store.put({ id: "a", organizationId: "org-a", key: "x.bin", contentType: "application/octet-stream", body: bytes })).rejects.toThrow("unavailable");
+  });
+  it("removes a failed upload only after R2 cleanup is confirmed", async () => {
+    const metadata = new InMemoryArtifactMetadataRepository();
+    const deleted: string[] = [];
+    const store = new CloudflareR2ArtifactStore({ put: async () => { throw new Error("provider write failed"); }, get: async () => null, delete: async (key) => { deleted.push(key); } }, metadata);
+    await expect(store.put({ id: "failed", organizationId: "org-a", key: "x.bin", contentType: "application/octet-stream", body: new Uint8Array([1]) })).rejects.toThrow("provider write failed");
+    expect(deleted).toHaveLength(1);
+    expect(await metadata.get("org-a", "failed")).toBeNull();
+  });
+  it("retains the metadata reservation when R2 cleanup is uncertain", async () => {
+    const metadata = new InMemoryArtifactMetadataRepository();
+    const store = new CloudflareR2ArtifactStore({ put: async () => { throw new Error("write timed out"); }, get: async () => null, delete: async () => { throw new Error("delete timed out"); } }, metadata);
+    await expect(store.put({ id: "uncertain", organizationId: "org-a", key: "x.bin", contentType: "application/octet-stream", body: new Uint8Array([1]) })).rejects.toThrow("cleanup could not be verified");
+    expect(await metadata.get("org-a", "uncertain")).toBeNull();
+    await expect(store.put({ id: "uncertain", organizationId: "org-a", key: "x.bin", contentType: "application/octet-stream", body: new Uint8Array([1]) })).rejects.toThrow("unavailable");
+  });
+  it("retires an artifact ID when finalizing a written R2 object fails", async () => {
+    class FailingMetadata extends InMemoryArtifactMetadataRepository { override async complete(): Promise<boolean> { throw new Error("database unavailable"); } }
+    const metadata = new FailingMetadata();
+    const deleted: string[] = [];
+    const store = new CloudflareR2ArtifactStore({ put: async () => undefined, get: async () => null, delete: async (key) => { deleted.push(key); } }, metadata);
+    await expect(store.put({ id: "finalize", organizationId: "org-a", key: "x.bin", contentType: "application/octet-stream", body: new Uint8Array([1]) })).rejects.toThrow("could not be finalized");
+    expect(deleted).toHaveLength(1);
+    expect(await metadata.get("org-a", "finalize")).toBeNull();
+    await expect(store.put({ id: "finalize", organizationId: "org-a", key: "x.bin", contentType: "application/octet-stream", body: new Uint8Array([1]) })).rejects.toThrow("unavailable");
+  });
+  it("recovers only stale incomplete objects for the requested tenant", async () => {
+    const metadata = new InMemoryArtifactMetadataRepository();
+    const deleted: string[] = [];
+    const bucket = { put: async () => undefined, get: async () => null, delete: async (key: string) => { deleted.push(key); expect(await metadata.complete("org-a", "stale", key)).toBe(false); } };
+    const store = new CloudflareR2ArtifactStore(bucket, metadata);
+    const old = new Date("2026-01-01T00:00:00Z");
+    const recent = new Date("2026-01-03T00:00:00Z");
+    await metadata.put({ id: "stale", organizationId: "org-a", key: "org-a/stale", contentType: "text/plain", size: 1, createdAt: old });
+    await metadata.put({ id: "other", organizationId: "org-b", key: "org-b/other", contentType: "text/plain", size: 1, createdAt: old });
+    await metadata.put({ id: "recent", organizationId: "org-a", key: "org-a/recent", contentType: "text/plain", size: 1, createdAt: recent });
+    expect(await store.recoverIncomplete("org-a", new Date("2026-01-02T00:00:00Z"))).toEqual({ claimed: 1, retired: 1, failed: 0 });
+    expect(deleted).toEqual(["org-a/stale"]);
+    expect(await store.recoverIncomplete("org-a", new Date("2026-01-02T00:00:00Z"))).toEqual({ claimed: 0, retired: 0, failed: 0 });
+    await expect(metadata.put({ id: "stale", organizationId: "org-a", key: "reuse", contentType: "text/plain", size: 1, createdAt: recent })).rejects.toThrow("unavailable");
+    await expect(store.recoverIncomplete("org-a", new Date("invalid"))).rejects.toThrow("Invalid artifact recovery");
+    await expect(store.recoverIncomplete("org-a", new Date("2026-01-02T00:00:00Z"), 101)).rejects.toThrow("Invalid artifact recovery");
+  });
+  it("retries a cleanup whose R2 deletion failed without exposing the object", async () => {
+    const metadata = new InMemoryArtifactMetadataRepository();
+    let attempts = 0;
+    const store = new CloudflareR2ArtifactStore({ put: async () => undefined, get: async () => null, delete: async () => { attempts += 1; if (attempts === 1) throw new Error("R2 unavailable"); } }, metadata);
+    const createdAt = new Date("2026-01-01T00:00:00Z");
+    await metadata.put({ id: "retry", organizationId: "org-a", key: "org-a/retry", contentType: "text/plain", size: 1, createdAt });
+    const cutoff = new Date("2026-01-02T00:00:00Z");
+    expect(await store.recoverIncomplete("org-a", cutoff)).toEqual({ claimed: 1, retired: 0, failed: 1 });
+    expect(await metadata.get("org-a", "retry")).toBeNull();
+    expect(await store.recoverIncomplete("org-a", cutoff)).toEqual({ claimed: 1, retired: 1, failed: 0 });
+    expect(attempts).toBe(2);
+  });
+  it("hides a ready object before R2 deletion and retries a failed delete durably", async () => {
+    const metadata = new InMemoryArtifactMetadataRepository();
+    const bytes = new Uint8Array([4, 5]);
+    let attempts = 0;
+    const store = new CloudflareR2ArtifactStore({
+      put: async () => undefined,
+      get: async () => ({ size: bytes.length, arrayBuffer: async () => bytes.buffer }),
+      delete: async () => { expect(await metadata.get("org-a", "customer-delete")).toBeNull(); attempts += 1; if (attempts === 1) throw new Error("R2 unavailable"); },
+    }, metadata);
+    const createdAt = new Date("2026-01-01T00:00:00Z");
+    await metadata.put({ id: "customer-delete", organizationId: "org-a", key: "org-a/customer-delete", contentType: "text/plain", size: 2, createdAt });
+    expect(await metadata.complete("org-a", "customer-delete", "org-a/customer-delete")).toBe(true);
+    expect(await store.get("org-a", "customer-delete")).not.toBeNull();
+    expect(await store.delete("org-b", "customer-delete")).toBe(false);
+    await expect(store.delete("org-a", "customer-delete")).rejects.toThrow("R2 unavailable");
+    expect(await store.get("org-a", "customer-delete")).toBeNull();
+    expect(await metadata.get("org-a", "customer-delete")).toBeNull();
+    expect(await store.recoverIncomplete("org-a", new Date("2026-01-02T00:00:00Z"))).toEqual({ claimed: 1, retired: 1, failed: 0 });
+    expect(attempts).toBe(2);
+    expect(await store.delete("org-a", "customer-delete")).toBe(false);
+    await expect(metadata.put({ id: "customer-delete", organizationId: "org-a", key: "reuse", contentType: "text/plain", size: 0, createdAt })).rejects.toThrow("unavailable");
+  });
+
+  it("hides expired ready objects before the sweep and retries a failed retention delete", async () => {
+    const metadata = new InMemoryArtifactMetadataRepository();
+    const old = new Date("2026-01-01T00:00:00Z");
+    const recent = new Date("2026-01-29T00:00:00Z");
+    const now = new Date("2026-01-31T00:00:00Z");
+    await metadata.put({ id: "expired", organizationId: "org-a", key: "org-a/expired", contentType: "text/plain", size: 1, createdAt: old });
+    await metadata.complete("org-a", "expired", "org-a/expired");
+    await metadata.put({ id: "recent", organizationId: "org-a", key: "org-a/recent", contentType: "text/plain", size: 1, createdAt: recent });
+    await metadata.complete("org-a", "recent", "org-a/recent");
+    const deleted: string[] = [];
+    let fail = true;
+    const store = new CloudflareR2ArtifactStore({ put: async () => undefined, get: async () => ({ size: 1, arrayBuffer: async () => new Uint8Array([1]).buffer }), delete: async (key) => { deleted.push(key); if (fail) { fail = false; throw new Error("R2 unavailable"); } } }, metadata, { maxAgeDays: 7, now: () => now });
+    expect(await store.get("org-a", "expired")).toBeNull();
+    expect(await store.get("org-a", "recent")).not.toBeNull();
+    expect(await store.expireReady("org-b", new Date("2026-01-24T00:00:00Z"))).toEqual({ claimed: 0, retired: 0, failed: 0 });
+    expect(await store.expireReady("org-a", new Date("2026-01-24T00:00:00Z"))).toEqual({ claimed: 1, retired: 0, failed: 1 });
+    expect(await metadata.get("org-a", "expired")).toBeNull();
+    expect(await store.expireReady("org-a", new Date("2026-01-24T00:00:00Z"))).toEqual({ claimed: 0, retired: 0, failed: 0 });
+    expect(await store.recoverIncomplete("org-a", new Date("2026-01-24T00:00:00Z"))).toEqual({ claimed: 1, retired: 1, failed: 0 });
+    expect(deleted).toEqual(["org-a/expired", "org-a/expired"]);
+    expect(await store.get("org-a", "recent")).not.toBeNull();
+  });
+
+  it("retries metadata finalization after R2 deletion was accepted", async () => {
+    class FlakyMetadata extends InMemoryArtifactMetadataRepository {
+      attempts = 0;
+      override async retire(organizationId: string, id: string, key: string): Promise<boolean> {
+        this.attempts += 1;
+        if (this.attempts === 1) throw new Error("PostgreSQL unavailable");
+        return super.retire(organizationId, id, key);
+      }
+    }
+    const metadata = new FlakyMetadata();
+    let deletes = 0;
+    const store = new CloudflareR2ArtifactStore({ put: async () => undefined, get: async () => null, delete: async () => { deletes += 1; } }, metadata);
+    await metadata.put({ id: "finalize-delete", organizationId: "org-a", key: "org-a/finalize-delete", contentType: "text/plain", size: 0, createdAt: new Date("2026-01-01T00:00:00Z") });
+    await metadata.complete("org-a", "finalize-delete", "org-a/finalize-delete");
+    await expect(store.delete("org-a", "finalize-delete")).rejects.toThrow("PostgreSQL unavailable");
+    expect(await store.get("org-a", "finalize-delete")).toBeNull();
+    expect(await store.recoverIncomplete("org-a", new Date("2026-01-02T00:00:00Z"))).toEqual({ claimed: 1, retired: 1, failed: 0 });
+    expect(deletes).toBe(2);
+  });
+  it("signs artifact access with tenant scope, expiry, and a cryptographic MAC", async () => {
+    let now = new Date("2026-01-01T00:00:00Z");
+    const signer = createArtifactSigner("a-32-byte-minimum-secret-for-tests", () => now);
+    const access = await signer.create("org-a", "artifact-a", 60);
+    const params = new URL(`http://localhost${access.url}`).searchParams;
+    const input = { organizationId: "org-a", artifactId: "artifact-a", expiresAt: Number(params.get("expires")), signature: params.get("signature")! };
+    expect(input.signature).toMatch(/^[A-Za-z0-9_-]{43}$/u);
+    expect(await signer.verify(input)).toBe(true);
+    expect(await signer.verify({ ...input, organizationId: "org-b" })).toBe(false);
+    expect(await signer.verify({ ...input, artifactId: "artifact-b" })).toBe(false);
+    expect(await signer.verify({ ...input, expiresAt: input.expiresAt + 60_000 })).toBe(false);
+    expect(await signer.verify({ ...input, signature: `${input.signature.slice(0, -1)}!` })).toBe(false);
+    expect(await createArtifactSigner("another-32-byte-secret-for-tests!!", () => now).verify(input)).toBe(false);
+    now = new Date("2026-01-01T00:02:00Z");
+    expect(await signer.verify(input)).toBe(false);
+  });
+
+  it("rejects weak secrets, ambiguous identities, and unbounded link lifetimes", async () => {
+    expect(() => createArtifactSigner("short")).toThrow("32 bytes");
+    const signer = createArtifactSigner("a-32-byte-minimum-secret-for-tests");
+    await expect(signer.create("", "artifact-a")).rejects.toThrow("owner");
+    await expect(signer.create("org-a", "artifact-a", 3601)).rejects.toThrow("TTL");
+    expect(await signer.verify({ organizationId: "org-a", artifactId: "artifact-a", expiresAt: Number.NaN, signature: "x".repeat(43) })).toBe(false);
+  });
+});

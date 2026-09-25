@@ -1,0 +1,33 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "easygardenplan-worker",
+  "main": "src/worker-entry.ts",
+  "compatibility_date": "2026-09-21",
+  "compatibility_flags": ["nodejs_compat"],
+  "vars": {
+    "WEB_ORIGIN": "http://localhost:42069",
+    "APP_ENV": "local",
+    "WEBHOOK_DELIVERY_MODE": "disabled",
+    "EMAIL_DELIVERY_MODE": "local",
+    "EMAIL_FROM": "easygardenplan <noreply@example.test>"
+    ,"STRIPE_MODE": "local"
+  },
+  "secrets": { "required": ["DATABASE_URL", "DATABASE_DRIVER", "BETTER_AUTH_SECRET", "BETTER_AUTH_URL"] },
+  "env": {
+    "preview": {
+      "name": "easygardenplan-worker-preview",
+      "secrets": { "required": ["DATABASE_URL", "DATABASE_DRIVER", "BETTER_AUTH_SECRET", "BETTER_AUTH_URL", "RESEND_API_KEY", "RESEND_WEBHOOK_SECRET", "STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET"] },
+      "vars": { "APP_ENV": "preview", "WEBHOOK_DELIVERY_MODE": "disabled", "EMAIL_DELIVERY_MODE": "resend", "EMAIL_FROM": "CHANGE_ME", "EMAIL_STAGING_REDIRECT": "CHANGE_ME", "WEB_ORIGIN": "CHANGE_ME", "STRIPE_MODE": "test", "STRIPE_PUBLISHABLE_KEY": "CHANGE_ME", "STRIPE_PRICES": "{}", "BILLING_RETURN_URL": "CHANGE_ME" }
+    },
+    "staging": {
+      "name": "easygardenplan-worker-staging",
+      "secrets": { "required": ["DATABASE_URL", "DATABASE_DRIVER", "BETTER_AUTH_SECRET", "BETTER_AUTH_URL", "RESEND_API_KEY", "RESEND_WEBHOOK_SECRET", "STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET"] },
+      "vars": { "APP_ENV": "staging", "WEBHOOK_DELIVERY_MODE": "disabled", "EMAIL_DELIVERY_MODE": "resend", "EMAIL_FROM": "CHANGE_ME", "EMAIL_STAGING_REDIRECT": "CHANGE_ME", "WEB_ORIGIN": "CHANGE_ME", "STRIPE_MODE": "test", "STRIPE_PUBLISHABLE_KEY": "CHANGE_ME", "STRIPE_PRICES": "{}", "BILLING_RETURN_URL": "CHANGE_ME" }
+    },
+    "production": {
+      "name": "easygardenplan-worker",
+      "secrets": { "required": ["DATABASE_URL", "DATABASE_DRIVER", "BETTER_AUTH_SECRET", "BETTER_AUTH_URL", "RESEND_API_KEY", "RESEND_WEBHOOK_SECRET", "STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET"] },
+      "vars": { "APP_ENV": "production", "WEBHOOK_DELIVERY_MODE": "disabled", "EMAIL_DELIVERY_MODE": "resend", "EMAIL_FROM": "CHANGE_ME", "WEB_ORIGIN": "CHANGE_ME", "STRIPE_MODE": "live", "STRIPE_PUBLISHABLE_KEY": "CHANGE_ME", "STRIPE_PRICES": "{}", "BILLING_RETURN_URL": "CHANGE_ME" }
+    }
+  }
+}

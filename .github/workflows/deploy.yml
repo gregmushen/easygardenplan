@@ -1,0 +1,388 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  staging:
+    environment: staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - name: Prepare staging Queue bindings
+        run: node scripts/queue-config.mjs render staging easygardenplan-worker-staging
+      - name: Detect the optional platform admin
+        id: admin
+        run: node scripts/admin-capability.mjs status
+      - name: Verify staging configuration and Cloudflare access
+        run: |
+          pnpm exec trestle doctor --env staging
+          node scripts/cloudflare-preflight.mjs
+          node scripts/cloudflare-cron-preflight.mjs
+        env:
+          TRESTLE_MASTER_KEY: "${{ secrets.TRESTLE_MASTER_KEY }}"
+          CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+          TRESTLE_WRANGLER_CONFIG: apps/worker/.trestle-queues.wrangler.jsonc
+          TRESTLE_CRON_DEPLOY_ENV: staging
+          CLOUDFLARE_WORKERS_PLAN: "${{ vars.CLOUDFLARE_WORKERS_PLAN }}"
+      - name: Verify staging Resend and Stripe credentials before provisioning
+        run: |
+          export RESEND_API_KEY="$(pnpm exec trestle secrets get RESEND_API_KEY --env staging --raw)"
+          echo "::add-mask::$RESEND_API_KEY"
+          export STRIPE_SECRET_KEY="$(pnpm exec trestle secrets get STRIPE_SECRET_KEY --env staging --raw)"
+          echo "::add-mask::$STRIPE_SECRET_KEY"
+          node scripts/transactional-provider-preflight.mjs
+          pnpm exec trestle email doctor --env staging
+        env:
+          TRESTLE_MASTER_KEY: "${{ secrets.TRESTLE_MASTER_KEY }}"
+          TRESTLE_STRIPE_MODE: test
+      - name: Provision staging Queues
+        run: node scripts/cloudflare-queues.mjs ensure easygardenplan-worker-staging
+        env:
+          CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+      - name: Provision staging R2 bucket
+        run: node scripts/cloudflare-r2.mjs ensure easygardenplan-worker-staging
+        env:
+          CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+      - run: pnpm typecheck && pnpm test && pnpm build
+        env:
+          APP_URL: "${{ vars.APP_URL }}"
+          SITE_URL: "${{ vars.SITE_URL }}"
+      - run: pnpm exec trestle secrets check --env staging
+        env: { TRESTLE_MASTER_KEY: "${{ secrets.TRESTLE_MASTER_KEY }}" }
+      - name: Bootstrap staging runtime role
+        run: |
+          export DATABASE_MIGRATION_URL="$(pnpm exec trestle secrets get DATABASE_MIGRATION_URL --env staging --raw)"
+          export DATABASE_URL="$(pnpm exec trestle secrets get DATABASE_URL --env staging --raw)"
+          pnpm --filter ./packages/db db:roles:bootstrap
+        env:
+          TRESTLE_MASTER_KEY: "${{ secrets.TRESTLE_MASTER_KEY }}"
+          DATABASE_RUNTIME_ROLE: "${{ vars.DATABASE_RUNTIME_ROLE }}"
+      - name: Migrate staging
+        run: |
+          database_url="$(pnpm exec trestle secrets get DATABASE_MIGRATION_URL --env staging --raw)"
+          export DATABASE_URL="$database_url"
+          pnpm db:migrate
+        env: { TRESTLE_MASTER_KEY: "${{ secrets.TRESTLE_MASTER_KEY }}" }
+      - name: Configure staging database roles
+        run: |
+          database_migration_url="$(pnpm exec trestle secrets get DATABASE_MIGRATION_URL --env staging --raw)"
+          export DATABASE_MIGRATION_URL="$database_migration_url"
+          pnpm --filter ./packages/db db:roles:configure
+        env:
+          TRESTLE_MASTER_KEY: "${{ secrets.TRESTLE_MASTER_KEY }}"
+          DATABASE_RUNTIME_ROLE: "${{ vars.DATABASE_RUNTIME_ROLE }}"
+      - name: Verify staging runtime role
+        run: |
+          database_url="$(pnpm exec trestle secrets get DATABASE_URL --env staging --raw)"
+          export DATABASE_URL="$database_url"
+          pnpm --filter ./packages/db db:roles:verify
+        env:
+          TRESTLE_MASTER_KEY: "${{ secrets.TRESTLE_MASTER_KEY }}"
+          DATABASE_RUNTIME_ROLE: "${{ vars.DATABASE_RUNTIME_ROLE }}"
+      - name: Rotate the staging browser fixture without sending email
+        run: |
+          export DATABASE_URL="$(pnpm exec trestle secrets get DATABASE_URL --env staging --raw)"
+          pnpm --filter ./packages/auth exec tsx src/staging-fixture.ts
+        env:
+          TRESTLE_MASTER_KEY: "${{ secrets.TRESTLE_MASTER_KEY }}"
+          TRESTLE_DEPLOY_ENV: staging
+      - name: Configure and verify the staging platform admin database role
+        if: steps.admin.outputs.enabled == 'true'
+        run: |
+          database_migration_url="$(pnpm exec trestle secrets get DATABASE_MIGRATION_URL --env staging --raw)"
+          database_admin_url="$(pnpm exec trestle secrets get DATABASE_ADMIN_URL --env staging --raw)"
+          DATABASE_MIGRATION_URL="$database_migration_url" pnpm --filter ./packages/db db:platform:configure
+          DATABASE_ADMIN_URL="$database_admin_url" pnpm --filter ./packages/db db:platform:verify
+        env:
+          TRESTLE_MASTER_KEY: "${{ secrets.TRESTLE_MASTER_KEY }}"
+          DATABASE_ADMIN_RUNTIME_ROLE: "${{ vars.DATABASE_ADMIN_RUNTIME_ROLE }}"
+      - run: pnpm exec trestle secrets push --env staging
+        env:
+          TRESTLE_MASTER_KEY: "${{ secrets.TRESTLE_MASTER_KEY }}"
+          CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+      - name: Provision staging Pages projects
+        run: |
+          node scripts/cloudflare-pages.mjs ensure easygardenplan-staging
+          node scripts/cloudflare-pages.mjs ensure easygardenplan-site-staging
+        env:
+          CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+      - uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3
+        with:
+          apiToken: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          accountId: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+          packageManager: pnpm
+          workingDirectory: apps/worker
+          command: deploy --config .trestle-queues.wrangler.jsonc --env staging --var WEB_ORIGIN:${{ vars.APP_URL }}
+      - name: Bind staging Pages app to API Worker
+        run: node scripts/cloudflare-pages.mjs bind-service easygardenplan-staging easygardenplan-worker-staging
+        env:
+          CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+      - run: VITE_API_ORIGIN="${{ vars.APP_URL }}" pnpm --filter @easygardenplan/app build
+      - uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3
+        with:
+          apiToken: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          accountId: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+          packageManager: pnpm
+          workingDirectory: apps/app
+          command: pages deploy dist --project-name easygardenplan-staging --branch main
+      - uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3
+        with:
+          apiToken: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          accountId: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+          packageManager: pnpm
+          workingDirectory: apps/site
+          command: pages deploy dist --project-name easygardenplan-site-staging --branch main
+      # The platform admin deploys only when capabilities.admin is true, to its own Worker and Pages origin.
+      - name: Provision the staging platform admin Pages project
+        if: steps.admin.outputs.enabled == 'true'
+        run: node scripts/cloudflare-pages.mjs ensure easygardenplan-admin-staging
+        env:
+          CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+      - if: steps.admin.outputs.enabled == 'true'
+        uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3
+        with:
+          apiToken: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          accountId: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+          packageManager: pnpm
+          workingDirectory: apps/admin
+          command: deploy --env staging --var ADMIN_ORIGIN:${{ vars.ADMIN_URL }} --var ADMIN_API_URL:${{ vars.ADMIN_API_URL }} --var API_URL:${{ vars.API_URL }}
+      - if: steps.admin.outputs.enabled == 'true'
+        run: VITE_ADMIN_API_ORIGIN="${{ vars.ADMIN_API_URL }}" pnpm --filter @easygardenplan/admin build
+      - if: steps.admin.outputs.enabled == 'true'
+        uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3
+        with:
+          apiToken: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          accountId: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+          packageManager: pnpm
+          workingDirectory: apps/admin
+          command: pages deploy dist --project-name easygardenplan-admin-staging --branch main
+      - run: node scripts/smoke.mjs
+        env: { TRESTLE_DEPLOY_ENV: staging, SITE_URL: "${{ vars.SITE_URL }}", APP_URL: "${{ vars.APP_URL }}", API_URL: "${{ vars.API_URL }}" }
+      - name: Verify the deployed staging platform admin
+        if: steps.admin.outputs.enabled == 'true'
+        run: node scripts/admin-capability.mjs smoke
+        env: { ADMIN_URL: "${{ vars.ADMIN_URL }}", ADMIN_API_URL: "${{ vars.ADMIN_API_URL }}" }
+      - name: Verify staging Queue and R2 resources
+        run: |
+          node scripts/cloudflare-queues.mjs verify easygardenplan-worker-staging
+          node scripts/cloudflare-r2.mjs verify easygardenplan-worker-staging
+        env:
+          CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+      - name: Install deployed browser runtime
+        run: pnpm exec playwright install --with-deps --only-shell chromium
+      - name: Verify deployed staging site and product in Chromium without sending email
+        run: |
+          export DATABASE_URL="$(pnpm exec trestle secrets get DATABASE_URL --env staging --raw)"
+          pnpm test:staging
+        env:
+          TRESTLE_MASTER_KEY: "${{ secrets.TRESTLE_MASTER_KEY }}"
+          SITE_URL: "${{ vars.SITE_URL }}"
+          APP_URL: "${{ vars.APP_URL }}"
+          API_URL: "${{ vars.API_URL }}"
+      - name: Publish staging deployment evidence
+        run: node scripts/github-deployment.mjs create staging "${{ github.sha }}" "${{ vars.APP_URL }}"
+        env: { GITHUB_TOKEN: "${{ github.token }}" }
+
+  production:
+    needs: staging
+    environment: production
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - name: Prepare production Queue bindings
+        run: node scripts/queue-config.mjs render production easygardenplan-worker
+      - name: Detect the optional platform admin
+        id: admin
+        run: node scripts/admin-capability.mjs status
+      - name: Verify production configuration and Cloudflare access
+        run: |
+          pnpm exec trestle doctor --env production
+          node scripts/cloudflare-preflight.mjs
+          node scripts/cloudflare-cron-preflight.mjs
+        env:
+          TRESTLE_MASTER_KEY: "${{ secrets.TRESTLE_MASTER_KEY }}"
+          CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+          TRESTLE_WRANGLER_CONFIG: apps/worker/.trestle-queues.wrangler.jsonc
+          TRESTLE_CRON_DEPLOY_ENV: production
+          CLOUDFLARE_WORKERS_PLAN: "${{ vars.CLOUDFLARE_WORKERS_PLAN }}"
+      - name: Verify production Resend and Stripe credentials before provisioning
+        run: |
+          export RESEND_API_KEY="$(pnpm exec trestle secrets get RESEND_API_KEY --env production --raw)"
+          echo "::add-mask::$RESEND_API_KEY"
+          export STRIPE_SECRET_KEY="$(pnpm exec trestle secrets get STRIPE_SECRET_KEY --env production --raw)"
+          echo "::add-mask::$STRIPE_SECRET_KEY"
+          node scripts/transactional-provider-preflight.mjs
+          pnpm exec trestle email doctor --env production
+        env:
+          TRESTLE_MASTER_KEY: "${{ secrets.TRESTLE_MASTER_KEY }}"
+          TRESTLE_STRIPE_MODE: live
+      - name: Provision production Queues
+        run: node scripts/cloudflare-queues.mjs ensure easygardenplan-worker
+        env:
+          CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+      - name: Provision production R2 bucket
+        run: node scripts/cloudflare-r2.mjs ensure easygardenplan-worker
+        env:
+          CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+      - run: pnpm typecheck && pnpm test && pnpm build
+        env:
+          APP_URL: "${{ vars.APP_URL }}"
+          SITE_URL: "${{ vars.SITE_URL }}"
+      - run: pnpm exec trestle secrets check --env production
+        env: { TRESTLE_MASTER_KEY: "${{ secrets.TRESTLE_MASTER_KEY }}" }
+      - name: Bootstrap production runtime role
+        run: |
+          export DATABASE_MIGRATION_URL="$(pnpm exec trestle secrets get DATABASE_MIGRATION_URL --env production --raw)"
+          export DATABASE_URL="$(pnpm exec trestle secrets get DATABASE_URL --env production --raw)"
+          pnpm --filter ./packages/db db:roles:bootstrap
+        env:
+          TRESTLE_MASTER_KEY: "${{ secrets.TRESTLE_MASTER_KEY }}"
+          DATABASE_RUNTIME_ROLE: "${{ vars.DATABASE_RUNTIME_ROLE }}"
+      - name: Migrate production
+        run: |
+          database_url="$(pnpm exec trestle secrets get DATABASE_MIGRATION_URL --env production --raw)"
+          export DATABASE_URL="$database_url"
+          pnpm db:migrate
+        env: { TRESTLE_MASTER_KEY: "${{ secrets.TRESTLE_MASTER_KEY }}" }
+      - name: Configure production database roles
+        run: |
+          database_migration_url="$(pnpm exec trestle secrets get DATABASE_MIGRATION_URL --env production --raw)"
+          export DATABASE_MIGRATION_URL="$database_migration_url"
+          pnpm --filter ./packages/db db:roles:configure
+        env:
+          TRESTLE_MASTER_KEY: "${{ secrets.TRESTLE_MASTER_KEY }}"
+          DATABASE_RUNTIME_ROLE: "${{ vars.DATABASE_RUNTIME_ROLE }}"
+      - name: Verify production runtime role
+        run: |
+          database_url="$(pnpm exec trestle secrets get DATABASE_URL --env production --raw)"
+          export DATABASE_URL="$database_url"
+          pnpm --filter ./packages/db db:roles:verify
+        env:
+          TRESTLE_MASTER_KEY: "${{ secrets.TRESTLE_MASTER_KEY }}"
+          DATABASE_RUNTIME_ROLE: "${{ vars.DATABASE_RUNTIME_ROLE }}"
+      - name: Configure and verify the production platform admin database role
+        if: steps.admin.outputs.enabled == 'true'
+        run: |
+          database_migration_url="$(pnpm exec trestle secrets get DATABASE_MIGRATION_URL --env production --raw)"
+          database_admin_url="$(pnpm exec trestle secrets get DATABASE_ADMIN_URL --env production --raw)"
+          DATABASE_MIGRATION_URL="$database_migration_url" pnpm --filter ./packages/db db:platform:configure
+          DATABASE_ADMIN_URL="$database_admin_url" pnpm --filter ./packages/db db:platform:verify
+        env:
+          TRESTLE_MASTER_KEY: "${{ secrets.TRESTLE_MASTER_KEY }}"
+          DATABASE_ADMIN_RUNTIME_ROLE: "${{ vars.DATABASE_ADMIN_RUNTIME_ROLE }}"
+      - run: pnpm exec trestle secrets push --env production
+        env:
+          TRESTLE_MASTER_KEY: "${{ secrets.TRESTLE_MASTER_KEY }}"
+          CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+      - name: Provision production Pages projects
+        run: |
+          node scripts/cloudflare-pages.mjs ensure easygardenplan
+          node scripts/cloudflare-pages.mjs ensure easygardenplan-site
+        env:
+          CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+      - uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3
+        with:
+          apiToken: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          accountId: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+          packageManager: pnpm
+          workingDirectory: apps/worker
+          command: deploy --config .trestle-queues.wrangler.jsonc --env production --var WEB_ORIGIN:${{ vars.APP_URL }}
+      - name: Bind production Pages app to API Worker
+        run: node scripts/cloudflare-pages.mjs bind-service easygardenplan easygardenplan-worker
+        env:
+          CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+      - run: VITE_API_ORIGIN="${{ vars.APP_URL }}" pnpm --filter @easygardenplan/app build
+      - uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3
+        with:
+          apiToken: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          accountId: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+          packageManager: pnpm
+          workingDirectory: apps/app
+          command: pages deploy dist --project-name easygardenplan --branch main
+      - uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3
+        with:
+          apiToken: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          accountId: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+          packageManager: pnpm
+          workingDirectory: apps/site
+          command: pages deploy dist --project-name easygardenplan-site --branch main
+      # The platform admin deploys only when capabilities.admin is true, to its own Worker and Pages origin.
+      - name: Provision the production platform admin Pages project
+        if: steps.admin.outputs.enabled == 'true'
+        run: node scripts/cloudflare-pages.mjs ensure easygardenplan-admin
+        env:
+          CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+      - if: steps.admin.outputs.enabled == 'true'
+        uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3
+        with:
+          apiToken: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          accountId: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+          packageManager: pnpm
+          workingDirectory: apps/admin
+          command: deploy --env production --var ADMIN_ORIGIN:${{ vars.ADMIN_URL }} --var ADMIN_API_URL:${{ vars.ADMIN_API_URL }} --var API_URL:${{ vars.API_URL }}
+      - if: steps.admin.outputs.enabled == 'true'
+        run: VITE_ADMIN_API_ORIGIN="${{ vars.ADMIN_API_URL }}" pnpm --filter @easygardenplan/admin build
+      - if: steps.admin.outputs.enabled == 'true'
+        uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3
+        with:
+          apiToken: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          accountId: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+          packageManager: pnpm
+          workingDirectory: apps/admin
+          command: pages deploy dist --project-name easygardenplan-admin --branch main
+      - run: node scripts/smoke.mjs
+        env: { TRESTLE_DEPLOY_ENV: production, SITE_URL: "${{ vars.SITE_URL }}", APP_URL: "${{ vars.APP_URL }}", API_URL: "${{ vars.API_URL }}" }
+      - name: Verify the deployed production platform admin
+        if: steps.admin.outputs.enabled == 'true'
+        run: node scripts/admin-capability.mjs smoke
+        env: { ADMIN_URL: "${{ vars.ADMIN_URL }}", ADMIN_API_URL: "${{ vars.ADMIN_API_URL }}" }
+      - name: Verify production Queue and R2 resources
+        run: |
+          node scripts/cloudflare-queues.mjs verify easygardenplan-worker
+          node scripts/cloudflare-r2.mjs verify easygardenplan-worker
+        env:
+          CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+      - name: Install deployed browser runtime
+        run: pnpm exec playwright install --with-deps --only-shell chromium
+      - name: Verify deployed production site and application in Chromium
+        run: pnpm test:deployed
+        env: { SITE_URL: "${{ vars.SITE_URL }}", APP_URL: "${{ vars.APP_URL }}", API_URL: "${{ vars.API_URL }}" }
+      - name: Publish production deployment evidence
+        run: node scripts/github-deployment.mjs create production "${{ github.sha }}" "${{ vars.APP_URL }}"
+        env: { GITHUB_TOKEN: "${{ github.token }}" }

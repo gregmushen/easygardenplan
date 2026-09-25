@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: trestle_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports: [5432:5432]
+        options: >-
+          --health-cmd "pg_isready -U postgres -d trestle_test"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec trestle ci validate
+      - run: pnpm exec trestle architecture check
+      - run: pnpm typecheck
+      - run: pnpm db:migrate
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/trestle_test
+      - run: pnpm test
+        env:
+          TRESTLE_RLS_TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/trestle_test
+          TRESTLE_INBOX_TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/trestle_test
+          TRESTLE_INBOX_TEST_ADMIN_DATABASE_URL: postgres://postgres:postgres@localhost:5432/trestle_test
+          TRESTLE_SYSTEM_TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/trestle_test
+          TRESTLE_PROVIDER_INTEGRATION_TESTS: "0"
+      - run: pnpm build
+      - name: Install browser test runtime
+        run: pnpm exec playwright install --with-deps --only-shell chromium
+      - name: Exercise the local product in Chromium
+        run: pnpm test:browser
+        env:
+          DEBUG: pw:webserver
+          TRESTLE_BROWSER_DATABASE_URL: postgres://postgres:postgres@localhost:5432/trestle_test
+      - name: Validate Wrangler configuration
+        run: pnpm --filter @easygardenplan/worker exec wrangler deploy --dry-run

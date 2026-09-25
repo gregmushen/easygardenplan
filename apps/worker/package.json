@@ -1,0 +1,35 @@
+{
+  "name": "@easygardenplan/worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "wrangler deploy --dry-run --outdir dist",
+    "dev": "wrangler dev --port 8787",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@easygardenplan/auth": "workspace:*",
+    "@easygardenplan/authz": "workspace:*",
+    "@easygardenplan/billing": "workspace:*",
+    "@easygardenplan/context": "workspace:*",
+    "@easygardenplan/contracts": "workspace:*",
+    "@easygardenplan/data": "workspace:*",
+    "@easygardenplan/db": "workspace:*",
+    "@easygardenplan/domain": "workspace:*",
+    "@easygardenplan/events": "workspace:*",
+    "@easygardenplan/integrations": "workspace:*",
+    "better-auth": "1.7.5",
+    "drizzle-orm": "0.45.3",
+    "hono": "4.13.8",
+    "ipaddr.js": "2.5.0",
+    "postgres": "3.4.9"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.2",
+    "typescript": "7.0.2",
+    "vitest": "5.0.1",
+    "wrangler": "4.135.0",
+    "zod": "4.6.5"
+  }
+}

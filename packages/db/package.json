@@ -1,0 +1,32 @@
+{
+  "name": "@easygardenplan/db",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "db:generate": "node scripts/generate-migration.mjs",
+    "db:migrate": "drizzle-kit migrate --config drizzle.config.ts",
+    "db:roles:bootstrap": "tsx scripts/runtime-role.ts bootstrap",
+    "db:roles:configure": "tsx scripts/runtime-role.ts configure",
+    "db:roles:verify": "tsx scripts/runtime-role.ts verify",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit",
+    "db:platform:configure": "tsx scripts/platform-role.ts configure",
+    "db:platform:verify": "tsx scripts/platform-role.ts verify",
+    "platform:admin": "tsx scripts/platform-admin.ts"
+  },
+  "dependencies": {
+    "@easygardenplan/authz": "workspace:*",
+    "@easygardenplan/events": "workspace:*",
+    "@easygardenplan/integrations": "workspace:*",
+    "@neondatabase/serverless": "1.1.0",
+    "drizzle-orm": "0.45.3",
+    "postgres": "3.4.9"
+  },
+  "devDependencies": {
+    "drizzle-kit": "0.31.11",
+    "tsx": "4.20.6",
+    "zod": "4.6.5"
+  }
+}

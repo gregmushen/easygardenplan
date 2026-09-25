@@ -1,0 +1,39 @@
+import type { AuthEnvironment } from "@easygardenplan/auth";
+import { createTenantDatabase, PostgresArtifactMetadataRepository } from "@easygardenplan/db";
+import { CloudflareR2ArtifactStore, createArtifactSigner, LocalArtifactStore, type ArtifactStore } from "@easygardenplan/integrations";
+import { artifactRetentionDays } from "./artifact-retention.js";
+
+const localArtifacts = new LocalArtifactStore();
+
+export function artifactStore(environment: AuthEnvironment, organizationId: string): ArtifactStore {
+  const days = artifactRetentionDays(environment.ARTIFACT_READY_RETENTION_DAYS);
+  if (environment.TRESTLE_ARTIFACTS) {
+    return new CloudflareR2ArtifactStore(
+      environment.TRESTLE_ARTIFACTS,
+      new PostgresArtifactMetadataRepository(createTenantDatabase(environment.DATABASE_URL, environment.DATABASE_DRIVER, organizationId)),
+      days === null ? undefined : { maxAgeDays: days, now: () => new Date() },
+    );
+  }
+  if (days !== null) throw new Error("Ready artifact retention requires the R2 binding");
+  if (!environment.APP_ENV || environment.APP_ENV === "local") return localArtifacts;
+  throw new Error("R2 artifact binding is required outside local development");
+}
+
+export function artifactSigner(environment: AuthEnvironment) {
+  const secret = environment.ARTIFACT_SIGNING_SECRET
+    ?? (!environment.APP_ENV || environment.APP_ENV === "local" ? environment.BETTER_AUTH_SECRET : undefined);
+  if (!secret) throw new Error("ARTIFACT_SIGNING_SECRET is required outside local development");
+  return createArtifactSigner(secret);
+}
+
+export function publicArtifactUrl(signedPath: string, environment: AuthEnvironment, requestUrl: string): string {
+  // Pages forwards API requests under the app hostname, but signed downloads
+  // use a Worker route that Pages does not proxy.
+  return new URL(signedPath, environment.BETTER_AUTH_URL ?? requestUrl).toString();
+}
+
+export function artifactRuntimeReady(environment: AuthEnvironment): boolean {
+  return !environment.APP_ENV || environment.APP_ENV === "local"
+    || Boolean(environment.TRESTLE_ARTIFACTS && environment.ARTIFACT_SIGNING_SECRET
+      && new TextEncoder().encode(environment.ARTIFACT_SIGNING_SECRET).byteLength >= 32);
+}

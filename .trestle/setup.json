@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "minimumTrestleVersion": "0.1.0-beta.1",
+  "project": {
+    "name": "easygardenplan"
+  },
+  "apps": {
+    "site": true,
+    "app": true,
+    "worker": true
+  },
+  "tenancy": {
+    "model": "organization",
+    "enforcement": "postgres-rls"
+  },
+  "database": {
+    "engine": "postgresql",
+    "provider": "neon"
+  },
+  "capabilities": {
+    "r2": false,
+    "queues": false,
+    "workflows": false,
+    "durableObjects": false,
+    "admin": false
+  },
+  "integrations": {
+    "email": true,
+    "billing": true
+  },
+  "environments": [
+    "local",
+    "preview",
+    "staging",
+    "production"
+  ],
+  "secrets": [
+    {
+      "name": "DATABASE_URL",
+      "target": "worker",
+      "required": ["local", "staging", "production"]
+    },
+    {
+      "name": "DATABASE_DRIVER",
+      "target": "worker",
+      "required": ["local", "preview", "staging", "production"]
+    },
+    {
+      "name": "BETTER_AUTH_SECRET",
+      "target": "worker",
+      "required": ["local", "preview", "staging", "production"]
+    },
+    {
+      "name": "BETTER_AUTH_URL",
+      "target": "worker",
+      "required": ["local", "preview", "staging", "production"]
+    },
+    {
+      "name": "RESEND_API_KEY",
+      "target": "worker",
+      "required": ["preview", "staging", "production"]
+    },
+    {
+      "name": "RESEND_WEBHOOK_SECRET",
+      "target": "worker",
+      "required": ["preview", "staging", "production"]
+    },
+    {
+      "name": "STRIPE_SECRET_KEY",
+      "target": "worker",
+      "required": ["preview", "staging", "production"]
+    },
+    {
+      "name": "STRIPE_WEBHOOK_SECRET",
+      "target": "worker",
+      "required": ["preview", "staging", "production"]
+    },
+    {
+      "name": "DATABASE_MIGRATION_URL",
+      "target": "ci",
+      "required": ["staging", "production"]
+    },
+    {
+      "name": "NEON_API_KEY",
+      "target": "ci",
+      "required": ["preview", "staging", "production"]
+    }
+  ],
+  "resources": []
+}

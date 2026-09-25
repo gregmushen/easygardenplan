@@ -1,0 +1,22 @@
+{
+  "name": "@easygardenplan/auth",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@easygardenplan/authz": "workspace:*",
+    "@easygardenplan/context": "workspace:*",
+    "@easygardenplan/db": "workspace:*",
+    "@easygardenplan/integrations": "workspace:*",
+    "better-auth": "1.7.5",
+    "drizzle-orm": "0.45.3"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.2"
+  }
+}

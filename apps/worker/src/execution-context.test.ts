@@ -1,0 +1,133 @@
+import { mintApiKey } from "@easygardenplan/authz";
+import type { ResolvedApiKey } from "@easygardenplan/db";
+import { describe, expect, it } from "vitest";
+
+import { ExecutionContextError, resolveExecutionContext } from "./execution-context.js";
+
+const environment = {
+  DATABASE_URL: "postgres://user:password@localhost/database",
+  DATABASE_DRIVER: "postgres-js" as const,
+  BETTER_AUTH_SECRET: "test-secret-at-least-32-characters",
+};
+
+const session = { user: { id: "user-1", email: "user@example.test" }, session: { activeOrganizationId: "org-a" } };
+
+type Dependencies = NonNullable<Parameters<typeof resolveExecutionContext>[2]>;
+const dependencies = (overrides: Partial<Dependencies> = {}): Dependencies => ({
+  getSession: async () => session,
+  findMembership: async () => ({ role: "owner" }),
+  loadApplicationRoles: async () => ["editor"],
+  findSubscription: async () => null,
+  resolveApiKey: async () => null,
+  ...overrides,
+});
+
+describe("execution context", () => {
+  it("revalidates membership and resolves each plane from its own assignments", async () => {
+    const seen: string[] = [];
+    const context = await resolveExecutionContext(new Headers({ "x-correlation-id": "corr-1" }), environment, dependencies({
+      findMembership: async (userId, organizationId) => { seen.push(userId, organizationId); return { role: "owner" }; },
+      loadApplicationRoles: async (userId, organizationId) => { seen.push(`roles:${userId}:${organizationId}`); return ["editor"]; },
+    }));
+    expect(seen).toEqual(["user-1", "org-a", "roles:user-1:org-a"]);
+    expect(context.tenant).toEqual({ organizationId: "org-a", role: "owner" });
+    expect(context.assignments).toEqual({ organization: ["owner"], application: ["editor"] });
+    expect(context.access.check({ permission: "organization.webhooks.manage" })).toBe(true);
+    expect(context.access.check({ permission: "resource.write" })).toBe(true);
+    expect(context.access.check({ permission: "application.roles.assign" })).toBe(false);
+    expect(context.access.explain({ permission: "resource.write" }).permission).toMatchObject({ plane: "application", grantedBy: ["editor"] });
+    expect(context.correlation.correlationId).toBe("corr-1");
+    expect(context.events.statement).toBeTypeOf("function");
+  });
+
+  it("does not let an organization Owner without application roles act in the application plane", async () => {
+    const context = await resolveExecutionContext(new Headers(), environment, dependencies({ loadApplicationRoles: async () => [] }));
+    expect(context.access.check({ permission: "organization.billing.manage" })).toBe(true);
+    expect(context.access.explain({ permission: "resource.read" })).toMatchObject({ allowed: false, reason: "permission_missing" });
+  });
+
+  it("does not let application roles grant organization authority", async () => {
+    const context = await resolveExecutionContext(new Headers(), environment, dependencies({ findMembership: async () => ({ role: "member" }), loadApplicationRoles: async () => ["app_admin"] }));
+    expect(context.access.check({ permission: "application.roles.assign" })).toBe(true);
+    expect(context.access.check({ permission: "organization.webhooks.manage" })).toBe(false);
+    expect(context.access.check({ permission: "organization.billing.manage" })).toBe(false);
+  });
+
+  it("grants a reader only application reads regardless of organization role", async () => {
+    const context = await resolveExecutionContext(new Headers(), environment, dependencies({ findMembership: async () => ({ role: "member" }), loadApplicationRoles: async () => ["reader"] }));
+    expect(context.access.check({ permission: "resource.read" })).toBe(true);
+    expect(context.access.explain({ permission: "resource.write" }).reason).toBe("permission_missing");
+    expect([...context.permissions]).toEqual(expect.arrayContaining(["organization.read", "resource.read"]));
+  });
+
+  it("ignores unknown role keys rather than granting anything", async () => {
+    const context = await resolveExecutionContext(new Headers(), environment, dependencies({ findMembership: async () => ({ role: "superuser" }), loadApplicationRoles: async () => ["root"] }));
+    expect(context.permissions.size).toBe(0);
+  });
+
+  it("fails closed for revoked membership", async () => {
+    await expect(resolveExecutionContext(new Headers(), environment, dependencies({ findMembership: async () => null })))
+      .rejects.toMatchObject<Partial<ExecutionContextError>>({ code: "not_found", status: 404 });
+  });
+
+  it("does not accept a selected tenant without current membership", async () => {
+    const selected: string[] = [];
+    await expect(resolveExecutionContext(new Headers({ "x-trestle-tenant": "org-b" }), environment, dependencies({
+      findMembership: async (_userId, organizationId) => { selected.push(organizationId); return null; },
+    }))).rejects.toMatchObject({ code: "not_found" });
+    expect(selected).toEqual(["org-b"]);
+  });
+
+  it("never lets organization ownership reach artifacts without an application role", async () => {
+    const { canAccessArtifacts } = await import("./index.js");
+    const owner = await resolveExecutionContext(new Headers(), environment, dependencies({ findMembership: async () => ({ role: "owner" }), loadApplicationRoles: async () => [] }));
+    expect(canAccessArtifacts(owner, "resource.read")).toBe(false);
+    expect(canAccessArtifacts(owner, "resource.write")).toBe(false);
+    const reader = await resolveExecutionContext(new Headers(), environment, dependencies({ findMembership: async () => ({ role: "member" }), loadApplicationRoles: async () => ["reader"] }));
+    expect(canAccessArtifacts(reader, "resource.read")).toBe(true);
+    expect(canAccessArtifacts(reader, "resource.write")).toBe(false);
+  });
+
+  describe("scoped API keys", () => {
+    async function keyed(overrides: Partial<ResolvedApiKey> = {}, headers: Record<string, string> = {}) {
+      const minted = await mintApiKey("local");
+      const record: ResolvedApiKey = { organizationId: "org-a", serviceAccountId: "sa-1", verifier: minted.verifier, environment: "local", scopes: ["resource.read"], expiresAt: null, revokedAt: null, serviceAccountStatus: "active", applicationRoles: ["editor"], ...overrides };
+      const sessions: string[] = [];
+      const context = resolveExecutionContext(new Headers({ authorization: `Bearer ${minted.token}`, ...headers }), environment, dependencies({
+        getSession: async () => { sessions.push("called"); return session; },
+        resolveApiKey: async (publicId) => publicId === minted.publicId ? record : null,
+      }));
+      return { context, sessions, minted };
+    }
+
+    it("acts as the service account with its roles narrowed to the key's scopes, never organization authority", async () => {
+      const { context, sessions } = await keyed();
+      const execution = await context;
+      expect(sessions).toEqual([]);
+      expect(execution.principal).toMatchObject({ kind: "service_account", id: "sa-1" });
+      expect([...execution.permissions]).toEqual(["resource.read"]);
+      expect(execution.access.check({ permission: "resource.read" })).toBe(true);
+      expect(execution.access.explain({ permission: "resource.write" })).toMatchObject({ allowed: false, reason: "scope_missing" });
+      expect(execution.access.explain({ permission: "application.roles.read" })).toMatchObject({ allowed: false, reason: "principal_type_rejected" });
+      expect(execution.access.explain({ permission: "organization.read" })).toMatchObject({ allowed: false });
+      expect(execution.access.explain({ rejectApiKeys: true })).toMatchObject({ allowed: false, reason: "principal_type_rejected" });
+    });
+
+    it("rejects revoked, expired, wrong-environment, suspended, tampered, and unknown keys with the same 401", async () => {
+      const past = new Date(Date.now() - 1_000);
+      for (const overrides of [{ revokedAt: past }, { expiresAt: past }, { environment: "production" }, { serviceAccountStatus: "suspended" }] satisfies Partial<ResolvedApiKey>[]) {
+        await expect((await keyed(overrides)).context).rejects.toMatchObject({ code: "unauthorized", status: 401 });
+      }
+      const { minted } = await keyed();
+      const tampered = `${minted.token.slice(0, -1)}${minted.token.endsWith("A") ? "B" : "A"}`;
+      await expect(resolveExecutionContext(new Headers({ authorization: `Bearer ${tampered}` }), environment, dependencies({ resolveApiKey: async () => ({ organizationId: "org-a", serviceAccountId: "sa-1", verifier: minted.verifier, environment: "local", scopes: ["resource.read"], expiresAt: null, revokedAt: null, serviceAccountStatus: "active", applicationRoles: ["editor"] }) })))
+        .rejects.toMatchObject({ status: 401 });
+      await expect(resolveExecutionContext(new Headers({ authorization: "Bearer tr_live_notavalidtoken" }), environment, dependencies())).rejects.toMatchObject({ status: 401 });
+    });
+
+    it("keeps a key in its own organization", async () => {
+      await expect((await keyed({}, { "x-trestle-tenant": "org-b" })).context).rejects.toMatchObject({ code: "not_found", status: 404 });
+    });
+  });
+});
+

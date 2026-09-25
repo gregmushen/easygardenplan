@@ -1,0 +1,17 @@
+{
+  "name": "@easygardenplan/data",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@easygardenplan/contracts": "workspace:*",
+    "@easygardenplan/db": "workspace:*",
+    "@easygardenplan/domain": "workspace:*",
+    "drizzle-orm": "0.45.3"
+  }
+}

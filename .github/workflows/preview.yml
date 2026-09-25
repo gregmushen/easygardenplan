@@ -1,0 +1,291 @@
+name: Preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    if: github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+    environment: preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - id: preview
+        name: Derive isolated preview resources
+        run: node scripts/preview-context.mjs --project easygardenplan --pr "${{ github.event.pull_request.number }}" --workers-subdomain "${{ vars.CLOUDFLARE_WORKERS_SUBDOMAIN }}" --format github >> "$GITHUB_OUTPUT"
+      - id: cloudflare_access
+        name: Verify Cloudflare access before provisioning
+        continue-on-error: true
+        run: node scripts/cloudflare-preflight.mjs
+        env:
+          CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+          CLOUDFLARE_WORKERS_SUBDOMAIN: "${{ vars.CLOUDFLARE_WORKERS_SUBDOMAIN }}"
+      - id: neon_access
+        name: Verify Neon project access before provisioning
+        continue-on-error: true
+        run: |
+          export NEON_API_KEY="$(pnpm exec trestle secrets get NEON_API_KEY --env preview --raw)"
+          node scripts/neon-preflight.mjs
+        env:
+          TRESTLE_MASTER_KEY: "${{ secrets.TRESTLE_MASTER_KEY }}"
+          NEON_PROJECT_ID: "${{ vars.NEON_PROJECT_ID }}"
+      - name: Require both provider access checks
+        run: |
+          if [[ "${{ steps.cloudflare_access.outcome }}" != "success" || "${{ steps.neon_access.outcome }}" != "success" ]]; then
+            echo "Cloudflare and Neon access must both pass before preview provisioning" >&2
+            exit 1
+          fi
+      - name: Prepare isolated preview Queue bindings
+        run: node scripts/queue-config.mjs render preview "${{ steps.preview.outputs.worker_name }}" --without-cron
+      - name: Validate preview configuration
+        run: pnpm exec trestle doctor --env preview
+        env:
+          TRESTLE_MASTER_KEY: "${{ secrets.TRESTLE_MASTER_KEY }}"
+          TRESTLE_WRANGLER_CONFIG: apps/worker/.trestle-queues.wrangler.jsonc
+      - name: Verify preview Resend and Stripe credentials before provisioning
+        run: |
+          export RESEND_API_KEY="$(pnpm exec trestle secrets get RESEND_API_KEY --env preview --raw)"
+          echo "::add-mask::$RESEND_API_KEY"
+          export STRIPE_SECRET_KEY="$(pnpm exec trestle secrets get STRIPE_SECRET_KEY --env preview --raw)"
+          echo "::add-mask::$STRIPE_SECRET_KEY"
+          node scripts/transactional-provider-preflight.mjs
+          pnpm exec trestle email doctor --env preview
+        env:
+          TRESTLE_MASTER_KEY: "${{ secrets.TRESTLE_MASTER_KEY }}"
+          TRESTLE_STRIPE_MODE: test
+      - name: Provision isolated preview Queues
+        run: node scripts/cloudflare-queues.mjs ensure "${{ steps.preview.outputs.worker_name }}"
+        env:
+          CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+      - name: Provision isolated preview R2 bucket
+        run: node scripts/cloudflare-r2.mjs ensure "${{ steps.preview.outputs.worker_name }}"
+        env:
+          CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+      - id: neon
+        name: Provision isolated Neon branch
+        run: |
+          export NEON_API_KEY="$(pnpm exec trestle secrets get NEON_API_KEY --env preview --raw)"
+          node scripts/neon-preview.mjs ensure "${{ steps.preview.outputs.branch }}"
+        env:
+          TRESTLE_MASTER_KEY: "${{ secrets.TRESTLE_MASTER_KEY }}"
+          NEON_PROJECT_ID: "${{ vars.NEON_PROJECT_ID }}"
+          NEON_DATABASE: "${{ vars.NEON_DATABASE }}"
+          NEON_MIGRATION_ROLE: "${{ vars.NEON_MIGRATION_ROLE }}"
+          NEON_RUNTIME_ROLE: "${{ vars.DATABASE_RUNTIME_ROLE }}"
+      - run: pnpm typecheck && pnpm test
+      - name: Validate encrypted credentials
+        run: pnpm exec trestle secrets check --env preview
+        env: { TRESTLE_MASTER_KEY: "${{ secrets.TRESTLE_MASTER_KEY }}" }
+      - id: runtime-role
+        name: Bootstrap restricted preview runtime role
+        run: pnpm --filter ./packages/db exec tsx scripts/runtime-role.ts bootstrap-managed
+        env:
+          DATABASE_MIGRATION_URL: "${{ steps.neon.outputs.migration_url }}"
+          DATABASE_RUNTIME_ROLE: "${{ vars.DATABASE_RUNTIME_ROLE }}"
+      - name: Migrate preview database
+        run: |
+          export DATABASE_URL="${{ steps.neon.outputs.migration_url }}"
+          pnpm db:migrate
+        env: { TRESTLE_MASTER_KEY: "${{ secrets.TRESTLE_MASTER_KEY }}" }
+      - name: Configure preview database roles
+        run: |
+          export DATABASE_MIGRATION_URL="${{ steps.neon.outputs.migration_url }}"
+          pnpm --filter ./packages/db db:roles:configure
+        env:
+          TRESTLE_MASTER_KEY: "${{ secrets.TRESTLE_MASTER_KEY }}"
+          DATABASE_RUNTIME_ROLE: "${{ vars.DATABASE_RUNTIME_ROLE }}"
+      - name: Verify preview runtime role
+        run: |
+          export DATABASE_URL="${{ steps.runtime-role.outputs.runtime_url }}"
+          pnpm --filter ./packages/db db:roles:verify
+        env:
+          TRESTLE_MASTER_KEY: "${{ secrets.TRESTLE_MASTER_KEY }}"
+          DATABASE_RUNTIME_ROLE: "${{ vars.DATABASE_RUNTIME_ROLE }}"
+      - name: Provision isolated Pages projects
+        run: |
+          node scripts/cloudflare-pages.mjs ensure "${{ steps.preview.outputs.app_project }}"
+          node scripts/cloudflare-pages.mjs ensure "${{ steps.preview.outputs.site_project }}"
+        env:
+          CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+      - name: Push preview Worker secrets
+        run: pnpm exec trestle secrets push --env preview --worker-name "${{ steps.preview.outputs.worker_name }}" --worker-config .trestle-queues.wrangler.jsonc
+        env:
+          TRESTLE_MASTER_KEY: "${{ secrets.TRESTLE_MASTER_KEY }}"
+          CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+      - name: Override preview database secret with isolated branch
+        run: printf '%s' "$DATABASE_URL" | pnpm --filter @easygardenplan/worker exec wrangler secret put DATABASE_URL --env preview --config .trestle-queues.wrangler.jsonc
+        env:
+          DATABASE_URL: "${{ steps.runtime-role.outputs.runtime_url }}"
+          CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+      - name: Bind Better Auth to the isolated preview API
+        run: printf '%s' "$BETTER_AUTH_URL" | pnpm --filter @easygardenplan/worker exec wrangler secret put BETTER_AUTH_URL --env preview --config .trestle-queues.wrangler.jsonc
+        env:
+          BETTER_AUTH_URL: "${{ steps.preview.outputs.api_url }}"
+          CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+      - name: Provision isolated Stripe test webhook and bind its signing secret
+        run: |
+          STRIPE_SECRET_KEY="$(pnpm exec trestle secrets get STRIPE_SECRET_KEY --env preview --raw)"
+          export STRIPE_SECRET_KEY
+          echo "::add-mask::$STRIPE_SECRET_KEY"
+          node scripts/stripe-preview.mjs provision "${{ steps.preview.outputs.api_url }}"
+        env:
+          TRESTLE_MASTER_KEY: "${{ secrets.TRESTLE_MASTER_KEY }}"
+          CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+      - uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3
+        with:
+          apiToken: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          accountId: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+          packageManager: pnpm
+          workingDirectory: apps/worker
+          command: deploy --config .trestle-queues.wrangler.jsonc --env preview --name ${{ steps.preview.outputs.worker_name }} --var WEB_ORIGIN:${{ steps.preview.outputs.app_url }} --var BILLING_RETURN_URL:${{ steps.preview.outputs.app_url }}/settings/billing
+      - name: Bind preview Pages app to isolated API Worker
+        run: node scripts/cloudflare-pages.mjs bind-service "${{ steps.preview.outputs.app_project }}" "${{ steps.preview.outputs.worker_name }}"
+        env:
+          CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+      - run: VITE_API_ORIGIN="${{ steps.preview.outputs.app_url }}" pnpm --filter @easygardenplan/app build
+      - uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3
+        with:
+          apiToken: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          accountId: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+          packageManager: pnpm
+          workingDirectory: apps/app
+          command: pages deploy dist --project-name ${{ steps.preview.outputs.app_project }} --branch main
+      - run: APP_URL="${{ steps.preview.outputs.app_url }}" SITE_URL="${{ steps.preview.outputs.site_url }}" pnpm --filter @easygardenplan/site build
+      - uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3
+        with:
+          apiToken: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          accountId: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+          packageManager: pnpm
+          workingDirectory: apps/site
+          command: pages deploy dist --project-name ${{ steps.preview.outputs.site_project }} --branch main
+      - run: node scripts/smoke.mjs
+        env:
+          TRESTLE_DEPLOY_ENV: preview
+          SITE_URL: "${{ steps.preview.outputs.site_url }}"
+          APP_URL: "${{ steps.preview.outputs.app_url }}"
+          API_URL: "${{ steps.preview.outputs.api_url }}"
+      - name: Verify isolated preview Queue and R2 resources
+        run: |
+          node scripts/cloudflare-queues.mjs verify "${{ steps.preview.outputs.worker_name }}"
+          node scripts/cloudflare-r2.mjs verify "${{ steps.preview.outputs.worker_name }}"
+        env:
+          CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+      - name: Install deployed browser runtime
+        run: pnpm exec playwright install --with-deps --only-shell chromium
+      - name: Create verified test account in the isolated preview database without sending email
+        run: pnpm --filter ./packages/auth exec tsx src/preview-fixture.ts
+        env:
+          TRESTLE_DEPLOY_ENV: preview
+          DATABASE_URL: "${{ steps.runtime-role.outputs.runtime_url }}"
+      - name: Verify deployed site and product in Chromium without sending email
+        run: pnpm test:preview
+        env:
+          SITE_URL: "${{ steps.preview.outputs.site_url }}"
+          APP_URL: "${{ steps.preview.outputs.app_url }}"
+          API_URL: "${{ steps.preview.outputs.api_url }}"
+      - name: Publish GitHub Deployment
+        run: node scripts/github-deployment.mjs create "${{ steps.preview.outputs.environment }}" "${{ github.event.pull_request.head.sha }}" "${{ steps.preview.outputs.app_url }}"
+        env:
+          GITHUB_TOKEN: "${{ github.token }}"
+      - name: Record non-secret preview evidence
+        run: |
+          {
+            echo "### Preview ${{ github.event.pull_request.number }}"
+            echo "- Commit: \`${{ github.event.pull_request.head.sha }}\`"
+            echo "- App: ${{ steps.preview.outputs.app_url }}"
+            echo "- Site: ${{ steps.preview.outputs.site_url }}"
+            echo "- API: ${{ steps.preview.outputs.api_url }}"
+            echo "- Smoke gate: passed"
+            echo "- Site browser gate: passed (no email sent)"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  cleanup:
+    if: github.event.action == 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+    environment: preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - id: preview
+        name: Derive isolated preview resources
+        run: node scripts/preview-context.mjs --project easygardenplan --pr "${{ github.event.pull_request.number }}" --workers-subdomain "${{ vars.CLOUDFLARE_WORKERS_SUBDOMAIN }}" --format github >> "$GITHUB_OUTPUT"
+      - name: Delete isolated Stripe test webhook
+        if: always()
+        run: |
+          STRIPE_SECRET_KEY="$(pnpm exec trestle secrets get STRIPE_SECRET_KEY --env preview --raw)"
+          export STRIPE_SECRET_KEY
+          echo "::add-mask::$STRIPE_SECRET_KEY"
+          node scripts/stripe-preview.mjs delete "${{ steps.preview.outputs.api_url }}"
+        env:
+          TRESTLE_MASTER_KEY: "${{ secrets.TRESTLE_MASTER_KEY }}"
+      - name: Delete isolated Worker
+        if: always()
+        run: node scripts/cloudflare-worker.mjs delete-preview "${{ steps.preview.outputs.worker_name }}"
+        env:
+          CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+      - name: Delete isolated preview Queues
+        if: always()
+        run: node scripts/cloudflare-queues.mjs delete-preview "${{ steps.preview.outputs.worker_name }}"
+        env:
+          CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+      - name: Delete isolated preview R2 bucket if empty
+        if: always()
+        run: node scripts/cloudflare-r2.mjs delete-preview "${{ steps.preview.outputs.worker_name }}"
+        env:
+          CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+      - name: Delete isolated application Pages project
+        if: always()
+        run: node scripts/cloudflare-pages.mjs delete "${{ steps.preview.outputs.app_project }}"
+        env:
+          CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+      - name: Delete isolated site Pages project
+        if: always()
+        run: node scripts/cloudflare-pages.mjs delete "${{ steps.preview.outputs.site_project }}"
+        env:
+          CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+      - name: Delete isolated Neon branch
+        if: always()
+        run: |
+          export NEON_API_KEY="$(pnpm exec trestle secrets get NEON_API_KEY --env preview --raw)"
+          node scripts/neon-preview.mjs delete "${{ steps.preview.outputs.branch }}"
+        env:
+          TRESTLE_MASTER_KEY: "${{ secrets.TRESTLE_MASTER_KEY }}"
+          NEON_PROJECT_ID: "${{ vars.NEON_PROJECT_ID }}"
+      - name: Deactivate GitHub Deployment
+        if: always()
+        run: node scripts/github-deployment.mjs deactivate "${{ steps.preview.outputs.environment }}"
+        env:
+          GITHUB_TOKEN: "${{ github.token }}"
