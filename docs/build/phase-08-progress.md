@@ -33,7 +33,7 @@ Status: **local implementation complete; external staging gate remains**. Transi
 
 ## Validation
 
-- `pnpm check` passes after the digest scheduler, task-identity and crop-coalescing changes: all typechecks and builds succeeded, including 92 integration tests, 32 data tests and 146 Worker tests. Coverage includes crop/action coalescing, frozen crop presentation, DST scheduling, concurrent schedulers, concurrent digest claims, routine digest routing, late immediate-send exclusion, task-status suppression, fencing, receipt projection and cross-tenant recipient denial.
+- `pnpm check` passes after the digest scheduler, task-identity and crop-coalescing changes: all typechecks and builds succeeded, including 92 default integration tests, 32 data tests and 146 Worker tests. Coverage includes crop/action coalescing, frozen crop presentation, DST scheduling, concurrent schedulers, concurrent digest claims, routine digest routing, late immediate-send exclusion, task-status suppression, fencing, receipt projection and cross-tenant recipient denial.
 - Product browser flow: 1 passed in 17.7 seconds with the notification-preference request present in the garden screen.
 - Local PostgreSQL migration `0050_rapid_joseph.sql` applied successfully with forced RLS, tenant/platform grants and the tenant-constrained recipient resolver.
 

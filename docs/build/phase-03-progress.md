@@ -10,6 +10,7 @@ Status: **in progress**. The local, provider-neutral location and climate flow i
 - A durable per-household geocoding rate counter. Address text is sent only to Geoapify and is not written to usage records or structured request logs.
 - Revision-safe location confirmation with explicit `geocoded` or `manual_pin` provenance. A stale confirmation receives a conflict instead of overwriting a newer garden revision.
 - MapLibre garden map with MapTiler aerial/map layers, provider attribution, a visible pin and coordinate entry. When tile configuration or imagery is unavailable, the measured/manual path remains usable.
+- The protected staging provider workflow resolves Geoapify and MapTiler values through Trestle, checks one representative US geocode, loads both street and aerial style documents, and verifies that the encrypted MapTiler value matches the key used for the browser build.
 - Versioned climate dataset, normalized record and immutable garden-association storage. Shared datasets are separate from forced-RLS household associations.
 - Checksum-verified atomic climate publication with idempotent replay. The prior published dataset remains intact if validation fails.
 - Nearest-record matching with distance, elevation context, confidence and explicit `known`, `frost_free`, `unknown` and `uncertain` states.
@@ -36,4 +37,3 @@ Status: **in progress**. The local, provider-neutral location and climate flow i
 - Configure encrypted `GEOAPIFY_API_KEY`, configure the origin-restricted `MAPTILER_PUBLIC_KEY`, and record controlled candidate, no-result, rate and map/aerial checks.
 - Import declared real USDA/OSU hardiness and NOAA frost-normal releases with their source URLs, checksums, attribution, validation totals and rejected records.
 - Run and record the representative-location matrix against those real published datasets, including weak matches and provider-coverage gaps.
-

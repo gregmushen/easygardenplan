@@ -28,8 +28,13 @@ jobs:
           set -euo pipefail
           RESEND_API_KEY="$(pnpm exec trestle secrets get RESEND_API_KEY --env staging --raw)"
           STRIPE_SECRET_KEY="$(pnpm exec trestle secrets get STRIPE_SECRET_KEY --env staging --raw)"
-          export RESEND_API_KEY STRIPE_SECRET_KEY
+          GEOAPIFY_API_KEY="$(pnpm exec trestle secrets get GEOAPIFY_API_KEY --env staging --raw)"
+          MAPTILER_PUBLIC_KEY="$(pnpm exec trestle secrets get MAPTILER_PUBLIC_KEY --env staging --raw)"
+          EXA_API_KEY="$(pnpm exec trestle secrets get EXA_API_KEY --env staging --raw)"
+          NWS_USER_AGENT="$(pnpm exec trestle secrets get NWS_USER_AGENT --env staging --raw)"
+          export RESEND_API_KEY STRIPE_SECRET_KEY GEOAPIFY_API_KEY MAPTILER_PUBLIC_KEY EXA_API_KEY NWS_USER_AGENT
           pnpm --filter @easygardenplan/integrations exec vitest run src/provider.integration.test.ts
         env:
           TRESTLE_PROVIDER_INTEGRATION_TESTS: "1"
           TRESTLE_MASTER_KEY: "${{ secrets.TRESTLE_MASTER_KEY }}"
+          MAPTILER_BUILD_KEY: "${{ vars.MAPTILER_PUBLIC_KEY }}"

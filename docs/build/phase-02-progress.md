@@ -10,6 +10,7 @@ Status: **in progress**. The deterministic editorial and publication pipeline is
 - Typed applicability and nine rule payload families with explicit `known`, `not_applicable`, `unknown` and `conflicted` states.
 - Restricted editorial APIs and application screen for draft creation, review, publication, withdrawal and replacement.
 - A current Exa search adapter with deterministic request fingerprints, resumable provider-run storage, usage/cost capture, rate-limit handling and public-URL safeguards.
+- The protected staging provider workflow resolves the encrypted Exa credential through Trestle and performs one bounded source-discovery request, proving authentication, response normalization and cost/usage capture without publishing any result.
 - Atomic publication with accepted-review and evidence checks. Published rule content is database-protected from mutation; corrections create new versions. Explicit historical releases continue to resolve withdrawn versions while the current catalog excludes them.
 - Ordinary gardener access is limited to published catalog data; editorial routes require `catalog.publish`.
 - A deterministic representative fixture covers all nine initial rule shapes and eight launch climate/region classes. It is explicitly synthetic and is not horticultural advice.
@@ -36,4 +37,3 @@ Status: **in progress**. The deterministic editorial and publication pipeline is
 - Configure the encrypted `EXA_API_KEY` credential and record one controlled live research run.
 - Use source-backed research and editorial review to expand the synthetic contract fixture into the declared launch crop catalog.
 - Regenerate the coverage report from that reviewed catalog and record its supported, partial, missing and conflicted product coverage.
-

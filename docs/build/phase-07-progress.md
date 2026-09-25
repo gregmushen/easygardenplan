@@ -20,6 +20,7 @@ Status: **in progress**. Deterministic monitoring, background authority, schedul
 - The evaluation consumer declares tenant authority and the current `weather.monitoring` entitlement. The framework re-verifies the committed event, tenant and current entitlement at each Queue/Workflow execution.
 - Monitoring eligibility is updated atomically when a garden's location or monitoring preference changes. Hourly scheduling is an application cron; Trestle's framework minute tick remains separate.
 - Staging and production explicitly select live NWS mode and fail closed when the provider's own update timestamp is more than six hours old. Local and preview environments retain deterministic fixture mode. The Queue-config test proves Trestle rendering preserves this application policy and the required NWS identity credential.
+- The protected staging provider workflow resolves the NWS identity through Trestle and performs bounded forecast and active-alert requests for one representative point before a staging release is accepted.
 - Free guidance and persisted monitoring status are visible in the garden. Pro evaluation requests are entitlement-gated at both HTTP and background boundaries.
 - PostgreSQL integration: concurrent warning evaluation created one warning; resolution and renewed risk created one semantic transition each; shared snapshots deduplicated; due work was claimed once and emitted one committed tenant event.
 

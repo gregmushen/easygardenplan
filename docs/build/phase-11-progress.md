@@ -49,7 +49,7 @@ Stripe subscription reconciliation is now also queued after the signed receipt i
   - Root Vitest operational/nationwide suite: 21 passed, 0 failed.
   - Worker with both PostgreSQL integration environments enabled: 146 passed, 0 skipped.
   - Database: 134 passed, 13 skipped environment-specific cases.
-  - Integrations: 92 passed, 4 skipped live-provider cases.
+  - Integrations: 92 passed, 5 skipped protected live-provider cases.
   - All other workspace suites and production builds passed.
 - Local product browser path: passed on desktop Chromium, Firefox and WebKit plus the Pixel 7 Chromium touch-emulation profile, including account, garden, location, touch/click boundary drawing, bed revision, sourced plan, print link, progress, Free/Pro downgrade preservation and deletion. A WCAG 2.0/2.1 A/AA scan runs on the loaded garden editor in all four profiles and passes. These automated profiles do not replace physical-device and screen-reader review.
 - Clean-database migration rehearsal: all 54 journal entries applied to a disposable database, producing 72 public tables with 39 tables reporting forced RLS. The disposable database was removed after inspection.
@@ -59,6 +59,7 @@ Stripe subscription reconciliation is now also queued after the signed receipt i
 ## Remaining controlled gates
 
 - Obtain and configure Geoapify, restricted MapTiler, Exa, NWS, Resend and Stripe staging/production values; publish real reviewed climate and crop datasets.
+- Run the protected provider workflow after configuration. It now verifies bounded Geoapify, MapTiler street/aerial, Exa, NWS forecast/alert, Resend and Stripe requests and rejects drift between the encrypted and browser-build MapTiler values.
 - Run the required end-to-end path in staging with real runtime roles, Queue delivery, scheduled monitoring, NWS retrieval, Stripe test state and an allowlisted Resend recipient.
 - Record live geocoder attribution and visually inspect tile attribution with the paid-plan key. The MapTiler policy/export review is recorded and customer print output is enforced as application geometry without provider imagery.
 - Complete physical mobile and screen-reader review; automated keyboard, touch emulation, WCAG scanning and Chromium/Firefox/WebKit coverage now pass.
