@@ -1,10 +1,32 @@
-import { garden, gardenRiskState, notificationDeliveryIntent, notificationPreference, recommendationEpisode, recommendationTransition, recommendationVersion, user, type Database } from "@easygardenplan/db";
-import { and, eq, inArray, isNull, lt, or, sql } from "drizzle-orm";
+import { garden, gardenProgressEvent, gardenRiskState, notificationDeliveryIntent, notificationPreference, recommendationEpisode, recommendationTransition, recommendationVersion, user, type Database } from "@easygardenplan/db";
+import { and, desc, eq, inArray, isNull, lt, or, sql } from "drizzle-orm";
 
 export type ClaimedNotification = {
   intentId: string; attemptToken: string; idempotencyKey: string; recipient: string;
   gardenName: string; kind: string; action: string | null; validFrom: Date | null; validThrough: Date | null;
 };
+
+type PlantingProgress = {
+  id: string;
+  selectionId: string;
+  eventType: string;
+  supersedesEventId: string | null;
+};
+
+const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export function affectedPlantingsComplete(affectedIds: unknown, events: PlantingProgress[]): boolean {
+  if (!Array.isArray(affectedIds) || affectedIds.length === 0 || !affectedIds.every((id): id is string => typeof id === "string" && uuidPattern.test(id))) return false;
+  const superseded = new Set(events.filter((event) => event.eventType === "correction" && event.supersedesEventId).map((event) => event.supersedesEventId!));
+  const latest = new Map<string, PlantingProgress>();
+  for (const event of events) {
+    if (!latest.has(event.selectionId) && event.eventType !== "correction" && !superseded.has(event.id)) latest.set(event.selectionId, event);
+  }
+  return affectedIds.every((selectionId) => {
+    const event = latest.get(selectionId);
+    return event?.eventType === "removed" || event?.eventType === "harvested";
+  });
+}
 
 export class NotificationRepository {
   constructor(private readonly database: Database, private readonly organizationId: string, private readonly clock: { now(): Date } = { now: () => new Date() }) {}
@@ -15,12 +37,18 @@ export class NotificationRepository {
       const now = this.clock.now(); const token = crypto.randomUUID();
       const [claimed] = await transaction.update(notificationDeliveryIntent).set({ status: "sending", attemptToken: token, leaseExpiresAt: new Date(now.getTime() + leaseMilliseconds), updatedAt: now }).where(and(eq(notificationDeliveryIntent.organizationId, this.organizationId), eq(notificationDeliveryIntent.transitionId, transitionId), or(eq(notificationDeliveryIntent.status, "pending"), and(eq(notificationDeliveryIntent.status, "sending"), or(isNull(notificationDeliveryIntent.leaseExpiresAt), lt(notificationDeliveryIntent.leaseExpiresAt, now)))))).returning();
       if (!claimed) return null;
-      const [details] = await transaction.select({ recipient: user.email, emailVerified: user.emailVerified, gardenName: garden.name, kind: recommendationTransition.kind, action: recommendationVersion.action, validFrom: recommendationVersion.validFrom, validThrough: recommendationVersion.validThrough, transitionEpisodeId: recommendationTransition.episodeId, currentEpisodeId: gardenRiskState.episodeId, riskState: gardenRiskState.state }).from(notificationDeliveryIntent).innerJoin(user, eq(user.id, notificationDeliveryIntent.recipientUserId)).innerJoin(garden, and(eq(garden.organizationId, notificationDeliveryIntent.organizationId), eq(garden.id, notificationDeliveryIntent.gardenId))).innerJoin(recommendationTransition, and(eq(recommendationTransition.organizationId, notificationDeliveryIntent.organizationId), eq(recommendationTransition.id, notificationDeliveryIntent.transitionId))).innerJoin(recommendationVersion, and(eq(recommendationVersion.organizationId, notificationDeliveryIntent.organizationId), eq(recommendationVersion.id, notificationDeliveryIntent.recommendationVersionId))).innerJoin(recommendationEpisode, and(eq(recommendationEpisode.organizationId, notificationDeliveryIntent.organizationId), eq(recommendationEpisode.id, recommendationTransition.episodeId))).innerJoin(gardenRiskState, and(eq(gardenRiskState.organizationId, notificationDeliveryIntent.organizationId), eq(gardenRiskState.gardenId, notificationDeliveryIntent.gardenId), eq(gardenRiskState.hazard, recommendationEpisode.hazard), eq(gardenRiskState.groupKey, recommendationEpisode.groupKey))).where(eq(notificationDeliveryIntent.id, claimed.id)).limit(1);
+      const [details] = await transaction.select({ recipient: user.email, emailVerified: user.emailVerified, gardenName: garden.name, kind: recommendationTransition.kind, action: recommendationVersion.action, affectedIds: recommendationVersion.affectedIds, validFrom: recommendationVersion.validFrom, validThrough: recommendationVersion.validThrough, transitionEpisodeId: recommendationTransition.episodeId, currentEpisodeId: gardenRiskState.episodeId, riskState: gardenRiskState.state }).from(notificationDeliveryIntent).innerJoin(user, eq(user.id, notificationDeliveryIntent.recipientUserId)).innerJoin(garden, and(eq(garden.organizationId, notificationDeliveryIntent.organizationId), eq(garden.id, notificationDeliveryIntent.gardenId))).innerJoin(recommendationTransition, and(eq(recommendationTransition.organizationId, notificationDeliveryIntent.organizationId), eq(recommendationTransition.id, notificationDeliveryIntent.transitionId))).innerJoin(recommendationVersion, and(eq(recommendationVersion.organizationId, notificationDeliveryIntent.organizationId), eq(recommendationVersion.id, notificationDeliveryIntent.recommendationVersionId))).innerJoin(recommendationEpisode, and(eq(recommendationEpisode.organizationId, notificationDeliveryIntent.organizationId), eq(recommendationEpisode.id, recommendationTransition.episodeId))).innerJoin(gardenRiskState, and(eq(gardenRiskState.organizationId, notificationDeliveryIntent.organizationId), eq(gardenRiskState.gardenId, notificationDeliveryIntent.gardenId), eq(gardenRiskState.hazard, recommendationEpisode.hazard), eq(gardenRiskState.groupKey, recommendationEpisode.groupKey))).where(eq(notificationDeliveryIntent.id, claimed.id)).limit(1);
       const [preference] = await transaction.select().from(notificationPreference).where(and(eq(notificationPreference.organizationId, this.organizationId), eq(notificationPreference.userId, claimed.recipientUserId))).limit(1);
       const enabled = details?.kind === "resolution" ? (preference?.resolutionEmailEnabled ?? true) : (preference?.urgentEmailEnabled ?? true);
       const current = details?.currentEpisodeId === details?.transitionEpisodeId && (details?.kind === "resolution" ? details.riskState === "resolved" : details?.riskState === "active");
-      if (!details?.emailVerified || !enabled || !current) {
-        const suppressionReason = !details?.emailVerified ? "recipient_unverified" : !enabled ? "preference_disabled" : "recommendation_superseded";
+      const rawAffectedIds = details?.affectedIds;
+      const affectedIds = Array.isArray(rawAffectedIds) ? rawAffectedIds.filter((id): id is string => typeof id === "string" && uuidPattern.test(id)) : [];
+      const progress = Array.isArray(rawAffectedIds) && affectedIds.length === rawAffectedIds.length && affectedIds.length > 0
+        ? await transaction.select({ id: gardenProgressEvent.id, selectionId: gardenProgressEvent.selectionId, eventType: gardenProgressEvent.eventType, supersedesEventId: gardenProgressEvent.supersedesEventId }).from(gardenProgressEvent).where(and(eq(gardenProgressEvent.organizationId, this.organizationId), eq(gardenProgressEvent.gardenId, claimed.gardenId), inArray(gardenProgressEvent.selectionId, affectedIds))).orderBy(desc(gardenProgressEvent.createdAt))
+        : [];
+      const plantingsComplete = affectedPlantingsComplete(rawAffectedIds, progress);
+      if (!details?.emailVerified || !enabled || !current || plantingsComplete) {
+        const suppressionReason = !details?.emailVerified ? "recipient_unverified" : !enabled ? "preference_disabled" : !current ? "recommendation_superseded" : "affected_plantings_complete";
         await transaction.update(notificationDeliveryIntent).set({ status: "suppressed", suppressionReason, attemptToken: null, leaseExpiresAt: null, updatedAt: now }).where(and(eq(notificationDeliveryIntent.id, claimed.id), eq(notificationDeliveryIntent.attemptToken, token)));
         return null;
       }

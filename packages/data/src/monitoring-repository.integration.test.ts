@@ -1,4 +1,4 @@
-import { createDatabase, garden, notificationDeliveryIntent, notificationFeedEntry, organization, recommendationTransition, user, weatherForecastSnapshot } from "@easygardenplan/db";
+import { createDatabase, garden, gardenPlanVersion, gardenProgressEvent, notificationDeliveryIntent, notificationFeedEntry, organization, recommendationTransition, user, weatherForecastSnapshot } from "@easygardenplan/db";
 import { and, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { MonitoringRepository } from "./monitoring-repository.js";
@@ -72,5 +72,18 @@ suite("weather episode persistence", () => {
     const retriedAttempt = await firstLease.claim(retryWarning.transition!.id);
     expect(retriedAttempt).toMatchObject({ idempotencyKey: firstAttempt!.idempotencyKey });
     expect(retriedAttempt!.attemptToken).not.toBe(firstAttempt!.attemptToken);
+  });
+
+  it("suppresses a pending warning when every affected planting has ended", async () => {
+    const selectionId = crypto.randomUUID();
+    const completionCandidate = { ...candidate, groupKey: "crop:completed", affectedIds: [selectionId], evidenceFingerprint: "fixture-completed" };
+    const warning = await repository!.evaluate({ gardenId, hazard: "cold", groupKey: completionCandidate.groupKey, observation: { status: "evaluated", candidate: completionCandidate } });
+    const [plan] = await database!.insert(gardenPlanVersion).values({ organizationId, gardenId, version: 99, state: "active", algorithmVersion: "grid-v1", inputFingerprint: "c".repeat(64), inputSnapshot: {}, result: {}, activatedAt: new Date() }).returning();
+    await database!.insert(gardenProgressEvent).values({ organizationId, gardenId, planVersionId: plan!.id, selectionId, eventType: "removed", occurredLocalDate: "2026-10-01" });
+
+    const deliveries = new NotificationRepository(database!, organizationId, { now: () => new Date("2026-10-01T05:01:00.000Z") });
+    expect(await deliveries.claim(warning.transition!.id)).toBeNull();
+    const [intent] = await database!.select().from(notificationDeliveryIntent).where(eq(notificationDeliveryIntent.transitionId, warning.transition!.id));
+    expect(intent).toMatchObject({ status: "suppressed", suppressionReason: "affected_plantings_complete" });
   });
 });

@@ -16,6 +16,7 @@ Status: **in progress**. Transition-deduplicated feed entries, email intents, fe
 - Verified Resend receipts project onto the delivery intent. Accepted and failed events cannot regress a delivered status, while later bounce/complaint outcomes remain recordable.
 - Notification preferences have authenticated read/update endpoints and gardener-facing controls for warnings and resolution messages. Quiet-hour fields are validated and stored for the forthcoming scheduler.
 - Delivery claims re-read the current garden risk episode and state in the same transaction as the lease. A warning or material change that has cleared, become unknown or been replaced by another episode is suppressed as `recommendation_superseded`; a stale resolution is likewise suppressed after renewed risk.
+- Delivery claims also re-read append-only planting progress. If every affected planting has been harvested or removed, the delivery is suppressed as `affected_plantings_complete`; corrections that invalidate a terminal event prevent suppression.
 - PostgreSQL integration proves concurrent weather evaluation creates one warning/feed/intent, a delivered warning permits one resolution intent, renewed risk creates one new intent, concurrent claims have one winner, a stale token cannot complete, and an out-of-order accepted receipt cannot regress delivered state.
 - The local notification runtime integration proves duplicate handling emits one warning, continuing risk emits none, resolution emits one clear message, an obsolete warning is suppressed before send, and a preference disabled after intent creation is honored before send.
 - Lease recovery fixtures prove an expired worker loses its fencing token, a later worker can reclaim the intent, and provider retry reuses the stable provider idempotency key with a new attempt token.
@@ -30,6 +31,6 @@ Status: **in progress**. Transition-deduplicated feed entries, email intents, fe
 
 - Implement routine/digest aggregation and prove immediately emailed versions cannot appear in a digest.
 - Enforce timezone-aware quiet hours with an urgent-overnight policy and test boundary/DST cases.
-- Recheck planting/task completion immediately before send. Supersession and preferences are rechecked in the claim transaction, garden deletion cascades pending intents, and entitlement downgrade is enforced by the event runtime.
+- Define task-level applicability for recommendations that identify tasks rather than plantings. Planting completion, supersession and preferences are rechecked in the claim transaction, garden deletion cascades pending intents, and entitlement downgrade is enforced by the event runtime.
 - Expose delivery outcome history to operators, including suppressed, bounce, complaint and permanently failed cases.
 - Run a controlled staging send to an allowlisted recipient and retain provider acceptance and webhook-delivery evidence separately.
