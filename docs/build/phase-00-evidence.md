@@ -79,6 +79,7 @@ Known CLI deviation: `trestle plan init` at the pinned commit rejects the starte
 
 - Canonical remote: `https://github.com/gregmushen/easygardenplan.git`.
 - GitHub environments exist for preview, staging and production; no provider credential was invented or copied into them.
+- The `main` branch requires the GitHub `check` status against the current branch head, requires resolved review conversations, and rejects force-pushes and deletion.
 - CI run `36159176920` passed on commit `442423bb87c1591f54b52c885837bc5aff8b4c4b`: frozen install, Trestle validation and architecture, typecheck, PostgreSQL migration, full tests, production builds, Chromium product journey and Wrangler validation all succeeded.
 - Deploy run `36159176848` stopped before provisioning because staging encrypted credentials, email deployment configuration and Stripe settings are absent. It reported 110 doctor checks passed and three configuration failures; the production job was skipped.
 
