@@ -11,3 +11,4 @@ export * from "./knowledge.js";
 export * from "./location.js";
 export * from "./geometry.js";
 export * from "./planning.js";
+export * from "./progress.js";

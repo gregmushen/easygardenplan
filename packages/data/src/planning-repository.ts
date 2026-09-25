@@ -1,7 +1,7 @@
 import { cropSelectionSchema, planInputSnapshotSchema, planResultSchema, type CropSelection, type PlanInputSnapshot, type PlanResult } from "@easygardenplan/contracts";
-import { bed, bedGeometryRevision, climateAssociation, crop, cropSelection, cropVariety, garden, gardenPlanVersion, type Database } from "@easygardenplan/db";
+import { bed, bedGeometryRevision, climateAssociation, crop, cropSelection, cropVariety, garden, gardenPlanVersion, planTask, taskStatusVersion, type Database } from "@easygardenplan/db";
 import { circleFits, generatePlan } from "@easygardenplan/domain";
-import { and, asc, desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { KnowledgeRepository } from "./knowledge-repository.js";
 
 export class PlanningConflictError extends Error {}
@@ -83,6 +83,16 @@ export class PlanningRepository {
     return rows.map((row) => this.parsePlan(row));
   }
 
+  async printSvg(gardenId: string, planId: string): Promise<string | null> {
+    const [row] = await this.database.select().from(gardenPlanVersion).where(and(eq(gardenPlanVersion.id, planId), eq(gardenPlanVersion.organizationId, this.organizationId), eq(gardenPlanVersion.gardenId, gardenId))).limit(1); if (!row) return null;
+    const snapshot = planInputSnapshotSchema.parse(row.inputSnapshot), result = planResultSchema.parse(row.result); const cropIds = [...new Set(snapshot.selections.map(({ cropId }) => cropId))]; const plants = cropIds.length ? await this.database.select({ id: crop.id, name: crop.commonName }).from(crop).where(inArray(crop.id, cropIds)) : []; const names = new Map(plants.map(({ id, name }) => [id, name]));
+    const points = snapshot.beds.flatMap(({ geometry }) => geometry.outer); const minX = Math.min(...points.map(({ x }) => x)), maxX = Math.max(...points.map(({ x }) => x)), minY = Math.min(...points.map(({ y }) => y)), maxY = Math.max(...points.map(({ y }) => y)); const scale = Math.min(700 / Math.max(1, maxX - minX), 420 / Math.max(1, maxY - minY)); const point = ({ x, y }: { x: number; y: number }) => `${50 + (x - minX) * scale},${60 + (maxY - y) * scale}`;
+    const bedsSvg = snapshot.beds.map(({ id, geometry }) => `<polygon points="${geometry.outer.map(point).join(" ")}" fill="#ecfccb" stroke="#365314" stroke-width="2"/>${geometry.exclusions.map((ring) => `<polygon points="${ring.map(point).join(" ")}" fill="white" stroke="#991b1b" stroke-dasharray="5 4"/>`).join("")}<text x="55" y="${75 + snapshot.beds.findIndex((item) => item.id === id) * 15}" font-size="10">Bed ${escapeXml(id.slice(0, 8))}</text>`).join("");
+    const placements = result.placements.map((placement) => { const [x, y] = point(placement.position).split(","); return `<circle cx="${x}" cy="${y}" r="${Math.max(3, placement.footprintRadiusMeters * scale)}" fill="#86efac" stroke="#166534"/><text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="middle" font-size="8">${escapeXml(names.get(placement.cropId)?.slice(0, 3) ?? "?")}</text>`; }).join("");
+    const legend = [...new Set(snapshot.selections.map(({ cropId }) => `${names.get(cropId) ?? "Crop"} (${cropId.slice(0, 8)})`))].map((label, index) => `<text x="50" y="${510 + index * 14}" font-size="11">${escapeXml(label)}</text>`).join(""); const notes = result.unresolved.map((item, index) => `<text x="430" y="${510 + index * 14}" font-size="10">${escapeXml(`${item.kind}: ${item.code}`)}</text>`).join("");
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 620" role="img" aria-label="Staking plan version ${row.version}"><rect width="800" height="620" fill="white"/><text x="50" y="30" font-size="20" font-weight="bold">Garden staking plan · version ${row.version}</text>${bedsSvg}${placements}<text x="50" y="490" font-size="13" font-weight="bold">Crop legend</text>${legend}<text x="430" y="490" font-size="13" font-weight="bold">Unresolved notes</text>${notes || '<text x="430" y="510" font-size="10">None</text>'}<path d="M750 90v-40m0 0-8 14m8-14 8 14" stroke="#111827" fill="none"/><text x="750" y="105" text-anchor="middle" font-size="11">North</text><text x="50" y="600" font-size="10">Metric geometry; provider imagery is excluded.</text></svg>`;
+  }
+
   async adjustPlacement(gardenId: string, planId: string, placementId: string, bedId: string, position: { x: number; y: number }) {
     return await this.database.transaction(async (transaction) => {
       await transaction.execute(sql`select pg_advisory_xact_lock(hashtext(${`garden-plan:${gardenId}`}))`);
@@ -121,6 +131,12 @@ export class PlanningRepository {
       await transaction.update(gardenPlanVersion).set({ state: "superseded" }).where(and(eq(gardenPlanVersion.organizationId, this.organizationId), eq(gardenPlanVersion.gardenId, gardenId), eq(gardenPlanVersion.state, "active")));
       const [active] = await transaction.update(gardenPlanVersion).set({ state: "active", acknowledgedLimitations: [...required].sort(), activatedAt: new Date() }).where(and(eq(gardenPlanVersion.id, proposal.id), eq(gardenPlanVersion.state, "proposal"))).returning();
       if (!active) throw new PlanningConflictError("Another activation won the race");
+      if (result.scheduleWindows.length) {
+        const selections = new Map(savedSnapshot.selections.map((selection) => [selection.id, selection]));
+        const tasks = result.scheduleWindows.map((window) => { const selection = selections.get(window.selectionId)!; const taskType = selection.method === "direct_sow" ? "sow" : selection.method === "indoor_start" ? "seed_start" : "transplant"; return { id: crypto.randomUUID(), organizationId: this.organizationId, gardenId, planVersionId: proposal.id, selectionId: window.selectionId, taskType, windowStartLocalDate: window.startLocalDate, windowEndLocalDate: window.endLocalDate, dependsOnTaskIds: [], instruction: taskType === "sow" ? "Sow in the planned position during this reviewed window." : taskType === "seed_start" ? "Start seed for this crop during this reviewed window." : "Transplant the purchased start during this reviewed window.", origin: "plan" }; });
+        await transaction.insert(planTask).values(tasks);
+        await transaction.insert(taskStatusVersion).values(tasks.map((task) => ({ organizationId: this.organizationId, taskId: task.id, revision: 1, state: "planned", scheduledStartLocalDate: task.windowStartLocalDate, scheduledEndLocalDate: task.windowEndLocalDate })));
+      }
       return { stale: false as const, plan: this.parsePlan(active) };
     });
     if (outcome.stale) throw new PlanningConflictError("Garden, crop, climate, or catalog inputs changed; generate a new proposal");
@@ -131,3 +147,5 @@ export class PlanningRepository {
     return { ...row, inputSnapshot: planInputSnapshotSchema.parse(row.inputSnapshot), result: planResultSchema.parse(row.result), acknowledgedLimitations: Array.isArray(row.acknowledgedLimitations) ? row.acknowledgedLimitations.filter((item): item is string => typeof item === "string") : [] };
   }
 }
+
+function escapeXml(value: string): string { return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;"); }

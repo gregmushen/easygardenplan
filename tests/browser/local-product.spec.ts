@@ -5,13 +5,13 @@ const appURL = process.env.APP_URL ?? "http://localhost:42069";
 
 async function seedPlanningCatalog() {
   const connectionString = process.env.TRESTLE_BROWSER_DATABASE_URL; if (!connectionString) throw new Error("Browser database is required");
-  const database = createDatabase(connectionString, "postgres-js"); const nonce = crypto.randomUUID(); const cropId = crypto.randomUUID(); const sourceId = crypto.randomUUID(); const evidenceId = crypto.randomUUID(); const familyIds = [crypto.randomUUID(), crypto.randomUUID()]; const ruleIds = [crypto.randomUUID(), crypto.randomUUID()]; const releaseId = crypto.randomUUID();
+  const database = createDatabase(connectionString, "postgres-js"); const nonce = crypto.randomUUID(); const cropId = crypto.randomUUID(); const sourceId = crypto.randomUUID(); const evidenceId = crypto.randomUUID(); const familyIds = [crypto.randomUUID(), crypto.randomUUID(), crypto.randomUUID()]; const ruleIds = [crypto.randomUUID(), crypto.randomUUID(), crypto.randomUUID()]; const releaseId = crypto.randomUUID();
   await database.insert(crop).values({ id: cropId, slug: `browser-crop-${nonce}`, commonName: "Browser fixture tomato", status: "published" });
   await database.insert(knowledgeSource).values({ id: sourceId, url: `https://example.test/browser-${nonce}`, title: "Browser fixture", publisher: "Tests", sourceType: "fixture", accessedAt: new Date() });
   await database.insert(evidenceItem).values({ id: evidenceId, sourceId, normalizedClaim: "Synthetic browser fact", scope: { fixture: true } });
-  await database.insert(ruleFamily).values([{ id: familyIds[0]!, cropId, ruleType: "spacing", method: "direct_sow", contextKey: nonce }, { id: familyIds[1]!, cropId, ruleType: "planting_window", method: "direct_sow", contextKey: nonce }]);
+  await database.insert(ruleFamily).values([{ id: familyIds[0]!, cropId, ruleType: "spacing", method: "direct_sow", contextKey: nonce }, { id: familyIds[1]!, cropId, ruleType: "planting_window", method: "direct_sow", contextKey: nonce }, { id: familyIds[2]!, cropId, ruleType: "maturity", method: "direct_sow", contextKey: nonce }]);
   const applicability = { methods: ["direct_sow"], regionIds: [], climateRegimes: [], hardinessZones: [], varietyIds: [] };
-  await database.insert(ruleVersion).values([{ id: ruleIds[0]!, familyId: familyIds[0]!, version: 1, state: "published", applicability, payload: { state: "known", type: "spacing", withinRowMeters: { minimum: 0.5, maximum: 0.5, minimumInclusive: true, maximumInclusive: true }, pattern: "individual", sourceUnit: "meters" }, evidenceIds: [evidenceId], publishedAt: new Date() }, { id: ruleIds[1]!, familyId: familyIds[1]!, version: 1, state: "published", applicability, payload: { state: "known", type: "planting_window", windows: [{ kind: "calendar", startMonth: 3, startDay: 1, endMonth: 4, endDay: 15, endYearOffset: 0 }] }, evidenceIds: [evidenceId], publishedAt: new Date() }]);
+  await database.insert(ruleVersion).values([{ id: ruleIds[0]!, familyId: familyIds[0]!, version: 1, state: "published", applicability, payload: { state: "known", type: "spacing", withinRowMeters: { minimum: 0.5, maximum: 0.5, minimumInclusive: true, maximumInclusive: true }, pattern: "individual", sourceUnit: "meters" }, evidenceIds: [evidenceId], publishedAt: new Date() }, { id: ruleIds[1]!, familyId: familyIds[1]!, version: 1, state: "published", applicability, payload: { state: "known", type: "planting_window", windows: [{ kind: "calendar", startMonth: 3, startDay: 1, endMonth: 4, endDay: 15, endYearOffset: 0 }, { kind: "calendar", startMonth: 5, startDay: 1, endMonth: 5, endDay: 15, endYearOffset: 0 }, { kind: "calendar", startMonth: 7, startDay: 1, endMonth: 7, endDay: 15, endYearOffset: 0 }] }, evidenceIds: [evidenceId], publishedAt: new Date() }, { id: ruleIds[2]!, familyId: familyIds[2]!, version: 1, state: "published", applicability, payload: { state: "known", type: "maturity", days: { minimum: 50, maximum: 60, minimumInclusive: true, maximumInclusive: true }, anchor: "sowing", sourceUnit: "calendar_days" }, evidenceIds: [evidenceId], publishedAt: new Date() }]);
   await database.insert(catalogRelease).values({ id: releaseId, name: `browser-${nonce}`, status: "published", publishedBy: "browser-test", publishedAt: new Date() }); await database.insert(catalogReleaseRule).values(ruleIds.map((ruleVersionId) => ({ releaseId, ruleVersionId })));
   await database.$client.end();
 }
@@ -78,11 +78,23 @@ test("a new gardener receives one private workspace and can save the garden", as
   await expect(page.getByText(/Browser fixture tomato: 4 retained plants/u)).toBeVisible();
   await page.getByRole("button", { name: "Generate proposal" }).click();
   await expect(page.getByText(/4 placed, 0 unplaced/u)).toBeVisible();
-  await expect(page.getByText(/through/u)).toBeVisible();
+  await expect(page.getByText(/through/u).first()).toBeVisible();
   await page.getByRole("button", { name: "Save pinned position" }).click();
   await expect(page.getByRole("heading", { name: /Plan version 2 · proposal/u })).toBeVisible();
   await page.getByRole("button", { name: "Activate this plan" }).click();
   await expect(page.getByRole("heading", { name: /active/u })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "This week" })).toBeVisible();
+  await expect(page.getByText(/Sow in the planned position/u).first()).toBeVisible();
+  await page.getByLabel("Progress date").fill(`${new Date().getFullYear()}-03-10`);
+  await page.getByRole("button", { name: "Record progress" }).click();
+  await expect(page.getByText(/sown/u).last()).toBeVisible();
+  await expect(page.getByText(/recalculated from an actual event/u)).toBeVisible();
+  await page.getByRole("button", { name: "Complete" }).first().click();
+  await expect(page.getByText(/task completed/u)).toBeVisible();
+  await page.getByRole("button", { name: "Postpone one week" }).first().click();
+  await expect(page.getByText(/task postponed/u)).toBeVisible();
+  await page.getByRole("button", { name: "Skip" }).first().click();
+  await expect(page.getByText(/task skipped/u)).toBeVisible();
 
   const bootstrap = await page.context().request.post(`${appURL}/api/workspace/bootstrap`, { headers: { origin: appURL } });
   const workspace = (await bootstrap.json() as { workspace: { organizationId: string } }).workspace;

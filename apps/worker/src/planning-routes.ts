@@ -43,6 +43,7 @@ planningRoutes.post("/api/gardens/:id/plans", async (context) => {
   catch (error) { const response = problem(error); return context.json(response.body, response.status); }
 });
 planningRoutes.get("/api/gardens/:id/plans", async (context) => { const execution = context.get("execution"); execution.access.require({ permission: "garden.read" }); return context.json({ plans: await repository(context).listPlans(context.req.param("id")) }); });
+planningRoutes.get("/api/gardens/:id/plans/:planId/print.svg", async (context) => { const execution = context.get("execution"); execution.access.require({ permission: "garden.read" }); const svg = await repository(context).printSvg(context.req.param("id"), context.req.param("planId")); return svg ? context.body(svg, 200, { "content-type": "image/svg+xml", "cache-control": "private, no-store" }) : context.json({ error: "not_found" }, 404); });
 planningRoutes.post("/api/gardens/:id/plans/:planId/adjust", async (context) => {
   const execution = context.get("execution"); execution.access.require({ permission: "garden.write" });
   try { const input = adjustmentCommand.parse(await context.req.json()); return context.json({ plan: await repository(context).adjustPlacement(context.req.param("id"), context.req.param("planId"), input.placementId, input.bedId, input.position) }, 201); }

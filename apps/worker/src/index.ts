@@ -23,6 +23,7 @@ import { knowledgeRoutes } from "./knowledge-routes.js";
 import { locationRoutes } from "./location-routes.js";
 import { bedRoutes } from "./bed-routes.js";
 import { planningRoutes } from "./planning-routes.js";
+import { progressRoutes } from "./progress-routes.js";
 import { auditTenantAction } from "./audit.js";
 import { requireExecutionContext, type AppVariables } from "./execution-context.js";
 import { mapHttpError } from "./http-errors.js";
@@ -574,6 +575,7 @@ app.route("/", gardenRoutes);
 app.route("/", locationRoutes);
 app.route("/", bedRoutes);
 app.route("/", planningRoutes);
+app.route("/", progressRoutes);
 
 eventConsumers.register(gardenCreatedEvent, handleGardenCreated, { authority: "tenant" });
 eventConsumers.register(gardenUpdatedEvent, handleGardenUpdated, { authority: "tenant" });
