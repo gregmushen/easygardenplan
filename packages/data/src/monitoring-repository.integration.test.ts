@@ -1,4 +1,4 @@
-import { createDatabase, garden, gardenPlanVersion, gardenProgressEvent, notificationDeliveryIntent, notificationDigest, notificationDigestDue, notificationFeedEntry, notificationPreference, organization, recommendationTransition, user, weatherForecastSnapshot, weatherOfficialAlertGarden, weatherOfficialAlertSnapshot } from "@easygardenplan/db";
+import { createDatabase, garden, gardenPlanVersion, gardenProgressEvent, notificationDeliveryIntent, notificationDigest, notificationDigestDue, notificationFeedEntry, notificationPreference, organization, planTask, recommendationTransition, taskStatusVersion, user, weatherForecastSnapshot, weatherOfficialAlertGarden, weatherOfficialAlertSnapshot } from "@easygardenplan/db";
 import { and, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { MonitoringRepository } from "./monitoring-repository.js";
@@ -96,6 +96,20 @@ suite("weather episode persistence", () => {
     expect(await deliveries.claim(warning.transition!.id)).toBeNull();
     const [intent] = await database!.select().from(notificationDeliveryIntent).where(eq(notificationDeliveryIntent.transitionId, warning.transition!.id));
     expect(intent).toMatchObject({ status: "suppressed", suppressionReason: "affected_plantings_complete" });
+  });
+
+  it("suppresses task-specific advice when every identified task has ended", async () => {
+    const selectionId = crypto.randomUUID(); const taskId = crypto.randomUUID();
+    const [plan] = await database!.insert(gardenPlanVersion).values({ organizationId, gardenId, version: 100, state: "proposal", algorithmVersion: "grid-v1", inputFingerprint: "d".repeat(64), inputSnapshot: {}, result: {} }).returning();
+    await database!.insert(planTask).values({ id: taskId, organizationId, gardenId, planVersionId: plan!.id, selectionId, taskType: "care", windowStartLocalDate: "2026-10-01", windowEndLocalDate: "2026-10-02", instruction: "Protect seedlings." });
+    await database!.insert(taskStatusVersion).values({ organizationId, taskId, revision: 1, state: "planned", scheduledStartLocalDate: "2026-10-01", scheduledEndLocalDate: "2026-10-02" });
+    const taskCandidate = { ...candidate, groupKey: "task:completed", affectedIds: [], affectedTaskIds: [taskId], evidenceFingerprint: "fixture-task-completed" };
+    const warning = await repository!.evaluate({ gardenId, hazard: "cold", groupKey: taskCandidate.groupKey, observation: { status: "evaluated", candidate: taskCandidate } });
+    await database!.insert(taskStatusVersion).values({ organizationId, taskId, revision: 2, state: "completed", scheduledStartLocalDate: "2026-10-01", scheduledEndLocalDate: "2026-10-02", actualLocalDate: "2026-10-01" });
+    const deliveries = new NotificationRepository(database!, organizationId, { now: () => new Date("2026-10-01T05:01:00.000Z") });
+    expect(await deliveries.claim(warning.transition!.id)).toBeNull();
+    const [intent] = await database!.select().from(notificationDeliveryIntent).where(eq(notificationDeliveryIntent.transitionId, warning.transition!.id));
+    expect(intent).toMatchObject({ status: "suppressed", suppressionReason: "affected_tasks_complete" });
   });
 
   it("freezes one daily digest and excludes an immediately accepted version", async () => {

@@ -1,0 +1,1 @@
+ALTER TABLE "recommendation_version" ADD COLUMN "affected_task_ids" jsonb DEFAULT '[]'::jsonb NOT NULL;

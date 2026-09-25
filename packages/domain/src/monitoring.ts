@@ -5,6 +5,7 @@ export type RiskCandidate = Readonly<{
   groupKey: string;
   action: string;
   affectedIds: readonly string[];
+  affectedTaskIds?: readonly string[];
   validFrom: string;
   validThrough: string;
   evidenceFingerprint: string;
@@ -36,7 +37,7 @@ export type RiskDecision = Readonly<{
 }>;
 
 export function candidateActionFingerprint(candidate: RiskCandidate): string {
-  return JSON.stringify({ hazard: candidate.hazard, groupKey: candidate.groupKey, action: candidate.action, affectedIds: [...candidate.affectedIds].sort(), validFrom: candidate.validFrom, validThrough: candidate.validThrough });
+  return JSON.stringify({ hazard: candidate.hazard, groupKey: candidate.groupKey, action: candidate.action, affectedIds: [...candidate.affectedIds].sort(), affectedTaskIds: [...(candidate.affectedTaskIds ?? [])].sort(), validFrom: candidate.validFrom, validThrough: candidate.validThrough });
 }
 
 /** Pure episode state machine. Missing or stale data can never resolve risk. */

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { affectedPlantingsComplete, digestDueAt, isWithinQuietHours, localDateAt, selectDigestRecommendationIds } from "./notification-repository.js";
+import { affectedPlantingsComplete, affectedTasksComplete, digestDueAt, isWithinQuietHours, localDateAt, selectDigestRecommendationIds } from "./notification-repository.js";
 
 const first = "11111111-1111-4111-8111-111111111111";
 const second = "22222222-2222-4222-8222-222222222222";
@@ -57,6 +57,23 @@ describe("isWithinQuietHours", () => {
   it("treats matching boundaries as an all-day quiet preference", () => {
     expect(isWithinQuietHours(new Date("2026-07-01T15:00:00.000Z"), "America/Los_Angeles", "08:00", "08:00")).toBe(true);
     expect(isWithinQuietHours(new Date(), "Etc/UTC", null, null)).toBe(false);
+  });
+});
+
+describe("affectedTasksComplete", () => {
+  it("requires every identified task's latest status to be terminal", () => {
+    expect(affectedTasksComplete([first, second], [{ id: first }, { id: second }], [
+      { taskId: first, revision: 2, state: "completed" }, { taskId: first, revision: 1, state: "planned" }, { taskId: second, revision: 1, state: "skipped" },
+    ])).toBe(true);
+    expect(affectedTasksComplete([first, second], [{ id: first }, { id: second }], [
+      { taskId: first, revision: 1, state: "completed" }, { taskId: second, revision: 2, state: "postponed" },
+    ])).toBe(false);
+  });
+
+  it("fails open for missing, malformed or cross-garden task identities", () => {
+    expect(affectedTasksComplete([], [], [])).toBe(false);
+    expect(affectedTasksComplete(["task-one"], [], [])).toBe(false);
+    expect(affectedTasksComplete([first], [], [{ taskId: first, revision: 1, state: "completed" }])).toBe(false);
   });
 });
 
