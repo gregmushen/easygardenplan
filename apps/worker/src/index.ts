@@ -29,6 +29,7 @@ import { monitoringRoutes } from "./monitoring-routes.js";
 import { handleWeatherEvaluationRequested, weatherEvaluationRequestedConsumer } from "./monitoring-runtime.js";
 import { handleRecommendationTransitioned, recommendationTransitionedConsumer } from "./notification-runtime.js";
 import { scheduleDueWeatherEvaluations } from "./monitoring-scheduler.js";
+import { weatherMonitoringCron } from "./monitoring-capacity.js";
 import { scheduleDueGardenDigests } from "./digest-scheduler.js";
 import { auditTenantAction } from "./audit.js";
 import { requireExecutionContext, type AppVariables } from "./execution-context.js";
@@ -551,7 +552,6 @@ app.get("/api/health/product", async (context) => {
 
 /** Matches FRAMEWORK_MAINTENANCE_CRON in scripts/queue-config.mjs, which adds it to deployed Workers. */
 const frameworkMaintenanceCron = "* * * * *";
-const weatherMonitoringCron = "0 * * * *";
 const artifactIdPattern =/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
 
 // Artifacts are product resources: only application-plane authority grants them.

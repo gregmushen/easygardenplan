@@ -12,6 +12,7 @@ Status: **in progress**. The product-specific Free/Pro model, local checkout/can
 - The plan screen shows customer language rather than entitlement codes, handles checkout success/cancellation return states, distinguishes provider subscription state from effective access, and supports checkout, payment-detail management, cancellation and resumption.
 - Local billing exercises the same product commands and projection repository as provider mode. Cancel immediately removes paid entitlements while retaining the subscription history; Free garden access is independent of paid entitlements.
 - Weather evaluation and notification consumers recheck `weather.monitoring` at execution, so an effective downgrade between queueing and handling prevents new Pro work.
+- The Workflow boundary test creates the durable instance while access is present, revokes access before execution, and proves the handler is skipped while the committed event settles once. This is the queue-to-execution downgrade case; browser coverage would not exercise the authoritative background boundary more directly.
 - Existing signed Stripe processing verifies current provider state before projection, uses immutable subscription ownership, serializes organization updates, fences slow reconciliations by generation, ignores replaced subscription identities and atomically projects entitlements with an internal billing event.
 - In deployed environments with the required Queue binding, a signed subscription webhook first commits its provider receipt and reconciliation generation, then enqueues a minimal wake-up. The consumer retrieves current Stripe state, applies the fenced projection and retries provider outages without holding the webhook request open. Queue delivery is acknowledged only after projection succeeds or is safely superseded.
 - Provider readiness now requires the exact billable product map (`pro`) rather than placeholder Starter/Business prices.
@@ -28,4 +29,3 @@ Status: **in progress**. The product-specific Free/Pro model, local checkout/can
 
 - Configure the approved Pro price and Stripe test product/price, webhook endpoint and encrypted environment values through Trestle. The checked-in amount remains provisioning input and is not presented as a launch price.
 - Run the preview/staging Stripe Checkout path and record signed webhook, current-state retrieval, projection, portal/cancel and effective downgrade evidence.
-- Add an explicit browser case where entitlement changes after monitoring work is queued and before its handler executes.
