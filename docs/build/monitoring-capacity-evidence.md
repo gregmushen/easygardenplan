@@ -12,4 +12,4 @@ Scheduler storage failures retain their count and retry after 5, 10, 20, 40 and 
 
 Automated tests prove the capacity arithmetic, detect a 2,000-garden overload under the same settings, validate the bounded backoff, verify Trestle's rendered Worker config preserves both the application cron and framework maintenance tick, and exercise due claiming against PostgreSQL with tenant-provenanced committed events.
 
-The remaining provider-cost gate requires real NWS behavior plus contracted Geoapify, MapTiler, Exa, Resend and Stripe rates and observed usage. No rate or service allowance is inferred from this local result.
+NWS request attempts are persisted at the adapter boundary before every network call, including failures and retries, and the operations report uses that counter rather than deduplicated forecast snapshots. The remaining provider-cost gate requires real NWS behavior plus contracted Geoapify, MapTiler, Exa, Resend and Stripe rates and observed usage. No rate or service allowance is inferred from this local result.

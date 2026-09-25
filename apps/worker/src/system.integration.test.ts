@@ -1,6 +1,6 @@
 import { createAuth } from "@easygardenplan/auth";
 import { PostgresBillingProjectionRepository } from "@easygardenplan/billing";
-import { activeApplicationRoles, grantApplicationRoles, replaceApplicationRoles, artifactMetadata, createDatabase, createSignedWebhookHeaders, createTenantDatabase, eventInbox, hasArtifactStorageKey, organization, organizationEntitlement, organizationSubscription, outboxMessage, PostgresArtifactMetadataRepository, PostgresOutboxStore, user, webhookAttempt, webhookDelivery, webhookEndpoint, webhookMessage, webhookSecretVersion, webhookSubscription } from "@easygardenplan/db";
+import { activeApplicationRoles, grantApplicationRoles, replaceApplicationRoles, artifactMetadata, createDatabase, createSignedWebhookHeaders, createTenantDatabase, eventInbox, hasArtifactStorageKey, locationProviderUsage, organization, organizationEntitlement, organizationSubscription, outboxMessage, PostgresArtifactMetadataRepository, PostgresOutboxStore, user, webhookAttempt, webhookDelivery, webhookEndpoint, webhookMessage, webhookSecretVersion, webhookSubscription } from "@easygardenplan/db";
 import type { EventEnvelope } from "@easygardenplan/events";
 import { clearCapturedEmails, listCapturedEmails } from "@easygardenplan/integrations";
 import { and, eq, sql } from "drizzle-orm";
@@ -80,6 +80,7 @@ suite("local product path", () => {
       const geocodeFallback = await app.request("http://localhost:8787/api/location/geocode", { method: "POST", headers: { ...gardenHeaders, "content-type": "application/json" }, body: JSON.stringify({ text: "A place that uses the local fixture" }) }, environment);
       expect(geocodeFallback.status).toBe(200);
       await expect(geocodeFallback.json()).resolves.toEqual({ candidates: [], manualPinAvailable: true });
+      expect(await database.select().from(locationProviderUsage).where(and(eq(locationProviderUsage.organizationId, workspace.organizationId), eq(locationProviderUsage.provider, "geoapify")))).toEqual([]);
       const confirmedLocation = await app.request(`http://localhost:8787/api/gardens/${workspace.gardenId}/location`, { method: "PUT", headers: { ...gardenHeaders, "content-type": "application/json" }, body: JSON.stringify({ expectedRevision: 2, location: { coordinate: { latitude: 45.52, longitude: -122.68 }, timezone: "America/Los_Angeles", source: "manual_pin", regionIds: ["us", "us-or"] } }) }, environment);
       expect(confirmedLocation.status).toBe(200);
       await expect(confirmedLocation.json()).resolves.toMatchObject({ garden: { revision: 3, locationConfirmed: true, locationSource: "manual_pin", latitude: "45.52", longitude: "-122.68", regionIds: ["us", "us-or"] } });

@@ -68,7 +68,7 @@ export async function evaluateGardenWeather(input: { gardenId: string; environme
   let officialAlerts: NormalizedOfficialAlert[] = [];
   let officialAlertsReason: "complete" | NwsAdapterError["reason"] = "complete";
   if (input.environment.NWS_MODE === "live") {
-    const adapter = new NwsAdapter({ userAgent: input.environment.NWS_USER_AGENT ?? "easygardenplan.com (weather integration)", clock: context.clock });
+    const adapter = new NwsAdapter({ userAgent: input.environment.NWS_USER_AGENT ?? "easygardenplan.com (weather integration)", clock: context.clock, onRequest: async () => await repository.recordProviderRequest("nws") });
     const [forecastResult, alertResult] = await Promise.allSettled([adapter.forecast(Number(place.latitude), Number(place.longitude)), adapter.alerts(Number(place.latitude), Number(place.longitude))]);
     if (alertResult.status === "fulfilled") {
       officialAlerts = alertResult.value;

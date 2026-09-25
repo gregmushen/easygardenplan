@@ -3,6 +3,13 @@ name: Deploy
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      deploy_production:
+        description: Deploy the verified main revision to production after staging passes
+        type: boolean
+        required: true
+        default: false
 
 permissions:
   contents: read
@@ -14,6 +21,7 @@ concurrency:
 
 jobs:
   staging:
+    if: github.event_name == 'push' || inputs.deploy_production == true
     environment: staging
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -208,6 +216,7 @@ jobs:
 
   production:
     needs: staging
+    if: github.event_name == 'workflow_dispatch' && inputs.deploy_production == true
     environment: production
     runs-on: ubuntu-latest
     timeout-minutes: 20

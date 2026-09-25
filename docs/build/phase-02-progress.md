@@ -31,7 +31,7 @@ Status: **in progress**. The deterministic editorial and publication pipeline is
 
 ## Verification
 
-- Current `pnpm check`: passed. Root scripts: 65 passed. Root Vitest suites: 27 passed. Workspace suites passed, including contracts 8, integrations 92, database 134, data 34, auth 10, domain 15 and worker 152. Five protected live-provider tests and thirteen environment-specific database cases remain skipped by their owning packages; the PostgreSQL phase suites ran with the local restricted database URL and passed.
+- Current `pnpm check`: passed. Root scripts: 66 passed. Root Vitest suites: 27 passed. Workspace suites passed, including contracts 8, integrations 92, database 134, data 35, auth 10, domain 15 and worker 152. Five protected live-provider tests and thirteen environment-specific database cases remain skipped by their owning packages; the PostgreSQL phase suites ran with the local restricted database URL and passed.
 - `pnpm trestle plan diff .trestle/setup.json`: converged.
 - `pnpm trestle architecture check`: 6 passed.
 - `pnpm trestle doctor`: 106 passed, 0 warnings, 0 failed.

@@ -14,10 +14,11 @@ export class NwsAdapterError extends Error {
 }
 
 export class NwsAdapter {
-  constructor(private readonly options: { userAgent: string; fetch?: typeof fetch; clock?: { now(): Date }; baseUrl?: string }) {
+  constructor(private readonly options: { userAgent: string; fetch?: typeof fetch; clock?: { now(): Date }; baseUrl?: string; onRequest?: () => void | Promise<void> }) {
     if (!options.userAgent.trim()) throw new Error("NWS User-Agent is required");
   }
   private async get(url: string): Promise<unknown> {
+    await this.options.onRequest?.();
     const response = await (this.options.fetch ?? fetch)(url, { headers: { Accept: "application/geo+json", "User-Agent": this.options.userAgent } });
     if (response.status === 429) throw new NwsAdapterError("rate_limited", "NWS request was rate limited");
     if (!response.ok) throw new NwsAdapterError("unavailable", `NWS request failed with ${response.status}`);

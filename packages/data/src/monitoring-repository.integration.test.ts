@@ -1,4 +1,4 @@
-import { createDatabase, crop, cropSelection, garden, gardenPlanVersion, gardenProgressEvent, notificationDeliveryIntent, notificationDigest, notificationDigestDue, notificationFeedEntry, notificationPreference, organization, planTask, recommendationTransition, taskStatusVersion, user, weatherForecastSnapshot, weatherOfficialAlertGarden, weatherOfficialAlertSnapshot } from "@easygardenplan/db";
+import { createDatabase, crop, cropSelection, garden, gardenPlanVersion, gardenProgressEvent, locationProviderUsage, notificationDeliveryIntent, notificationDigest, notificationDigestDue, notificationFeedEntry, notificationPreference, organization, planTask, recommendationTransition, taskStatusVersion, user, weatherForecastSnapshot, weatherOfficialAlertGarden, weatherOfficialAlertSnapshot } from "@easygardenplan/db";
 import { and, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { MonitoringRepository } from "./monitoring-repository.js";
@@ -51,6 +51,12 @@ suite("weather episode persistence", () => {
     const first = await repository!.storeForecast(forecast); const second = await repository!.storeForecast(forecast);
     expect(second.id).toBe(first.id);
     await database!.delete(weatherForecastSnapshot).where(eq(weatherForecastSnapshot.id, first.id));
+  });
+
+  it("counts every NWS request attempt even when calls share one minute", async () => {
+    await Promise.all([repository!.recordProviderRequest("nws"), repository!.recordProviderRequest("nws"), repository!.recordProviderRequest("nws")]);
+    const [usage] = await database!.select().from(locationProviderUsage).where(and(eq(locationProviderUsage.organizationId, organizationId), eq(locationProviderUsage.provider, "nws")));
+    expect(usage?.requestCount).toBe(3);
   });
 
   it("retains normalized official cancellations and their point-matched garden", async () => {

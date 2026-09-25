@@ -7,11 +7,13 @@ const hourly = { properties: { updateTime: "2026-09-25T03:00:00-07:00", generate
 describe("NWS adapter", () => {
   it("discovers the grid endpoint, normalizes units and sends the required identity", async () => {
     const requests: Request[] = [];
-    const adapter = new NwsAdapter({ userAgent: "easygardenplan.com, support@example.test", clock: { now: () => new Date("2026-09-25T10:10:00.000Z") }, fetch: async (input, init) => { requests.push(new Request(input, init)); return Response.json(requests.length === 1 ? point : hourly); } });
+    let metered = 0;
+    const adapter = new NwsAdapter({ userAgent: "easygardenplan.com, support@example.test", clock: { now: () => new Date("2026-09-25T10:10:00.000Z") }, onRequest: () => { metered += 1; }, fetch: async (input, init) => { requests.push(new Request(input, init)); return Response.json(requests.length === 1 ? point : hourly); } });
     const forecast = await adapter.forecast(37.7749, -122.4194);
     expect(forecast.intervals.map(({ temperatureCelsius }) => temperatureCelsius)).toEqual([0, 2]);
     expect(forecast.retrievedAt).toBe("2026-09-25T10:10:00.000Z");
     expect(requests[0]!.headers.get("user-agent")).toContain("easygardenplan.com");
+    expect(metered).toBe(2);
   });
 
   it("normalizes active alerts and cancellation messages", async () => {

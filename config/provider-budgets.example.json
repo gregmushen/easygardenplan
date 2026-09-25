@@ -6,7 +6,7 @@
     "geoapify": { "meter": "request", "unitCostUsd": 0.001, "softBudgetUsd": 50, "hardBudgetUsd": 100 },
     "maptiler": { "meter": "map_session", "unitCostUsd": 0.001, "softBudgetUsd": 50, "hardBudgetUsd": 100 },
     "exa": { "meter": "search", "unitCostUsd": 0.001, "softBudgetUsd": 50, "hardBudgetUsd": 100 },
-    "nws": { "meter": "forecast_fetch", "unitCostUsd": 0, "softBudgetUsd": 50, "hardBudgetUsd": 100 },
+    "nws": { "meter": "request", "unitCostUsd": 0, "softBudgetUsd": 50, "hardBudgetUsd": 100 },
     "resend": { "meter": "accepted_email", "unitCostUsd": 0.001, "softBudgetUsd": 50, "hardBudgetUsd": 100 },
     "stripe": { "meter": "provider_event", "unitCostUsd": 0, "softBudgetUsd": 50, "hardBudgetUsd": 100 }
   }

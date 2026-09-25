@@ -26,9 +26,9 @@ locationRoutes.post("/api/location/geocode", async (context) => {
   const parsed = geocodeRequestSchema.safeParse(await context.req.json());
   if (!parsed.success) return context.json({ error: "validation_failed", issues: parsed.error.issues }, 400);
   try {
-    await new LocationRepository(execution.data, execution.tenant.organizationId).consumeGeocodeRequest(execution.clock.now());
     const provider = geocoder(context.env);
     if (!provider) return context.json({ error: "geocoder_unavailable", manualPinAvailable: true }, 503);
+    if (context.env.GEOAPIFY_API_KEY) await new LocationRepository(execution.data, execution.tenant.organizationId).consumeGeocodeRequest(execution.clock.now());
     const candidates = await provider.forward(parsed.data);
     return context.json({ candidates, manualPinAvailable: true });
   } catch (error) {

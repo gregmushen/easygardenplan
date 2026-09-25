@@ -1,5 +1,5 @@
 import type { NormalizedForecast, NormalizedOfficialAlert } from "@easygardenplan/contracts";
-import { crop, cropSelection, garden, gardenRiskState, notificationDeliveryIntent, notificationDigestDue, notificationFeedEntry, notificationPreference, recommendationEpisode, recommendationTransition, recommendationVersion, weatherEvaluation, weatherForecastSnapshot, weatherOfficialAlertGarden, weatherOfficialAlertSnapshot, type Database } from "@easygardenplan/db";
+import { crop, cropSelection, garden, gardenRiskState, locationProviderUsage, notificationDeliveryIntent, notificationDigestDue, notificationFeedEntry, notificationPreference, recommendationEpisode, recommendationTransition, recommendationVersion, weatherEvaluation, weatherForecastSnapshot, weatherOfficialAlertGarden, weatherOfficialAlertSnapshot, type Database } from "@easygardenplan/db";
 import { decideRiskTransition, type RiskObservation } from "@easygardenplan/domain";
 import { and, asc, desc, eq, inArray, max, sql, type SQL } from "drizzle-orm";
 import { digestDueAt, localDateAt } from "./notification-repository.js";
@@ -8,6 +8,14 @@ export type TransitionEventFactory = (payload: { gardenId: string; episodeId: st
 
 export class MonitoringRepository {
   constructor(private readonly database: Database, private readonly organizationId: string, private readonly clock: { now(): Date } = { now: () => new Date() }) {}
+
+  async recordProviderRequest(provider: "nws", now = this.clock.now()): Promise<void> {
+    const windowStartedAt = new Date(now); windowStartedAt.setUTCSeconds(0, 0);
+    await this.database.insert(locationProviderUsage).values({ organizationId: this.organizationId, provider, windowStartedAt, requestCount: 1 }).onConflictDoUpdate({
+      target: [locationProviderUsage.organizationId, locationProviderUsage.provider, locationProviderUsage.windowStartedAt],
+      set: { requestCount: sql`${locationProviderUsage.requestCount} + 1` },
+    });
+  }
 
   async storeForecast(value: NormalizedForecast) {
     const inserted = await this.database.insert(weatherForecastSnapshot).values({ provider: value.provider, sourceKey: value.sourceKey, sourceUpdatedAt: new Date(value.sourceUpdatedAt), retrievedAt: new Date(value.retrievedAt), validFrom: new Date(value.validFrom), validThrough: new Date(value.validThrough), fingerprint: value.fingerprint, normalizationVersion: value.normalizationVersion, intervals: value.intervals }).onConflictDoNothing({ target: [weatherForecastSnapshot.provider, weatherForecastSnapshot.sourceKey, weatherForecastSnapshot.fingerprint] }).returning();

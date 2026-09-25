@@ -8,6 +8,8 @@ Status: **implementation complete; contracted-rate and load gates remain**.
 
 Operators provide the reviewed rate card through `PROVIDER_BUDGETS_JSON`. The versioned shape is demonstrated in `config/provider-budgets.example.json`; its numbers are illustrative and must not be used as contracted rates. Each configured provider returns `ok`, `soft_limit`, `hard_limit`, `unmeasured`, or `meter_mismatch`. A missing rate card remains visibly `unconfigured`.
 
+Geoapify usage counts only actual live-adapter attempts, never local fixtures or unavailable configuration. NWS usage is metered before each point, hourly-forecast and active-alert HTTP attempt, so failures, retries, empty results and duplicate forecast content remain visible. Exa uses the persisted attempt count rather than completed-run count and uses provider-reported cost only where it exists. Resend counts accepted emails and Stripe counts received provider events. MapTiler remains `unmeasured` until its account analytics or invoice source is connected because browser tile requests do not traverse the application server.
+
 The parser rejects unknown providers, negative or non-finite values, missing meters and a soft budget above the hard budget. Provider-reported Exa cost takes precedence over a unit estimate. Tests cover threshold selection, hard-limit detection, missing browser measurements and invalid configuration.
 
 The launch gate remains open until the actual plan and contract rates are entered, MapTiler usage is supplied from its billing/analytics source, representative staging load is run, and the resulting cost is reviewed against an agreed customer-volume assumption.

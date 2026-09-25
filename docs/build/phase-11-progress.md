@@ -45,7 +45,7 @@ Stripe subscription reconciliation is now also queued after the signed receipt i
 ## Verification
 
 - `pnpm check`: passed.
-  - Root Node suite: 65 passed, 0 failed.
+  - Root Node suite: 66 passed, 0 failed.
   - Root Vitest operational/nationwide/source-normalization/budget suite: 27 passed, 0 failed.
   - Worker with both PostgreSQL integration environments enabled: 152 passed, 0 skipped.
   - Database: 134 passed, 13 skipped environment-specific cases.
@@ -69,6 +69,8 @@ Stripe subscription reconciliation is now also queued after the signed receipt i
 - Run the modeled 1,000-garden provider shape in controlled staging, measure latency/rate responses and cost, and connect provider invoices/rate data to the aggregate usage snapshot. Local scheduler capacity is proved separately.
 - Run the protected production backup restore workflow and record provider-backed rollback/forward-recovery notes. The supported prior-revision application migration is now rehearsed locally.
 - Close the incomplete claims listed in Phases 2–10. Production deployment and domain cutover require a separate explicit go-live decision.
+
+The GitHub deployment workflow enforces that last boundary: pushes to `main` may deploy and verify staging, while the production job can run only from a manual workflow dispatch with the explicit production input enabled and only after staging succeeds.
 
 ## Residual risks accepted for continued development
 

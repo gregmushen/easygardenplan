@@ -31,10 +31,9 @@ try {
     database`with usage as (
       select provider, 'request'::text as meter, sum(request_count)::float8 as units, null::float8 as actual_cost_usd
         from location_provider_usage where window_started_at >= date_trunc('month', now()) group by provider
-      union all select 'exa', 'search', count(*)::float8, coalesce(sum(cost_usd), 0)::float8
-        from research_run where completed_at >= date_trunc('month', now())
-      union all select 'nws', 'forecast_fetch', count(*)::float8, null::float8
-        from weather_forecast_snapshot where retrieved_at >= date_trunc('month', now())
+      union all select 'exa', 'search', coalesce(sum(attempt_count), 0)::float8,
+        case when count(cost_usd) > 0 then sum(cost_usd)::float8 else null::float8 end
+        from research_run where created_at >= date_trunc('month', now())
       union all select 'resend', 'accepted_email', count(*)::float8, null::float8
         from notification_delivery_intent where accepted_at >= date_trunc('month', now())
       union all select 'resend', 'accepted_email', count(*)::float8, null::float8
@@ -47,6 +46,7 @@ try {
   ]);
   const observedUsage: ProviderUsage[] = (providerUsage as unknown as Array<{ provider: ProviderUsage["provider"]; meter: string; units: number; actual_cost_usd: number | null }>).map((row) => ({ provider: row.provider, meter: row.meter, units: row.units, actualCostUsd: row.actual_cost_usd }));
   if (!observedUsage.some(({ provider }) => provider === "geoapify")) observedUsage.push({ provider: "geoapify", meter: "request", units: 0 });
+  if (!observedUsage.some(({ provider }) => provider === "nws")) observedUsage.push({ provider: "nws", meter: "request", units: 0 });
   observedUsage.push({ provider: "maptiler", meter: "map_session", units: null });
   const providerBudgets = evaluateProviderBudgets(observedUsage, parseProviderBudgetConfig(process.env.PROVIDER_BUDGETS_JSON));
   process.stdout.write(`${JSON.stringify({

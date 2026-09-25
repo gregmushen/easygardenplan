@@ -1,8 +1,8 @@
 import { expect, test } from "@playwright/test";
 
 const siteURL = process.env.SITE_URL ?? `http://localhost:${process.env.TRESTLE_BROWSER_SITE_PORT ?? 42068}`;
-const appURL = process.env.APP_URL ?? "http://localhost:42069";
-const apiURL = process.env.API_URL ?? "http://localhost:8787";
+const appURL = process.env.APP_URL ?? `http://localhost:${process.env.TRESTLE_BROWSER_APP_PORT ?? 42069}`;
+const apiURL = process.env.API_URL ?? `http://localhost:${process.env.TRESTLE_BROWSER_WORKER_PORT ?? 8787}`;
 
 test("Southwind hands off to hydrated app routes and browser-accessible API", async ({ page }) => {
   await page.goto(siteURL);
@@ -25,6 +25,6 @@ test("Southwind hands off to hydrated app routes and browser-accessible API", as
   await expect(page.getByRole("heading", { name: "Create your account" })).toBeVisible();
 
   await page.goto(new URL("/settings/billing", appURL).toString());
-  await expect(page.getByRole("heading", { name: "Plan and usage" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Your plan" })).toBeVisible();
   await expect(page.getByText("Sign in to view plan details.")).toBeVisible();
 });
