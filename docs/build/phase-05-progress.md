@@ -2,7 +2,7 @@
 
 Recorded: September 25, 2026
 
-Status: **in progress**. The complete synthetic product path is implemented and verified. The phase remains open because nationwide completion still depends on the real reviewed crop catalog and climate datasets tracked in phases 2 and 3, plus explicit reviewed override relationships and representative real-world horticultural validation.
+Status: **in progress**. The complete synthetic product path and explicit reviewed override relationships are implemented and verified. The phase remains open because nationwide completion still depends on the real reviewed crop catalog and climate datasets tracked in phases 2 and 3, plus representative real-world horticultural validation.
 
 ## Implemented and proved
 

@@ -478,10 +478,10 @@ Update this table as the build progresses. Use `not started`, `in progress`, `bl
 | 2 Knowledge | In progress | Deterministic pipeline proof: `docs/build/phase-02-progress.md`; live Exa run and reviewed catalog remain |
 | 3 Location/climate | In progress | Deterministic pipeline proof: `docs/build/phase-03-progress.md`; controlled providers and real datasets remain |
 | 4 Bed editor | In progress | Deterministic/editor proof: `docs/build/phase-04-progress.md`; physical mobile, screen-reader, print and real measurement trials remain |
-| 5 Planner | In progress | Synthetic end-to-end proof: `docs/build/phase-05-progress.md`; real reviewed catalog/climate validation and override relationships remain |
+| 5 Planner | In progress | Synthetic end-to-end and reviewed-override proof: `docs/build/phase-05-progress.md`; real reviewed catalog/climate validation remains |
 | 6 Progress | In progress | Deterministic product proof: `docs/build/phase-06-progress.md`; accessibility/offline review and real catalog validation remain |
-| 7 Monitoring | In progress | Deterministic/background proof: `docs/build/phase-07-progress.md`; reviewed rules, official-alert persistence and staging Queue evidence remain |
-| 8 Notifications | In progress | Deterministic delivery proof: `docs/build/phase-08-progress.md`; digests, quiet hours, planting/task suppression and staging delivery remain |
+| 7 Monitoring | In progress | Deterministic/background, official-alert persistence and reviewed anti-flapping proof: `docs/build/phase-07-progress.md`; launch rules, official-alert action policy and staging Queue evidence remain |
+| 8 Notifications | In progress | Deterministic delivery, quiet-hour and planting-suppression proof: `docs/build/phase-08-progress.md`; digests, task-specific applicability and staging delivery remain |
 | 9 Billing | In progress | Deterministic product proof: `docs/build/phase-09-progress.md`; controlled Stripe evidence remains |
 | 10 Public/operations | In progress | Local public/readiness/deletion/aggregate operations proof: `docs/build/phase-10-progress.md`; staging drills, provider cost and restore evidence remain |
 | 11 Launch | In progress | Local matrix and no-go review: `docs/build/phase-11-progress.md`; controlled staging/provider/accessibility/restore gates remain |
