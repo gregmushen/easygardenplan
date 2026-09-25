@@ -8,10 +8,10 @@ import { billablePlans, getPlan, planEntitlements, plans } from "@easygardenplan
 import { projectEmailDelivery } from "@easygardenplan/data";
 import { healthResponseSchema } from "@easygardenplan/contracts";
 import { createLogger, createMetrics, loggerSecretsFromEnvironment, safeErrorDiagnostic } from "@easygardenplan/context";
-import { applyBillingNotificationEvent, applyBillingProviderEvent, beginBillingSubscriptionReconciliation, createDatabase, emailDeliveryEvent, listWebhookAttempts, listWebhookDeliveries, listWebhookEndpoints, listWebhookSubscriptions, markBillingReconciliationUnavailable, createTenantDatabase, PostgresEventInbox, PostgresOutboxStore, replayTenantWebhookDelivery, replaceWebhookSubscriptions, setWebhookEndpointState, WebhookSecretError, WebhookSecretService } from "@easygardenplan/db";
+import { applyBillingNotificationEvent, applyBillingProviderEvent, beginBillingSubscriptionReconciliation, catalogRelease, climateDatasetVersion, createDatabase, emailDeliveryEvent, listWebhookAttempts, listWebhookDeliveries, listWebhookEndpoints, listWebhookSubscriptions, markBillingReconciliationUnavailable, createTenantDatabase, PostgresEventInbox, PostgresOutboxStore, replayTenantWebhookDelivery, replaceWebhookSubscriptions, setWebhookEndpointState, WebhookSecretError, WebhookSecretService } from "@easygardenplan/db";
 import { applicationEventCatalog, type CloudflareQueueBinding, type EventEnvelope, type QueueSettlement } from "@easygardenplan/events";
 import { clearCapturedEmails, getCapturedEmail, listCapturedEmails, LocalBillingAdapter, LocalEmailAdapter, NativeWebhookDestinationError, retrieveCurrentStripeSubscription, verifyAndNormalizeStripeEvent, verifyResendWebhook } from "@easygardenplan/integrations";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { createQueueConsumer, createWorkflowQueueConsumer, dispatchQueuedOutbox, EventConsumerRegistry, type CloudflareWorkflowBinding, type QueueBatch } from "./async-runtime.js";
 import { maintainArtifacts } from "./artifact-maintenance.js";
 import { auditArtifactReferences } from "./artifact-reference-audit.js";
@@ -518,6 +518,26 @@ app.get("/api/health/operational", (context) => context.json({
     workflows: { enabled: (context.env as WorkerEnvironment).TRESTLE_WORKFLOWS_ENABLED === "true", configured: Boolean((context.env as WorkerEnvironment).TRESTLE_WORKFLOW) },
   },
 }));
+
+app.get("/api/health/product", async (context) => {
+  const environment = context.env.APP_ENV ?? "local";
+  const database = createDatabase(context.env.DATABASE_URL, context.env.DATABASE_DRIVER);
+  const [[catalog], [climate]] = await Promise.all([
+    database.select({ count: sql<number>`count(*)::int` }).from(catalogRelease).where(eq(catalogRelease.status, "published")),
+    database.select({ count: sql<number>`count(*)::int` }).from(climateDatasetVersion).where(eq(climateDatasetVersion.status, "published")),
+  ]);
+  const live = environment !== "local";
+  const checks = {
+    catalog: Boolean(catalog?.count), climate: Boolean(climate?.count),
+    geocoding: !live || configuredValue(context.env.GEOAPIFY_API_KEY), maps: !live || configuredValue(context.env.MAPTILER_PUBLIC_KEY),
+    research: !live || configuredValue(context.env.EXA_API_KEY),
+    weather: !live || (context.env.NWS_MODE === "live" && Number(context.env.NWS_MAX_SOURCE_AGE_MINUTES) > 0 && configuredValue(context.env.NWS_USER_AGENT)),
+    email: !live || ((context.env.EMAIL_DELIVERY_MODE === "resend" || context.env.EMAIL_DELIVERY_MODE === "provider") && configuredValue(context.env.RESEND_API_KEY) && configuredValue(context.env.RESEND_WEBHOOK_SECRET) && configuredValue(context.env.EMAIL_FROM)),
+    billing: stripeConfigurationReady(context.env), queues: !live || Boolean((context.env as WorkerEnvironment).TRESTLE_EVENTS),
+  };
+  const missing = Object.entries(checks).filter(([, ready]) => !ready).map(([name]) => name);
+  return context.json({ status: missing.length ? "not_ready" : "ready", environment, checks, missing });
+});
 
 /** Matches FRAMEWORK_MAINTENANCE_CRON in scripts/queue-config.mjs, which adds it to deployed Workers. */
 const frameworkMaintenanceCron = "* * * * *";

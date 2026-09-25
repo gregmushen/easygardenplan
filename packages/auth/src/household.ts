@@ -1,4 +1,4 @@
-import { applicationRoleAssignment, garden, member, organization, outboxMessage, session, user, type Database } from "@easygardenplan/db";
+import { applicationRoleAssignment, billingSubscriptionOwnership, garden, member, organization, organizationEntitlement, organizationEntitlementOverride, organizationSubscription, outboxMessage, session, user, type Database } from "@easygardenplan/db";
 import { and, eq, isNull, sql } from "drizzle-orm";
 
 export type DefaultHousehold = Readonly<{ organizationId: string; gardenId: string }>;
@@ -55,6 +55,10 @@ export async function deleteDefaultHouseholds(database: Database, userId: string
     }).map(({ organizationId }) => organizationId);
     for (const organizationId of householdIds) {
       await transaction.delete(outboxMessage).where(eq(outboxMessage.organizationId, organizationId));
+      await transaction.delete(organizationEntitlementOverride).where(eq(organizationEntitlementOverride.organizationId, organizationId));
+      await transaction.delete(organizationEntitlement).where(eq(organizationEntitlement.organizationId, organizationId));
+      await transaction.delete(organizationSubscription).where(eq(organizationSubscription.organizationId, organizationId));
+      await transaction.delete(billingSubscriptionOwnership).where(eq(billingSubscriptionOwnership.organizationId, organizationId));
       await transaction.delete(organization).where(eq(organization.id, organizationId));
     }
   });

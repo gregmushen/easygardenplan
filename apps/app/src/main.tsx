@@ -129,6 +129,7 @@ function Dashboard() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: session, isPending } = authClient.useSession();
+  const [deletePassword, setDeletePassword] = useState(""); const [deleteMessage, setDeleteMessage] = useState<string>(); const [deleting, setDeleting] = useState(false);
   useEffect(() => { if (!isPending && !session) void navigate({ to: "/sign-in", replace: true }); }, [isPending, navigate, session]);
   if (isPending || !session) return <p className="text-slate-600">Loading your account…</p>;
   return <section className="card p-8">
@@ -137,6 +138,7 @@ function Dashboard() {
     <p className="mt-2 text-slate-600">Signed in as {session.user.email}</p>
     <Link className="button mt-8 inline-block" to="/gardens">Open my garden</Link>
     <button className="mt-8 text-sm font-semibold text-red-600" onClick={async () => { await authClient.signOut(); queryClient.clear(); await navigate({ to: "/" }); }}>Sign out</button>
+    <div className="mt-10 border-t border-red-100 pt-6"><h2 className="font-semibold text-red-800">Delete account</h2><p className="mt-2 text-sm text-slate-600">This permanently deletes your private household, garden, plans, progress, pending background work, and account. Cancel Pro first if it is active.</p><label className="mt-4 block text-sm font-medium">Confirm with your password<input className="mt-2 block w-full max-w-sm rounded-xl border px-4 py-2" onChange={(event) => setDeletePassword(event.target.value)} type="password" value={deletePassword} /></label><button className="mt-4 rounded-xl border border-red-300 px-4 py-2 text-sm font-semibold text-red-700" disabled={!deletePassword || deleting} onClick={async () => { setDeleting(true); setDeleteMessage(undefined); const result = await authClient.deleteUser({ password: deletePassword }); if (result.error) { setDeleteMessage(result.error.message ?? "Account could not be deleted"); setDeleting(false); return; } queryClient.clear(); window.location.assign("/"); }}>Permanently delete account</button>{deleteMessage && <p role="alert" className="mt-3 text-sm text-red-700">{deleteMessage}</p>}</div>
   </section>;
 }
 

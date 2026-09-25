@@ -90,6 +90,15 @@ secrets:
   GEOAPIFY_API_KEY:
     target: worker
     required: [staging, production]
+  MAPTILER_PUBLIC_KEY:
+    target: worker
+    required: [staging, production]
+  EXA_API_KEY:
+    target: worker
+    required: [staging, production]
+  NWS_USER_AGENT:
+    target: worker
+    required: [staging, production]
   R2_RECOVERY_ACCESS_KEY_ID:
     target: ci
     required: []

@@ -31,7 +31,7 @@ describe("Easy Garden Plan static output", () => {
 
   it("renders every required static route and discovery file", async () => {
     const files = await listFiles(output);
-    for (const route of ["index.html", "features/index.html", "pricing/index.html", "about/index.html", "privacy/index.html", "terms/index.html", "404.html", "robots.txt", "sitemap-index.xml"]) {
+    for (const route of ["index.html", "features/index.html", "sample-plan/index.html", "pricing/index.html", "about/index.html", "privacy/index.html", "terms/index.html", "404.html", "robots.txt", "sitemap-index.xml"]) {
       expect(files).toContain(path.join(output, route));
     }
     expect(files.some((file) => file.endsWith(".js"))).toBe(false);
@@ -55,5 +55,11 @@ describe("Easy Garden Plan static output", () => {
     expect(pricing).toContain('property="og:image"');
     expect(pricing).toContain('<main id="content">');
     expect(pricing).toContain("<footer");
+  });
+
+  it("contains no starter-brand or launch-placeholder copy", async () => {
+    const files = (await listFiles(output)).filter((file) => file.endsWith(".html") || file.endsWith(".svg"));
+    const combined = (await Promise.all(files.map((file) => readFile(file, "utf8")))).join("\n");
+    expect(combined).not.toMatch(/Starter content|Replace this page|SOUTHWIND/iu);
   });
 });

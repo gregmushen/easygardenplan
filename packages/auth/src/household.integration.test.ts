@@ -1,4 +1,4 @@
-import { createDatabase, garden, member, organization, applicationRoleAssignment, user } from "@easygardenplan/db";
+import { createDatabase, garden, member, organization, applicationRoleAssignment, billingSubscriptionOwnership, organizationEntitlement, organizationSubscription, user } from "@easygardenplan/db";
 import { eq } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";
 
@@ -24,9 +24,14 @@ suite("default household bootstrap", () => {
     expect(await database!.select().from(member).where(eq(member.userId, userId))).toHaveLength(1);
     expect(await database!.select().from(garden).where(eq(garden.organizationId, organizationId))).toHaveLength(1);
     expect(await database!.select().from(applicationRoleAssignment).where(eq(applicationRoleAssignment.userId, userId))).toMatchObject([{ role: "gardener" }]);
+    await database!.insert(organizationSubscription).values({ organizationId, provider: "stripe", providerSubscriptionId: `sub_${userId}`, plan: "pro", status: "active" });
+    await database!.insert(organizationEntitlement).values({ organizationId, entitlement: "weather.monitoring" });
+    await database!.insert(billingSubscriptionOwnership).values({ provider: "stripe", providerSubscriptionId: `sub_${userId}`, organizationId });
 
     await deleteDefaultHouseholds(database!, userId);
     expect(await database!.select().from(organization).where(eq(organization.id, organizationId))).toHaveLength(0);
     expect(await database!.select().from(garden).where(eq(garden.organizationId, organizationId))).toHaveLength(0);
+    expect(await database!.select().from(organizationSubscription).where(eq(organizationSubscription.organizationId, organizationId))).toHaveLength(0);
+    expect(await database!.select().from(billingSubscriptionOwnership).where(eq(billingSubscriptionOwnership.organizationId, organizationId))).toHaveLength(0);
   });
 });

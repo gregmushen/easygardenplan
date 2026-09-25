@@ -89,6 +89,21 @@
       "name": "GEOAPIFY_API_KEY",
       "target": "worker",
       "required": ["staging", "production"]
+    },
+    {
+      "name": "MAPTILER_PUBLIC_KEY",
+      "target": "worker",
+      "required": ["staging", "production"]
+    },
+    {
+      "name": "EXA_API_KEY",
+      "target": "worker",
+      "required": ["staging", "production"]
+    },
+    {
+      "name": "NWS_USER_AGENT",
+      "target": "worker",
+      "required": ["staging", "production"]
     }
   ],
   "resources": [

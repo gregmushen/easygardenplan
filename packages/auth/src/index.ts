@@ -33,6 +33,7 @@ export interface AuthEnvironment {
   BILLING_RETURN_URL?: string;
   EXA_API_KEY?: string;
   GEOAPIFY_API_KEY?: string;
+  MAPTILER_PUBLIC_KEY?: string;
   NWS_MODE?: "fixture" | "live";
   NWS_USER_AGENT?: string;
   NWS_MAX_SOURCE_AGE_MINUTES?: string;
@@ -63,6 +64,7 @@ export function createAuth(environment: AuthEnvironment, options: AuthOptions = 
   });
   return betterAuth({
     appName: "Easy Garden Plan",
+    user: { deleteUser: { enabled: true } },
     baseURL,
     secret: environment.BETTER_AUTH_SECRET,
     trustedOrigins: [baseURL, webOrigin],

@@ -3,9 +3,9 @@ import { describe, expect, it } from "vitest";
 import { appLink, navigation, site } from "./site";
 
 describe("Easy Garden Plan public configuration", () => {
-  it("centralizes starter identity", () => {
+  it("centralizes product identity", () => {
     expect(site.name).toBe("Easy Garden Plan");
-    expect(navigation.map(({ href }) => href)).toEqual(["/features", "/pricing", "/about"]);
+    expect(navigation.map(({ href }) => href)).toEqual(["/features", "/sample-plan", "/pricing", "/about"]);
   });
 
   it("hands authentication to the configured application origin", () => {

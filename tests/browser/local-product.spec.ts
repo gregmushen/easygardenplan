@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { catalogRelease, catalogReleaseRule, createDatabase, crop, evidenceItem, knowledgeSource, ruleFamily, ruleVersion } from "../../packages/db/src/index.js";
+import { eq } from "drizzle-orm";
+import { catalogRelease, catalogReleaseRule, climateDatasetVersion, createDatabase, crop, evidenceItem, garden, knowledgeSource, organization, ruleFamily, ruleVersion } from "../../packages/db/src/index.js";
 
 const appURL = process.env.APP_URL ?? "http://localhost:42069";
 
@@ -13,11 +14,15 @@ async function seedPlanningCatalog() {
   const applicability = { methods: ["direct_sow"], regionIds: [], climateRegimes: [], hardinessZones: [], varietyIds: [] };
   await database.insert(ruleVersion).values([{ id: ruleIds[0]!, familyId: familyIds[0]!, version: 1, state: "published", applicability, payload: { state: "known", type: "spacing", withinRowMeters: { minimum: 0.5, maximum: 0.5, minimumInclusive: true, maximumInclusive: true }, pattern: "individual", sourceUnit: "meters" }, evidenceIds: [evidenceId], publishedAt: new Date() }, { id: ruleIds[1]!, familyId: familyIds[1]!, version: 1, state: "published", applicability, payload: { state: "known", type: "planting_window", windows: [{ kind: "calendar", startMonth: 3, startDay: 1, endMonth: 4, endDay: 15, endYearOffset: 0 }, { kind: "calendar", startMonth: 5, startDay: 1, endMonth: 5, endDay: 15, endYearOffset: 0 }, { kind: "calendar", startMonth: 7, startDay: 1, endMonth: 7, endDay: 15, endYearOffset: 0 }] }, evidenceIds: [evidenceId], publishedAt: new Date() }, { id: ruleIds[2]!, familyId: familyIds[2]!, version: 1, state: "published", applicability, payload: { state: "known", type: "maturity", days: { minimum: 50, maximum: 60, minimumInclusive: true, maximumInclusive: true }, anchor: "sowing", sourceUnit: "calendar_days" }, evidenceIds: [evidenceId], publishedAt: new Date() }]);
   await database.insert(catalogRelease).values({ id: releaseId, name: `browser-${nonce}`, status: "published", publishedBy: "browser-test", publishedAt: new Date() }); await database.insert(catalogReleaseRule).values(ruleIds.map((ruleVersionId) => ({ releaseId, ruleVersionId })));
+  await database.insert(climateDatasetVersion).values({ kind: "frost_hardiness", sourceName: "Browser fixture", sourceRelease: nonce, sourceUrl: "https://example.test/climate", checksumSha256: nonce.padEnd(64, "0"), normalizationVersion: 1, attribution: "Synthetic browser fixture", coverage: { fixture: true }, status: "published", recordCount: 1, publishedAt: new Date() });
   await database.$client.end();
 }
 
 test("a new gardener receives one private workspace and can save the garden", async ({ page }) => {
   await seedPlanningCatalog();
+  const readiness = await page.request.get(`${appURL}/api/health/product`);
+  expect(readiness.status()).toBe(200);
+  await expect(readiness.json()).resolves.toMatchObject({ status: "ready", missing: [] });
   const nonce = crypto.randomUUID().slice(0, 12);
   const email = `garden-${nonce}@example.test`;
   const password = `Garden-test-${nonce}!`;
@@ -114,4 +119,14 @@ test("a new gardener receives one private workspace and can save the garden", as
   await expect(page.getByText(/garden, plan and history remain available/u)).toBeVisible();
   await page.getByRole("link", { name: "My garden" }).click();
   await expect(page.getByLabel("Garden name")).toHaveValue("Kitchen Garden");
+
+  await page.goto("/dashboard");
+  await page.getByLabel("Confirm with your password").fill(password);
+  await page.getByRole("button", { name: "Permanently delete account" }).click();
+  await expect(page.getByRole("heading", { name: "A garden plan built around your yard." })).toBeVisible();
+  const connectionString = process.env.TRESTLE_BROWSER_DATABASE_URL; if (!connectionString) throw new Error("Browser database is required");
+  const database = createDatabase(connectionString, "postgres-js");
+  expect(await database.select({ id: organization.id }).from(organization).where(eq(organization.id, workspace.organizationId))).toEqual([]);
+  expect(await database.select({ id: garden.id }).from(garden).where(eq(garden.organizationId, workspace.organizationId))).toEqual([]);
+  await database.$client.end();
 });
