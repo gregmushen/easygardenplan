@@ -52,4 +52,25 @@ suite("weather episode persistence", () => {
     expect(second.id).toBe(first.id);
     await database!.delete(weatherForecastSnapshot).where(eq(weatherForecastSnapshot.id, first.id));
   });
+
+  it("recovers an expired lease and keeps one idempotency key across provider retry", async () => {
+    const leaseCandidate = { ...candidate, groupKey: "crop:lease", evidenceFingerprint: "fixture-lease" };
+    const leaseWarning = await repository!.evaluate({ gardenId, hazard: "cold", groupKey: leaseCandidate.groupKey, observation: { status: "evaluated", candidate: leaseCandidate } });
+    const firstLease = new NotificationRepository(database!, organizationId, { now: () => new Date("2026-10-01T05:10:00.000Z") });
+    const expiredClaim = await firstLease.claim(leaseWarning.transition!.id, 1_000);
+    expect(expiredClaim).not.toBeNull();
+    const recoveredLease = new NotificationRepository(database!, organizationId, { now: () => new Date("2026-10-01T05:10:02.000Z") });
+    const recoveredClaim = await recoveredLease.claim(leaseWarning.transition!.id);
+    expect(recoveredClaim).toMatchObject({ idempotencyKey: expiredClaim!.idempotencyKey });
+    expect(recoveredClaim!.attemptToken).not.toBe(expiredClaim!.attemptToken);
+    expect(await firstLease.accepted(expiredClaim!.intentId, expiredClaim!.attemptToken, "late-provider-receipt", new Date())).toBe(false);
+
+    const retryCandidate = { ...candidate, groupKey: "crop:retry", evidenceFingerprint: "fixture-retry" };
+    const retryWarning = await repository!.evaluate({ gardenId, hazard: "cold", groupKey: retryCandidate.groupKey, observation: { status: "evaluated", candidate: retryCandidate } });
+    const firstAttempt = await firstLease.claim(retryWarning.transition!.id);
+    await firstLease.retry(firstAttempt!.intentId, firstAttempt!.attemptToken);
+    const retriedAttempt = await firstLease.claim(retryWarning.transition!.id);
+    expect(retriedAttempt).toMatchObject({ idempotencyKey: firstAttempt!.idempotencyKey });
+    expect(retriedAttempt!.attemptToken).not.toBe(firstAttempt!.attemptToken);
+  });
 });

@@ -1,8 +1,8 @@
 import { createLogger } from "@easygardenplan/context";
 import { MonitoringRepository } from "@easygardenplan/data";
-import { createDatabase, garden, organization, user, type Database } from "@easygardenplan/db";
+import { createDatabase, garden, notificationDeliveryIntent, notificationPreference, organization, user, type Database } from "@easygardenplan/db";
 import { clearCapturedEmails, listCapturedEmails } from "@easygardenplan/integrations";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import type { EventHandlerContext } from "./async-runtime.js";
@@ -50,5 +50,23 @@ suite("local recommendation delivery path", () => {
     const messages = listCapturedEmails().filter(({ to }) => to.includes(`${nonce}@example.test`));
     expect(messages).toHaveLength(2);
     expect(messages.map(({ subject }) => subject).sort()).toEqual(["Weather risk cleared for Cold-night garden", "Weather update for Cold-night garden"]);
+  });
+
+  it("suppresses an obsolete warning and a preference-disabled warning immediately before send", async () => {
+    const messagesBefore = listCapturedEmails().length;
+    const obsoleteCandidate = { ...candidate, groupKey: "tomato:seedling", evidenceFingerprint: "obsolete-fixture" };
+    const obsolete = await repository!.evaluate({ gardenId, hazard: "cold", groupKey: obsoleteCandidate.groupKey, observation: { status: "evaluated", candidate: obsoleteCandidate } });
+    await repository!.evaluate({ gardenId, hazard: "cold", groupKey: obsoleteCandidate.groupKey, observation: { status: "evaluated" }, resolutionConfirmations: 1 });
+    await handleRecommendationTransitioned(payload(obsolete), {}, { DATABASE_URL: connectionString!, BETTER_AUTH_SECRET: "test-secret-at-least-32-characters", EMAIL_DELIVERY_MODE: "local", APP_ENV: "local" }, context(obsolete.transition!.id));
+    const [obsoleteIntent] = await database!.select().from(notificationDeliveryIntent).where(and(eq(notificationDeliveryIntent.organizationId, organizationId), eq(notificationDeliveryIntent.transitionId, obsolete.transition!.id)));
+    expect(obsoleteIntent).toMatchObject({ status: "suppressed", suppressionReason: "recommendation_superseded" });
+
+    await database!.insert(notificationPreference).values({ organizationId, userId, urgentEmailEnabled: false, resolutionEmailEnabled: true }).onConflictDoUpdate({ target: [notificationPreference.organizationId, notificationPreference.userId], set: { urgentEmailEnabled: false } });
+    const disabledCandidate = { ...candidate, groupKey: "pepper:transplanted", evidenceFingerprint: "disabled-fixture" };
+    const disabled = await repository!.evaluate({ gardenId, hazard: "cold", groupKey: disabledCandidate.groupKey, observation: { status: "evaluated", candidate: disabledCandidate } });
+    await handleRecommendationTransitioned(payload(disabled), {}, { DATABASE_URL: connectionString!, BETTER_AUTH_SECRET: "test-secret-at-least-32-characters", EMAIL_DELIVERY_MODE: "local", APP_ENV: "local" }, context(disabled.transition!.id));
+    const [disabledIntent] = await database!.select().from(notificationDeliveryIntent).where(and(eq(notificationDeliveryIntent.organizationId, organizationId), eq(notificationDeliveryIntent.transitionId, disabled.transition!.id)));
+    expect(disabledIntent).toMatchObject({ status: "suppressed", suppressionReason: "preference_disabled" });
+    expect(listCapturedEmails()).toHaveLength(messagesBefore);
   });
 });
