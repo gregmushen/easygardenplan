@@ -60,6 +60,7 @@ suite("weather episode persistence", () => {
     expect(repeat[0]?.id).toBe(first[0]?.id);
     expect(first[0]).toMatchObject({ cancelled: true, messageType: "Cancel", areaDescription: "Fixture County" });
     expect(await database!.select().from(weatherOfficialAlertGarden).where(eq(weatherOfficialAlertGarden.alertSnapshotId, first[0]!.id))).toHaveLength(1);
+    expect(await repository!.listOfficialAlerts(gardenId)).toEqual(expect.arrayContaining([expect.objectContaining({ id: first[0]!.id, event: "Freeze Warning", cancelled: true, sourceUrl: alert.sourceUrl })]));
     await database!.delete(weatherOfficialAlertGarden).where(eq(weatherOfficialAlertGarden.alertSnapshotId, first[0]!.id));
     await database!.delete(weatherOfficialAlertSnapshot).where(eq(weatherOfficialAlertSnapshot.id, first[0]!.id));
   });
@@ -110,6 +111,15 @@ suite("weather episode persistence", () => {
     expect(await deliveries.claim(warning.transition!.id)).toBeNull();
     const [intent] = await database!.select().from(notificationDeliveryIntent).where(eq(notificationDeliveryIntent.transitionId, warning.transition!.id));
     expect(intent).toMatchObject({ status: "suppressed", suppressionReason: "affected_tasks_complete" });
+  });
+
+  it("opens and explicitly resolves an official-alert episode", async () => {
+    const groupKey = `nws:${crypto.randomUUID()}`;
+    const warning = await repository!.evaluate({ gardenId, hazard: "official_alert", groupKey, observation: { status: "evaluated", candidate: { hazard: "official_alert", groupKey, action: "Official Freeze Warning: follow local NWS instructions and protect cold-sensitive plants when needed.", affectedIds: [], deliveryClass: "urgent", validFrom: "2026-10-01T05:00:00.000Z", validThrough: "2026-10-01T12:00:00.000Z", evidenceFingerprint: "official-warning" } }, resolutionConfirmations: 1 });
+    expect(warning.transition).toMatchObject({ kind: "warning" });
+    const resolution = await repository!.evaluate({ gardenId, hazard: "official_alert", groupKey, observation: { status: "evaluated" }, resolutionConfirmations: 1 });
+    expect(resolution.transition).toMatchObject({ kind: "resolution" });
+    expect(resolution.recommendation?.action).toBe("The official weather alert for this period is no longer active.");
   });
 
   it("freezes one daily digest and excludes an immediately accepted version", async () => {

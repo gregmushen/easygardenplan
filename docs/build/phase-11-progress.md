@@ -47,9 +47,10 @@ Stripe subscription reconciliation is now also queued after the signed receipt i
 - `pnpm check`: passed.
   - Root Node suite: 65 passed, 0 failed.
   - Root Vitest operational/nationwide suite: 21 passed, 0 failed.
-  - Worker with both PostgreSQL integration environments enabled: 146 passed, 0 skipped.
+  - Worker with both PostgreSQL integration environments enabled: 149 passed, 0 skipped.
   - Database: 134 passed, 13 skipped environment-specific cases.
   - Integrations: 92 passed, 5 skipped protected live-provider cases.
+  - Data: 33 passed, 0 skipped with PostgreSQL enabled.
   - All other workspace suites and production builds passed.
 - Local product browser path: passed on desktop Chromium, Firefox and WebKit plus the Pixel 7 Chromium touch-emulation profile, including account, garden, location, touch/click boundary drawing, bed revision, sourced plan, print link, progress, Free/Pro downgrade preservation and deletion. A WCAG 2.0/2.1 A/AA scan runs on the loaded garden editor in all four profiles and passes. These automated profiles do not replace physical-device and screen-reader review.
 - Clean-database migration rehearsal: all 54 journal entries applied to a disposable database, producing 72 public tables with 39 tables reporting forced RLS. The disposable database was removed after inspection.

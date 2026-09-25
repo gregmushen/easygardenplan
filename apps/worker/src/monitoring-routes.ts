@@ -15,7 +15,7 @@ export const monitoringRoutes = new Hono<{ Bindings: AuthEnvironment; Variables:
 monitoringRoutes.get("/api/gardens/:gardenId/monitoring", requireExecutionContext, async (context) => {
   const execution = context.get("execution"); execution.access.require({ permission: "garden.read" });
   const repository = new MonitoringRepository(execution.data, execution.tenant.organizationId, execution.clock);
-  return context.json({ risk: await repository.listRisk(context.req.param("gardenId")), recommendations: await repository.listRecommendations(context.req.param("gardenId")), feed: await repository.listFeed(context.req.param("gardenId")) });
+  return context.json({ risk: await repository.listRisk(context.req.param("gardenId")), recommendations: await repository.listRecommendations(context.req.param("gardenId")), feed: await repository.listFeed(context.req.param("gardenId")), officialAlerts: await repository.listOfficialAlerts(context.req.param("gardenId")) });
 });
 
 const preferenceSchema = z.object({ urgentEmailEnabled: z.boolean(), resolutionEmailEnabled: z.boolean(), routineEmailEnabled: z.boolean(), digestEmailEnabled: z.boolean(), quietHoursStart: z.string().regex(/^([01][0-9]|2[0-3]):[0-5][0-9]$/u).nullable(), quietHoursEnd: z.string().regex(/^([01][0-9]|2[0-3]):[0-5][0-9]$/u).nullable(), urgentDuringQuietHours: z.boolean() }).refine((value) => (value.quietHoursStart === null) === (value.quietHoursEnd === null), "Both quiet-hour times are required");

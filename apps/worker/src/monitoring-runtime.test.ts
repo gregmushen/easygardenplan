@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { coalesceColdResponses, isForecastSourceStale } from "./monitoring-runtime.js";
+import { coalesceColdResponses, isForecastSourceStale, officialColdAlertObservation } from "./monitoring-runtime.js";
 
 describe("forecast source freshness", () => {
   const now = new Date("2026-10-01T12:00:00.000Z");
@@ -26,5 +26,27 @@ describe("cold response coalescing", () => {
     expect(groups).toHaveLength(2);
     expect(groups.find(({ action }) => action === shared.action)).toMatchObject({ cropId: "pepper,tomato", affectedIds: ["selection-pepper", "selection-tomato"], groupKey: "crops:pepper,tomato:transplanted:2:4:2:urgent" });
     expect(groups.find(({ action }) => action === "Move indoors.")?.groupKey).toBe("basil:transplanted");
+  });
+});
+
+describe("official cold alert policy", () => {
+  const now = new Date("2026-10-01T12:00:00.000Z");
+  const alert = { provider: "nws" as const, providerAlertId: "urn:oid:fixture", event: "Freeze Warning", status: "Actual", messageType: "Alert", sentAt: "2026-10-01T10:00:00.000Z", effectiveAt: "2026-10-01T11:00:00.000Z", onsetAt: null, expiresAt: "2026-10-01T18:00:00.000Z", endsAt: null, cancelled: false, headline: "Freeze Warning issued", sourceUrl: "https://api.weather.gov/alerts/fixture", areaDescription: "Fixture County" };
+
+  it("creates one urgent garden-wide observation for supported actual alerts", () => {
+    expect(officialColdAlertObservation(alert, now, ["selection-b", "selection-a"])).toMatchObject({
+      groupKey: "nws:urn:oid:fixture",
+      observation: { status: "evaluated", candidate: { hazard: "official_alert", affectedIds: ["selection-b", "selection-a"], deliveryClass: "urgent", validThrough: alert.expiresAt } },
+    });
+  });
+
+  it("resolves only from an explicit cancellation or known expiry", () => {
+    expect(officialColdAlertObservation({ ...alert, cancelled: true, messageType: "Cancel" }, now, [])).toEqual({ groupKey: "nws:urn:oid:fixture", observation: { status: "evaluated" } });
+    expect(officialColdAlertObservation(alert, new Date("2026-10-01T18:00:01.000Z"), [])).toEqual({ groupKey: "nws:urn:oid:fixture", observation: { status: "evaluated" } });
+  });
+
+  it("ignores tests and unrelated advisories", () => {
+    expect(officialColdAlertObservation({ ...alert, status: "Test" }, now, [])).toBeNull();
+    expect(officialColdAlertObservation({ ...alert, event: "Wind Advisory" }, now, [])).toBeNull();
   });
 });

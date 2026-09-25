@@ -1,7 +1,7 @@
 import { planInputSnapshotSchema, type NormalizedForecast, type NormalizedOfficialAlert } from "@easygardenplan/contracts";
 import { MonitoringRepository } from "@easygardenplan/data";
 import { garden, gardenPlanVersion, gardenProgressEvent, type Database } from "@easygardenplan/db";
-import { evaluateColdRisk } from "@easygardenplan/domain";
+import { evaluateColdRisk, type RiskObservation } from "@easygardenplan/domain";
 import { applicationEventCatalog, recommendationTransitionedEvent, type EventDefinition } from "@easygardenplan/events";
 import { NwsAdapter, NwsAdapterError } from "@easygardenplan/integrations";
 import { and, asc, eq } from "drizzle-orm";
@@ -38,6 +38,23 @@ export function coalesceColdResponses(candidates: ColdResponseCandidate[]): Arra
   }).sort((left, right) => left.groupKey.localeCompare(right.groupKey));
 }
 
+const actionableColdAlert = /^(?:hard )?freeze (?:watch|warning)$|^frost advisory$/iu;
+
+export function officialColdAlertObservation(alert: NormalizedOfficialAlert, now: Date, affectedIds: string[]): { groupKey: string; observation: RiskObservation } | null {
+  if (!actionableColdAlert.test(alert.event)) return null;
+  const groupKey = `nws:${alert.providerAlertId}`;
+  if (alert.cancelled) return { groupKey, observation: { status: "evaluated" } };
+  if (alert.status.toLowerCase() !== "actual") return null;
+  const validFrom = alert.onsetAt ?? alert.effectiveAt;
+  const validThrough = alert.endsAt ?? alert.expiresAt;
+  if (new Date(validThrough) <= now) return { groupKey, observation: { status: "evaluated" } };
+  if (new Date(validThrough) <= new Date(validFrom)) return null;
+  return { groupKey, observation: { status: "evaluated", candidate: {
+    hazard: "official_alert", groupKey, action: `Official ${alert.event}: follow local NWS instructions and protect cold-sensitive plants when needed.`, affectedIds, deliveryClass: "urgent", validFrom, validThrough,
+    evidenceFingerprint: `${alert.providerAlertId}:${alert.sentAt}:${alert.messageType}`,
+  } } };
+}
+
 export async function evaluateGardenWeather(input: { gardenId: string; environment: AuthEnvironment; context: EventHandlerContext<Database> }) {
   const { context } = input; if (!context.data || !context.organizationId) throw new Error("Weather evaluation requires tenant authority");
   const repository = new MonitoringRepository(context.data, context.organizationId, context.clock);
@@ -46,7 +63,8 @@ export async function evaluateGardenWeather(input: { gardenId: string; environme
   const [active] = await context.data.select().from(gardenPlanVersion).where(and(eq(gardenPlanVersion.organizationId, context.organizationId), eq(gardenPlanVersion.gardenId, input.gardenId), eq(gardenPlanVersion.state, "active"))).limit(1);
   if (!active) return { evaluated: 0, reason: "no_active_plan" as const };
   const snapshot = planInputSnapshotSchema.parse(active.inputSnapshot);
-  let forecast: NormalizedForecast;
+  let forecast: NormalizedForecast | undefined;
+  let forecastReason: NwsAdapterError["reason"] | undefined;
   let officialAlerts: NormalizedOfficialAlert[] = [];
   let officialAlertsReason: "complete" | NwsAdapterError["reason"] = "complete";
   if (input.environment.NWS_MODE === "live") {
@@ -63,13 +81,45 @@ export async function evaluateGardenWeather(input: { gardenId: string; environme
     if (forecastResult.status === "rejected") {
       const error = forecastResult.reason;
       if (!(error instanceof NwsAdapterError)) throw error;
-      const risks = await repository.listRisk(input.gardenId);
-      for (const risk of risks) await repository.evaluate({ gardenId: input.gardenId, hazard: risk.hazard as "cold" | "heat" | "official_alert", groupKey: risk.groupKey, observation: { status: "unavailable" } });
-      return { evaluated: risks.length, reason: error.reason, officialAlertsStored: officialAlerts.length, officialAlertsReason };
+      forecastReason = error.reason;
+    } else {
+      forecast = forecastResult.value;
     }
-    forecast = forecastResult.value;
   } else {
     forecast = fixtureForecast(context.clock.now());
+  }
+  const publisher = createEventPublisher({ organizationId: context.organizationId, correlationId: context.event.correlationId, clock: context.clock });
+  const evaluateOfficialAlerts = async () => {
+    let count = 0;
+    if (officialAlertsReason === "complete") {
+      const affectedIds = snapshot.selections.map(({ id }) => id);
+      const processed = new Set<string>();
+      for (const alert of officialAlerts) {
+        const result = officialColdAlertObservation(alert, context.clock.now(), affectedIds);
+        if (!result) continue;
+        processed.add(result.groupKey);
+        await repository.evaluate({ gardenId: input.gardenId, hazard: "official_alert", groupKey: result.groupKey, observation: result.observation, resolutionConfirmations: 1, event: (payload) => publisher.statement(recommendationTransitionedEvent.name, payload, { idempotencyKey: `recommendation-transition:${payload.transitionId}`, causationId: context.event.id }) });
+        count++;
+      }
+      const [risks, recommendations] = await Promise.all([repository.listRisk(input.gardenId), repository.listRecommendations(input.gardenId)]);
+      for (const risk of risks.filter(({ hazard, state, groupKey }) => hazard === "official_alert" && state !== "resolved" && !processed.has(groupKey))) {
+        const latest = recommendations.find(({ episodeId }) => episodeId === risk.episodeId);
+        if (!latest?.validThrough || latest.validThrough > context.clock.now()) continue;
+        await repository.evaluate({ gardenId: input.gardenId, hazard: "official_alert", groupKey: risk.groupKey, observation: { status: "evaluated" }, resolutionConfirmations: 1, event: (payload) => publisher.statement(recommendationTransitionedEvent.name, payload, { idempotencyKey: `recommendation-transition:${payload.transitionId}`, causationId: context.event.id }) });
+        count++;
+      }
+    } else {
+      const officialRisks = (await repository.listRisk(input.gardenId)).filter(({ hazard }) => hazard === "official_alert");
+      for (const risk of officialRisks) await repository.evaluate({ gardenId: input.gardenId, hazard: "official_alert", groupKey: risk.groupKey, observation: { status: "unavailable" } });
+      count = officialRisks.length;
+    }
+    return count;
+  };
+  if (!forecast) {
+    const risks = (await repository.listRisk(input.gardenId)).filter(({ hazard }) => hazard !== "official_alert");
+    for (const risk of risks) await repository.evaluate({ gardenId: input.gardenId, hazard: risk.hazard as "cold" | "heat", groupKey: risk.groupKey, observation: { status: "unavailable" } });
+    const officialEvaluated = await evaluateOfficialAlerts();
+    return { evaluated: risks.length + officialEvaluated, reason: forecastReason!, officialAlertsStored: officialAlerts.length, officialAlertsReason };
   }
   const stored = await repository.storeForecast(forecast);
   const events = await context.data.select().from(gardenProgressEvent).where(and(eq(gardenProgressEvent.organizationId, context.organizationId), eq(gardenProgressEvent.gardenId, input.gardenId))).orderBy(asc(gardenProgressEvent.createdAt));
@@ -81,7 +131,6 @@ export async function evaluateGardenWeather(input: { gardenId: string; environme
     else if (event.eventType === "removed") stageBySelection.delete(event.selectionId);
   }
   const sourceStale = input.environment.NWS_MODE === "live" && isForecastSourceStale(forecast.sourceUpdatedAt, context.clock.now(), input.environment.NWS_MAX_SOURCE_AGE_MINUTES);
-  const publisher = createEventPublisher({ organizationId: context.organizationId, correlationId: context.event.correlationId, clock: context.clock });
   const candidates: ColdResponseCandidate[] = [];
   for (const rule of snapshot.rules) {
     if (rule.payload.state !== "known" || rule.payload.type !== "climate_response" || rule.payload.hazard !== "cold") continue;
@@ -95,7 +144,8 @@ export async function evaluateGardenWeather(input: { gardenId: string; environme
     const observation = sourceStale ? { status: "stale" as const } : evaluateColdRisk({ intervals: forecast.intervals, thresholdCelsius: response.thresholdCelsius, clearAboveCelsius: response.clearAboveCelsius, action: response.action, affectedIds: response.affectedIds, groupKey: response.groupKey, evidenceFingerprint: forecast.fingerprint, deliveryClass: response.deliveryClass, now: context.clock.now(), horizonThrough: new Date(context.clock.now().getTime() + 48 * 60 * 60_000) });
     await repository.evaluate({ gardenId: input.gardenId, hazard: "cold", groupKey: response.groupKey, observation, snapshotId: stored.id, resolutionConfirmations: response.resolutionConfirmations, event: (payload) => publisher.statement(recommendationTransitionedEvent.name, payload, { idempotencyKey: `recommendation-transition:${payload.transitionId}`, causationId: context.event.id }) });
   }
-  const evaluated = groups.length;
+  const officialEvaluated = await evaluateOfficialAlerts();
+  const evaluated = groups.length + officialEvaluated;
   return { evaluated, reason: evaluated ? "complete" as const : "no_applicable_rules" as const, officialAlertsStored: officialAlerts.length, officialAlertsReason };
 }
 

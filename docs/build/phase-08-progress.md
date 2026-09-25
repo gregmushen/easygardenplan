@@ -25,6 +25,7 @@ Status: **local implementation complete; external staging gate remains**. Transi
 - Verified Resend receipts also project onto digest delivery state, including delivered, bounced, complained and failed outcomes.
 - Delivery claims re-read the current garden risk episode and state in the same transaction as the lease. A warning or material change that has cleared, become unknown or been replaced by another episode is suppressed as `recommendation_superseded`; a stale resolution is likewise suppressed after renewed risk.
 - Delivery claims also re-read append-only planting progress. If every affected planting has been harvested or removed, the delivery is suppressed as `affected_plantings_complete`; corrections that invalidate a terminal event prevent suppression.
+- Official NWS cold alerts use the same transition and delivery identity as forecast-derived episodes. A cancellation or known expiry produces one resolution, while continuing or repeated provider data stays silent.
 - Recommendation versions carry task UUIDs separately from planting UUIDs. Delivery claims require every referenced task to belong to the garden, load each task's latest immutable status revision, and suppress as `affected_tasks_complete` only when all are completed or skipped. Missing, malformed and postponed tasks fail open so advice is not silently discarded.
 - PostgreSQL integration proves concurrent weather evaluation creates one warning/feed/intent, a delivered warning permits one resolution intent, renewed risk creates one new intent, concurrent claims have one winner, a stale token cannot complete, and an out-of-order accepted receipt cannot regress delivered state.
 - The local notification runtime integration proves duplicate handling emits one warning, continuing risk emits none, resolution emits one clear message, an obsolete warning is suppressed before send, and a preference disabled after intent creation is honored before send.
@@ -33,7 +34,7 @@ Status: **local implementation complete; external staging gate remains**. Transi
 
 ## Validation
 
-- `pnpm check` passes after the digest scheduler, task-identity and crop-coalescing changes: all typechecks and builds succeeded, including 92 default integration tests, 32 data tests and 146 Worker tests. Coverage includes crop/action coalescing, frozen crop presentation, DST scheduling, concurrent schedulers, concurrent digest claims, routine digest routing, late immediate-send exclusion, task-status suppression, fencing, receipt projection and cross-tenant recipient denial.
+- `pnpm check` passes after the official-alert policy, digest scheduler, task-identity and crop-coalescing changes: all typechecks and builds succeeded, including 92 default integration tests, 33 data tests and 149 Worker tests. Coverage includes official warning/resolution state, crop/action coalescing, frozen crop presentation, DST scheduling, concurrent schedulers, concurrent digest claims, routine digest routing, late immediate-send exclusion, task-status suppression, fencing, receipt projection and cross-tenant recipient denial.
 - Product browser flow: 1 passed in 17.7 seconds with the notification-preference request present in the garden screen.
 - Local PostgreSQL migration `0050_rapid_joseph.sql` applied successfully with forced RLS, tenant/platform grants and the tenant-constrained recipient resolver.
 
