@@ -1,6 +1,6 @@
 import { climateDatasetManifestSchema, climateAssociationSchema, type ClimateDatasetManifest, type Coordinate } from "@easygardenplan/contracts";
 import { climateAssociation, climateDatasetVersion, climateRecord, garden, type Database } from "@easygardenplan/db";
-import { and, desc, eq, gte, lte, or, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, lte, or, sql } from "drizzle-orm";
 
 export function distanceMeters(first: Coordinate, second: Coordinate): number {
   const radius = 6_371_008.8;
@@ -28,7 +28,7 @@ export class ClimateRepository {
       if (existing?.status === "published") return { datasetVersionId: existing.id, recordCount: existing.recordCount, rejectedCount: existing.rejectedCount };
       const dataset = existing ?? (await transaction.insert(climateDatasetVersion).values(datasetValues(manifest)).returning())[0];
       if (!dataset) throw new Error("Climate dataset version was not staged");
-      if (!existing) await transaction.insert(climateRecord).values(manifest.records.map((record) => ({ datasetVersionId: dataset.id, externalId: record.externalId, latitude: String(record.coordinate.latitude), longitude: String(record.coordinate.longitude), elevationMeters: record.elevationMeters === null ? null : String(record.elevationMeters), hardinessZone: record.hardinessZone, frostState: record.frostState, springFrostLocalDate: record.springFrostLocalDate, autumnFrostLocalDate: record.autumnFrostLocalDate, referencePeriod: record.referencePeriod, probabilityPercent: record.probabilityPercent === null ? null : String(record.probabilityPercent) })));
+      if (!existing) for (let offset = 0; offset < manifest.records.length; offset += 1_000) await transaction.insert(climateRecord).values(manifest.records.slice(offset, offset + 1_000).map((record) => ({ datasetVersionId: dataset.id, externalId: record.externalId, latitude: String(record.coordinate.latitude), longitude: String(record.coordinate.longitude), elevationMeters: record.elevationMeters === null ? null : String(record.elevationMeters), hardinessZone: record.hardinessZone, frostState: record.frostState, springFrostLocalDate: record.springFrostLocalDate, autumnFrostLocalDate: record.autumnFrostLocalDate, referencePeriod: record.referencePeriod, probabilityPercent: record.probabilityPercent === null ? null : String(record.probabilityPercent) })));
       await transaction.update(climateDatasetVersion).set({ status: "published", recordCount: manifest.records.length, rejectedCount: 0, publishedAt: new Date() }).where(eq(climateDatasetVersion.id, dataset.id));
       return { datasetVersionId: dataset.id, recordCount: manifest.records.length, rejectedCount: 0 };
     });
@@ -40,15 +40,16 @@ export class ClimateRepository {
     return climateAssociationSchema.parse({ ...current, distanceMeters: current.distanceMeters === null ? null : Number(current.distanceMeters), elevationDifferenceMeters: current.elevationDifferenceMeters === null ? null : Number(current.elevationDifferenceMeters), confidence: Number(current.confidence) });
   }
 
-  async associateGarden(input: { gardenId: string; coordinate: Coordinate; elevationMeters?: number | null; maxReliableDistanceMeters?: number }): Promise<unknown> {
+  async associateGarden(input: { gardenId: string; coordinate: Coordinate; elevationMeters?: number | null; maxReliableDistanceMeters?: number; datasetVersionIds?: { hardiness?: string; frostNormals?: string; combinedFixture?: string } }): Promise<unknown> {
     const [plot] = await this.database.select({ id: garden.id, organizationId: garden.organizationId }).from(garden).where(eq(garden.id, input.gardenId)).limit(1);
     if (!plot) throw new Error("Garden not found");
-    const published = await this.database.select().from(climateDatasetVersion).where(eq(climateDatasetVersion.status, "published")).orderBy(desc(climateDatasetVersion.publishedAt), desc(climateDatasetVersion.createdAt), desc(climateDatasetVersion.id));
+    const pinnedIds = input.datasetVersionIds ? Object.values(input.datasetVersionIds).filter((id): id is string => Boolean(id)) : [];
+    const published = await this.database.select().from(climateDatasetVersion).where(and(eq(climateDatasetVersion.status, "published"), pinnedIds.length ? inArray(climateDatasetVersion.id, pinnedIds) : undefined)).orderBy(desc(climateDatasetVersion.publishedAt), desc(climateDatasetVersion.createdAt), desc(climateDatasetVersion.id));
     const currentByKind = new Map<string, typeof published[number]>();
     for (const dataset of published) if (!currentByKind.has(dataset.kind)) currentByKind.set(dataset.kind, dataset);
-    const combined = currentByKind.has("hardiness") || currentByKind.has("frost_normals") ? undefined : currentByKind.get("combined_fixture");
-    const hardinessDataset = currentByKind.get("hardiness") ?? combined;
-    const frostDataset = currentByKind.get("frost_normals") ?? combined;
+    const combined = currentByKind.has("hardiness") || currentByKind.has("frost_normals") ? undefined : input.datasetVersionIds?.combinedFixture ? published.find(({ id }) => id === input.datasetVersionIds?.combinedFixture) : currentByKind.get("combined_fixture");
+    const hardinessDataset = input.datasetVersionIds?.hardiness ? published.find(({ id }) => id === input.datasetVersionIds?.hardiness) : currentByKind.get("hardiness") ?? combined;
+    const frostDataset = input.datasetVersionIds?.frostNormals ? published.find(({ id }) => id === input.datasetVersionIds?.frostNormals) : currentByKind.get("frost_normals") ?? combined;
     const maxReliable = input.maxReliableDistanceMeters ?? 75_000;
     const hardiness = hardinessDataset ? await nearestClimateRecord(this.database, hardinessDataset.id, input.coordinate, maxReliable) : undefined;
     const frost = frostDataset?.id === hardinessDataset?.id ? hardiness : frostDataset ? await nearestClimateRecord(this.database, frostDataset.id, input.coordinate, maxReliable) : undefined;

@@ -36,7 +36,7 @@ suite("versioned climate import and tenant association", () => {
     const tenantA = createTenantDatabase(connectionString!, "postgres-js", ids.organizationA);
     const tenantB = createTenantDatabase(connectionString!, "postgres-js", ids.organizationB);
     try {
-      const match = await new ClimateRepository(tenantA).associateGarden({ gardenId: plot!.id, coordinate: { latitude: 47.61, longitude: -122.33 } });
+      const match = await new ClimateRepository(tenantA).associateGarden({ gardenId: plot!.id, coordinate: { latitude: 47.61, longitude: -122.33 }, datasetVersionIds: { combinedFixture: first.datasetVersionId } });
       expect(match).toMatchObject({ source: "dataset_match", state: "known", hardinessZone: "9a", confidence: 1, sourceEvidence: [expect.objectContaining({ kind: "combined_fixture", sourceRelease: nonce })] });
 
       const hardinessRecords = [{ ...records[1]!, externalId: `${nonce}-hardiness`, hardinessZone: "8b", frostState: "unknown" as const, springFrostLocalDate: null, autumnFrostLocalDate: null }];
@@ -44,7 +44,7 @@ suite("versioned climate import and tenant association", () => {
       const hardinessDataset = await new ClimateRepository(admin!).publishDataset({ ...manifest, kind: "hardiness", sourceName: "USDA/OSU hardiness fixture", sourceRelease: `${nonce}-hardiness`, checksumSha256: await climateRecordsChecksum(hardinessRecords), attribution: "USDA/OSU fixture attribution", records: hardinessRecords });
       const frostDataset = await new ClimateRepository(admin!).publishDataset({ ...manifest, kind: "frost_normals", sourceName: "NOAA frost-normal fixture", sourceRelease: `${nonce}-frost`, checksumSha256: await climateRecordsChecksum(frostRecords), attribution: "NOAA fixture attribution", records: frostRecords });
       datasetIds.push(hardinessDataset.datasetVersionId, frostDataset.datasetVersionId);
-      const combined = await new ClimateRepository(tenantA).associateGarden({ gardenId: plot!.id, coordinate: { latitude: 47.61, longitude: -122.33 } });
+      const combined = await new ClimateRepository(tenantA).associateGarden({ gardenId: plot!.id, coordinate: { latitude: 47.61, longitude: -122.33 }, datasetVersionIds: { hardiness: hardinessDataset.datasetVersionId, frostNormals: frostDataset.datasetVersionId } });
       expect(combined).toMatchObject({
         source: "dataset_match", state: "known", hardinessZone: "8b", springFrostLocalDate: "03-20", autumnFrostLocalDate: "11-08", confidence: 1,
         sourceEvidence: [
@@ -55,7 +55,7 @@ suite("versioned climate import and tenant association", () => {
       const wrappedFrostRecords = [{ ...frostRecords[0]!, externalId: `${nonce}-wrapped-frost`, coordinate: { latitude: 60, longitude: 179.8 }, springFrostLocalDate: "05-20", autumnFrostLocalDate: "09-10" }];
       const wrappedFrostDataset = await new ClimateRepository(admin!).publishDataset({ ...manifest, kind: "frost_normals", sourceName: "NOAA antimeridian fixture", sourceRelease: `${nonce}-wrapped-frost`, checksumSha256: await climateRecordsChecksum(wrappedFrostRecords), attribution: "NOAA fixture attribution", records: wrappedFrostRecords });
       datasetIds.push(wrappedFrostDataset.datasetVersionId);
-      const wrapped = await new ClimateRepository(tenantA).associateGarden({ gardenId: plot!.id, coordinate: { latitude: 60, longitude: -179.9 } });
+      const wrapped = await new ClimateRepository(tenantA).associateGarden({ gardenId: plot!.id, coordinate: { latitude: 60, longitude: -179.9 }, datasetVersionIds: { hardiness: hardinessDataset.datasetVersionId, frostNormals: wrappedFrostDataset.datasetVersionId } });
       expect(wrapped).toMatchObject({ state: "known", springFrostLocalDate: "05-20", autumnFrostLocalDate: "09-10" });
       expect((wrapped as { sourceEvidence: Array<{ kind: string; distanceMeters: number }> }).sourceEvidence.find(({ kind }) => kind === "frost_normals")?.distanceMeters).toBeLessThan(20_000);
       expect(await new ClimateRepository(tenantB).current(plot!.id)).toBeNull();

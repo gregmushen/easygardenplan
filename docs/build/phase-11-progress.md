@@ -46,7 +46,7 @@ Stripe subscription reconciliation is now also queued after the signed receipt i
 
 - `pnpm check`: passed.
   - Root Node suite: 65 passed, 0 failed.
-  - Root Vitest operational/nationwide suite: 21 passed, 0 failed.
+  - Root Vitest operational/nationwide/source-normalization suite: 24 passed, 0 failed.
   - Worker with both PostgreSQL integration environments enabled: 149 passed, 0 skipped.
   - Database: 134 passed, 13 skipped environment-specific cases.
   - Integrations: 92 passed, 5 skipped protected live-provider cases.
@@ -56,11 +56,11 @@ Stripe subscription reconciliation is now also queued after the signed receipt i
 - Clean-database migration rehearsal: the full journal applies to a disposable database, producing 72 public tables with 39 tables reporting forced RLS. The disposable database was removed after inspection.
 - Supported-upgrade rehearsal: the repeatable `pnpm validation:migrations` check installed the application through migration 0049, inserted a representative located/monitored garden, upgraded through migration 0055, preserved the garden, verified all 56 journal entries plus later digest/recommendation/climate-provenance columns, and removed the isolated database. Full evidence is in `docs/build/migration-upgrade-rehearsal.md`.
 - Product operations snapshot: executed successfully and returned aggregate crop coverage, forecast freshness, monitoring due work, event backlog, delivery outcomes, billing lag and provider usage without customer locations or message content.
-- Trestle SetupPlan validation/diff, architecture check and local doctor were rerun after the mobile-editor work; the plan remains converged and doctor reported 106 passed, 0 warnings and 0 failures.
+- Trestle SetupPlan validation/diff, architecture check and local doctor were rerun after the official climate import; the plan remains converged and doctor reported 106 passed, 0 warnings and 0 failures.
 
 ## Remaining controlled gates
 
-- Obtain and configure Geoapify, restricted MapTiler, Exa, NWS, Resend and Stripe staging/production values; publish real reviewed climate and crop datasets.
+- Obtain and configure Geoapify, restricted MapTiler, Exa, NWS, Resend and Stripe staging/production values; publish the verified climate manifests to staging and expand the reviewed crop catalog.
 - Run the protected provider workflow after configuration. It now verifies bounded Geoapify, MapTiler street/aerial, Exa, NWS forecast/alert, Resend and Stripe requests and rejects drift between the encrypted and browser-build MapTiler values.
 - Run the required end-to-end path in staging with real runtime roles, Queue delivery, scheduled monitoring, NWS retrieval, Stripe test state and an allowlisted Resend recipient.
 - Record live geocoder attribution and visually inspect tile attribution with the paid-plan key. The MapTiler policy/export review is recorded and customer print output is enforced as application geometry without provider imagery.
