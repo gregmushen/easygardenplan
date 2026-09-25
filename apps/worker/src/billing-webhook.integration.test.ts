@@ -2,7 +2,7 @@ import { createHmac } from "node:crypto";
 import postgres from "postgres";
 import { afterAll, describe, expect, it, vi } from "vitest";
 
-import { app } from "./index.js";
+import worker, { app } from "./index.js";
 
 const databaseUrl = process.env.TRESTLE_SYSTEM_TEST_DATABASE_URL;
 const suite = databaseUrl ? describe : describe.skip;
@@ -12,7 +12,7 @@ const eventIds: string[] = [];
 const subscriptionIds: string[] = [];
 const secret = "whsec_billing_webhook_integration";
 
-async function deliver(input: { eventId: string; organizationId?: string; plan?: string; kind?: "subscription" | "checkout" | "invoice_paid" | "invoice_failed"; remote?: boolean; subscriptionId?: string; customerId?: string }) {
+async function deliver(input: { eventId: string; organizationId?: string; plan?: string; kind?: "subscription" | "checkout" | "invoice_paid" | "invoice_failed"; remote?: boolean; subscriptionId?: string; customerId?: string; queue?: { send(body: unknown): Promise<void> } }) {
   const subscriptionId = input.subscriptionId ?? `sub_${input.eventId}`;
   subscriptionIds.push(subscriptionId);
   const metadata = { ...(input.organizationId ? { organizationId: input.organizationId } : {}), ...(input.plan ? { plan: input.plan } : {}) };
@@ -32,6 +32,7 @@ async function deliver(input: { eventId: string; organizationId?: string; plan?:
   return app.request("/webhooks/stripe", { method: "POST", headers: { "stripe-signature": signature, "content-type": "application/json" }, body: payload }, {
     DATABASE_URL: databaseUrl!, DATABASE_DRIVER: "postgres-js", STRIPE_WEBHOOK_SECRET: secret,
     ...(input.remote ? { STRIPE_SECRET_KEY: "sk_test_reconciliation", STRIPE_MODE: "test" as const } : {}),
+    ...(input.queue ? { TRESTLE_EVENTS: input.queue } : {}),
     BETTER_AUTH_SECRET: "billing-integration-test-secret-long-enough", BETTER_AUTH_URL: "http://localhost:42069", APP_ENV: "local",
   });
 }
@@ -162,6 +163,26 @@ suite("signed Stripe webhook route", () => {
       const duplicate = await deliver({ eventId, organizationId, plan: "pro", remote: true, subscriptionId });
       expect(duplicate.status).toBe(200);
       expect(stripeFetch).toHaveBeenCalledTimes(1);
+    } finally { vi.unstubAllGlobals(); }
+  });
+
+  it("persists then queues remote reconciliation before contacting Stripe", async () => {
+    const organizationId = `billing_queue_${crypto.randomUUID().replaceAll("-", "")}`;
+    const eventId = `evt_${crypto.randomUUID().replaceAll("-", "")}`;
+    const subscriptionId = `sub_${crypto.randomUUID().replaceAll("-", "")}`;
+    organizationIds.push(organizationId); eventIds.push(eventId); subscriptionIds.push(subscriptionId);
+    const queued: unknown[] = []; const queue = { send: async (body: unknown) => { queued.push(body); } };
+    const stripeFetch = vi.fn(async () => new Response(JSON.stringify({ id: subscriptionId, object: "subscription", customer: "cus_queued", status: "active", cancel_at_period_end: false, items: { data: [] }, metadata: { organizationId, plan: "pro" } }), { status: 200, headers: { "content-type": "application/json" } }));
+    vi.stubGlobal("fetch", stripeFetch);
+    try {
+      const response = await deliver({ eventId, organizationId, plan: "pro", remote: true, subscriptionId, queue });
+      expect(response.status).toBe(202); await expect(response.json()).resolves.toEqual({ duplicate: false, queued: true });
+      expect(stripeFetch).not.toHaveBeenCalled();
+      expect((await sql!`select status from billing_provider_event where provider_event_id=${eventId}`)[0]?.status).toBe("received");
+      const states: string[] = [];
+      const result = await worker.queue({ messages: [{ body: queued[0], ack: () => states.push("ack"), retry: () => states.push("retry") }] }, { DATABASE_URL: databaseUrl!, DATABASE_DRIVER: "postgres-js", STRIPE_WEBHOOK_SECRET: secret, STRIPE_SECRET_KEY: "sk_test_reconciliation", STRIPE_MODE: "test", BETTER_AUTH_SECRET: "billing-integration-test-secret-long-enough", BETTER_AUTH_URL: "http://localhost:42069", APP_ENV: "local", TRESTLE_EVENTS: queue });
+      expect(result).toEqual({ acknowledged: 1, retried: 0 }); expect(states).toEqual(["ack"]); expect(stripeFetch).toHaveBeenCalledTimes(1);
+      expect((await sql!`select plan, status from organization_subscription where organization_id=${organizationId}`)[0]).toEqual({ plan: "pro", status: "active" });
     } finally { vi.unstubAllGlobals(); }
   });
 

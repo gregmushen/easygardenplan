@@ -38,6 +38,7 @@ import { maintainWebhookPayloads } from "./webhook-retention.js";
 import { maintainReadyArtifacts } from "./artifact-retention.js";
 import { maintainNativeWebhookDeliveries } from "./webhook-recovery.js";
 import { consumeNativeWebhookQueueMessages, looksLikeNativeWebhookWakeup } from "./webhook-native-queue.js";
+import { consumeBillingReconciliationMessages, looksLikeBillingReconciliationWakeup, type BillingReconciliationWakeup } from "./billing-reconciliation-queue.js";
 import type { Database, NativeWebhookWakeup } from "@easygardenplan/db";
 import { z } from "zod";
 
@@ -358,6 +359,14 @@ app.post("/webhooks/stripe", async (context) => {
       return context.json({ duplicate: true }, 200);
     }
     generation = claim.generation;
+    const queue = (context.env as WorkerEnvironment).TRESTLE_EVENTS;
+    if (queue) {
+      const wakeup: BillingReconciliationWakeup = { kind: "billing-subscription-reconciliation", provider: "stripe", providerEventId: event.id, providerSubscriptionId: event.providerSubscriptionId, eventType: event.type, occurredAt: event.occurredAt.toISOString(), generation, correlationId: context.get("correlationId") };
+      try { await (queue as CloudflareQueueBinding<unknown>).send(wakeup); }
+      catch { log.error("billing.reconciliation.enqueue_failed", { providerEventId: event.id, type: event.type }); return context.json({ error: "Billing reconciliation could not be queued", retryable: true }, 503); }
+      log.info("billing.reconciliation.queued", { providerEventId: event.id, type: event.type });
+      return context.json({ duplicate: false, queued: true }, 202);
+    }
     try { event = await retrieveCurrentStripeSubscription({ secretKey: context.env.STRIPE_SECRET_KEY, event }); }
     catch (error) {
       await markBillingReconciliationUnavailable({ databaseUrl: context.env.DATABASE_URL,
@@ -627,7 +636,7 @@ eventConsumers.register(gardenDeletedEvent, handleGardenDeleted, { authority: "t
 eventConsumers.register(weatherEvaluationRequestedConsumer, handleWeatherEvaluationRequested, { authority: "tenant", requires: { entitlement: "weather.monitoring" } });
 eventConsumers.register(recommendationTransitionedConsumer, handleRecommendationTransitioned, { authority: "tenant", requires: { entitlement: "weather.monitoring" } });
 
-type WorkerEnvironment = AuthEnvironment & { TRESTLE_EVENTS?: CloudflareQueueBinding<EventEnvelope | NativeWebhookWakeup>; TRESTLE_WORKFLOW?: CloudflareWorkflowBinding; TRESTLE_WORKFLOWS_ENABLED?: string };
+type WorkerEnvironment = AuthEnvironment & { TRESTLE_EVENTS?: CloudflareQueueBinding<EventEnvelope | NativeWebhookWakeup | BillingReconciliationWakeup>; TRESTLE_WORKFLOW?: CloudflareWorkflowBinding; TRESTLE_WORKFLOWS_ENABLED?: string };
 export default {
   fetch: app.fetch.bind(app),
   queue: async (batch: QueueBatch, environment: WorkerEnvironment) => {
@@ -643,21 +652,24 @@ export default {
       throw new Error("Enabled Workflows require the TRESTLE_WORKFLOW binding");
     }
     const nativeMessages = batch.messages.filter((message) => looksLikeNativeWebhookWakeup(message.body));
-    const eventMessages = batch.messages.filter((message) => !looksLikeNativeWebhookWakeup(message.body));
+    const billingMessages = batch.messages.filter((message) => looksLikeBillingReconciliationWakeup(message.body));
+    const eventMessages = batch.messages.filter((message) => !looksLikeNativeWebhookWakeup(message.body) && !looksLikeBillingReconciliationWakeup(message.body));
     let native = { acknowledged: 0, retried: 0 };
     if (nativeMessages.length > 0) {
       const outbox = new PostgresOutboxStore(environment.DATABASE_URL, { assumeApplicationRole: true });
       try { native = await consumeNativeWebhookQueueMessages({ messages: nativeMessages, environment, outbox }); }
       finally { await outbox.close(); }
     }
-    if (eventMessages.length === 0) return native;
+    const billing = billingMessages.length ? await consumeBillingReconciliationMessages({ messages: billingMessages, environment }) : { acknowledged: 0, retried: 0 };
+    const settled = { acknowledged: native.acknowledged + billing.acknowledged, retried: native.retried + billing.retried };
+    if (eventMessages.length === 0) return settled;
     if (environment.TRESTLE_WORKFLOWS_ENABLED === "true") {
       if (!environment.TRESTLE_WORKFLOW) throw new Error("Enabled Workflows require the TRESTLE_WORKFLOW binding");
       // Verify before creating the instance, so a forged message never claims its stable ID.
       const outbox = new PostgresOutboxStore(environment.DATABASE_URL, { assumeApplicationRole: true });
       try {
         const events = await createWorkflowQueueConsumer(eventConsumers, environment.TRESTLE_WORKFLOW, outbox, observeEvent)({ messages: eventMessages }, environment);
-        return { acknowledged: native.acknowledged + events.acknowledged, retried: native.retried + events.retried };
+        return { acknowledged: settled.acknowledged + events.acknowledged, retried: settled.retried + events.retried };
       } finally { await outbox.close(); }
     }
     const inbox = new PostgresEventInbox(environment.DATABASE_URL, { assumeApplicationRole: true });
@@ -666,7 +678,7 @@ export default {
       const events = await createQueueConsumer(eventConsumers, inbox, outbox, async (envelope, currentEnvironment, committed, context) => {
         await projectWebhookForEvent({ envelope, environment: currentEnvironment, outbox, ...(committed ? { committed } : {}), ...(context ? { now: () => context.clock.now() } : {}), ...(environment.TRESTLE_EVENTS ? { queue: environment.TRESTLE_EVENTS } : {}) });
       }, observeEvent)({ messages: eventMessages }, environment);
-      return { acknowledged: native.acknowledged + events.acknowledged, retried: native.retried + events.retried };
+      return { acknowledged: settled.acknowledged + events.acknowledged, retried: settled.retried + events.retried };
     } finally { await Promise.all([inbox.close(), outbox.close()]); }
   },
   scheduled: async (event: { cron?: string } | undefined, environment: WorkerEnvironment) => {

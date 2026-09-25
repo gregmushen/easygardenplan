@@ -332,7 +332,7 @@ Implementation note: at the pinned baseline, `trestle plan init` rejects the sta
 ### Work
 
 - [ ] Define Free and Pro plan/entitlement codes and replace sample billing products.
-- [ ] Complete or adopt durable queued billing reconciliation and local-adapter parity before paid launch.
+- [x] Complete or adopt durable queued billing reconciliation and local-adapter parity before paid launch.
 - [ ] Configure Stripe test products/prices and environment-specific webhook endpoints through Trestle's supported flow.
 - [ ] Build pricing, checkout, payment-processing return, subscription status and manage/cancel experiences.
 - [ ] Enforce entitlements independently from garden permissions at HTTP and background boundaries.

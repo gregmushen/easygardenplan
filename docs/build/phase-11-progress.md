@@ -40,12 +40,14 @@ The framework baseline remains pinned to Trestle `c00ca6ab9795fb0bf96e67ffe79712
 
 Existing phase suites additionally cover stale edits, pinned placement, actual-progress recalculation, duplicate/concurrent weather evaluation, expired event provenance, provider failures, ambiguous delivery receipts, billing order/concurrency, authority re-check at execution and deletion stopping tenant-owned work.
 
+Stripe subscription reconciliation is now also queued after the signed receipt is committed. A PostgreSQL integration proves the webhook returns before contacting Stripe, the Queue consumer retrieves current provider state, and only then acknowledges and projects Pro access.
+
 ## Verification
 
 - `pnpm check`: passed.
   - Root Node suite: 65 passed, 0 failed.
   - Root Vitest operational/nationwide suite: 21 passed, 0 failed.
-  - Worker: 121 passed, 17 skipped provider/database-environment cases.
+  - Worker with both PostgreSQL integration environments enabled: 140 passed, 0 skipped.
   - Database: 134 passed, 13 skipped environment-specific cases.
   - Integrations: 90 passed, 4 skipped live-provider cases.
   - All other workspace suites and production builds passed.
