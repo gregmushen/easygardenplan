@@ -195,8 +195,8 @@ Implementation note: at the pinned baseline, `trestle plan init` rejects the sta
 
 - [x] Select and implement the local metric projection/transform, with numerical and longitude-wrap fixtures.
 - [x] Implement immutable bed geometry revisions, outer polygons, exclusions, orientation, provenance and optimistic concurrency.
-- [ ] Prototype Terra Draw on desktop and touch; adopt it only if the required interactions and accessibility alternatives hold.
-- [ ] Implement draw, close, move, add/delete vertex, exclusion, undo/redo, pan/edit modes and keyboard/field alternatives.
+- [x] Prototype Terra Draw on desktop and touch; adopt it only if the required interactions and accessibility alternatives hold.
+- [x] Implement draw, close, move, add/delete vertex, exclusion, undo/redo, pan/edit modes and keyboard/field alternatives.
 - [x] Validate self-intersections, degenerate edges, ring containment/overlap and supported request limits in browser and server.
 - [x] Implement measured-edge calibration, translation and rotation with preview and explicit application.
 - [x] Add manual sunlight observations and clear unknown state.
@@ -477,7 +477,7 @@ Update this table as the build progresses. Use `not started`, `in progress`, `bl
 | 1 Household/garden | Complete | Evidence: `docs/build/phase-01-evidence.md` |
 | 2 Knowledge | In progress | Deterministic pipeline proof: `docs/build/phase-02-progress.md`; live Exa run and reviewed catalog remain |
 | 3 Location/climate | In progress | Deterministic pipeline proof: `docs/build/phase-03-progress.md`; controlled providers and real datasets remain |
-| 4 Bed editor | In progress | Deterministic/editor proof: `docs/build/phase-04-progress.md`; physical mobile, screen-reader, print and real measurement trials remain |
+| 4 Bed editor | External gate | Local implementation and deterministic/editor proof: `docs/build/phase-04-progress.md`; physical mobile, screen-reader, print and real measurement trials remain |
 | 5 Planner | In progress | Synthetic end-to-end and reviewed-override proof: `docs/build/phase-05-progress.md`; real reviewed catalog/climate validation remains |
 | 6 Progress | In progress | Deterministic product proof: `docs/build/phase-06-progress.md`; accessibility/offline review and real catalog validation remain |
 | 7 Monitoring | In progress | Deterministic/background, official-alert persistence and reviewed anti-flapping proof: `docs/build/phase-07-progress.md`; launch rules, official-alert action policy and staging Queue evidence remain |
