@@ -482,7 +482,7 @@ Update this table as the build progresses. Use `not started`, `in progress`, `bl
 | 8 Notifications | In progress | Deterministic delivery proof: `docs/build/phase-08-progress.md`; digests, quiet hours, suppression coverage and staging delivery remain |
 | 9 Billing | In progress | Deterministic product proof: `docs/build/phase-09-progress.md`; queued reconciliation and controlled Stripe evidence remain |
 | 10 Public/operations | In progress | Local public/readiness/deletion proof: `docs/build/phase-10-progress.md`; staging drills, operator aggregation and restore evidence remain |
-| 11 Launch | In progress | Build and run the deterministic nationwide validation matrix, then record controlled provider/deployment gates |
+| 11 Launch | In progress | Local matrix and no-go review: `docs/build/phase-11-progress.md`; controlled staging/provider/accessibility/restore gates remain |
 
 ## 22. Deliberately deferred scope
 

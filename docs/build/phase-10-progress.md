@@ -17,6 +17,7 @@ Date: 2026-09-25
 - Enabled authenticated account deletion. Household-owned data, pending outbox work, entitlements, subscriptions and billing ownership are removed before Better Auth removes the user.
 - Extended database and browser tests to prove billing rows and the private garden/household disappear after deletion.
 - Retained the existing bounded and audited recovery controls: committed-event age checks, tenant-scoped webhook replay, lease recovery, artifact recovery evidence and scheduled isolated backup verification.
+- Added `pnpm operations:product`, an aggregate-only operator snapshot for crop coverage, forecast freshness, overdue/retrying gardens, event backlog, delivery outcomes, billing lag and geocoder usage. It does not emit customer locations or message content.
 
 ## Proof recorded
 
@@ -34,5 +35,5 @@ Date: 2026-09-25
 - Record distinct staging drills for stale weather, failed delivery, delayed billing and expired work.
 - Review live map attribution and provider export rights; printed garden diagrams currently contain application geometry only and no provider imagery.
 - Record a successful isolated production restore from the scheduled Trestle backup workflow.
-- Add or adopt an operator view that aggregates crop coverage, forecast freshness, eligible overdue gardens, evaluation backlog, delivery outcomes, billing lag and provider usage/cost.
+- Connect provider billing exports to the request-count snapshot so the operator view can report actual cost as well as usage.
 - Review production analytics/error tooling after it is selected; automated logger fixtures already cover credential and payload redaction.
