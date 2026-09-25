@@ -131,6 +131,12 @@ test("a new gardener receives one private workspace and can save the garden", as
   await expect(page.getByText(/task postponed/u)).toBeVisible();
   await page.getByRole("button", { name: "Skip" }).first().click();
   await expect(page.getByText(/task skipped/u)).toBeVisible();
+  await expect(page.getByRole("group", { name: "Email choices" })).toBeVisible();
+  await page.getByLabel("Use quiet hours").check();
+  await expect(page.getByLabel("Quiet hours start")).toHaveValue("22:00");
+  await page.getByLabel("Allow urgent protection warnings during quiet hours").uncheck();
+  await page.getByRole("button", { name: "Save email choices" }).click();
+  await expect(page.getByText("Notification choices saved.")).toBeVisible();
 
   const bootstrap = await page.context().request.post(`${appURL}/api/workspace/bootstrap`, { headers: { origin: appURL } });
   const workspace = (await bootstrap.json() as { workspace: { organizationId: string } }).workspace;

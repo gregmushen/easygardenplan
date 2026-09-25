@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { affectedPlantingsComplete } from "./notification-repository.js";
+import { affectedPlantingsComplete, isWithinQuietHours } from "./notification-repository.js";
 
 const first = "11111111-1111-4111-8111-111111111111";
 const second = "22222222-2222-4222-8222-222222222222";
@@ -39,5 +39,23 @@ describe("affectedPlantingsComplete", () => {
   it("does not suppress when affected identities are absent or are not selection UUIDs", () => {
     expect(affectedPlantingsComplete([], [])).toBe(false);
     expect(affectedPlantingsComplete(["selection-1"], [])).toBe(false);
+  });
+});
+
+describe("isWithinQuietHours", () => {
+  it("handles overnight windows in the garden timezone", () => {
+    expect(isWithinQuietHours(new Date("2026-07-01T06:30:00.000Z"), "America/Los_Angeles", "22:00", "07:00")).toBe(true);
+    expect(isWithinQuietHours(new Date("2026-07-01T15:00:00.000Z"), "America/Los_Angeles", "22:00", "07:00")).toBe(false);
+  });
+
+  it("uses the actual offset on both sides of daylight-saving changes", () => {
+    expect(isWithinQuietHours(new Date("2026-03-08T09:30:00.000Z"), "America/Los_Angeles", "22:00", "07:00")).toBe(true);
+    expect(isWithinQuietHours(new Date("2026-03-08T14:30:00.000Z"), "America/Los_Angeles", "22:00", "07:00")).toBe(false);
+    expect(isWithinQuietHours(new Date("2026-11-01T09:30:00.000Z"), "America/Los_Angeles", "22:00", "07:00")).toBe(true);
+  });
+
+  it("treats matching boundaries as an all-day quiet preference", () => {
+    expect(isWithinQuietHours(new Date("2026-07-01T15:00:00.000Z"), "America/Los_Angeles", "08:00", "08:00")).toBe(true);
+    expect(isWithinQuietHours(new Date(), "Etc/UTC", null, null)).toBe(false);
   });
 });

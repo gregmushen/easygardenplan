@@ -1,4 +1,4 @@
-import { createDatabase, garden, gardenPlanVersion, gardenProgressEvent, notificationDeliveryIntent, notificationFeedEntry, organization, recommendationTransition, user, weatherForecastSnapshot, weatherOfficialAlertGarden, weatherOfficialAlertSnapshot } from "@easygardenplan/db";
+import { createDatabase, garden, gardenPlanVersion, gardenProgressEvent, notificationDeliveryIntent, notificationFeedEntry, notificationPreference, organization, recommendationTransition, user, weatherForecastSnapshot, weatherOfficialAlertGarden, weatherOfficialAlertSnapshot } from "@easygardenplan/db";
 import { and, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { MonitoringRepository } from "./monitoring-repository.js";
@@ -96,5 +96,16 @@ suite("weather episode persistence", () => {
     expect(await deliveries.claim(warning.transition!.id)).toBeNull();
     const [intent] = await database!.select().from(notificationDeliveryIntent).where(eq(notificationDeliveryIntent.transitionId, warning.transition!.id));
     expect(intent).toMatchObject({ status: "suppressed", suppressionReason: "affected_plantings_complete" });
+  });
+
+  it("suppresses overnight warnings when the recipient disabled urgent quiet-hour delivery", async () => {
+    await database!.insert(notificationPreference).values({ organizationId, userId, urgentEmailEnabled: true, quietHoursStart: "22:00", quietHoursEnd: "07:00", urgentDuringQuietHours: false }).onConflictDoUpdate({ target: [notificationPreference.organizationId, notificationPreference.userId], set: { urgentEmailEnabled: true, quietHoursStart: "22:00", quietHoursEnd: "07:00", urgentDuringQuietHours: false } });
+    const quietCandidate = { ...candidate, groupKey: "crop:quiet", evidenceFingerprint: "fixture-quiet" };
+    const warning = await repository!.evaluate({ gardenId, hazard: "cold", groupKey: quietCandidate.groupKey, observation: { status: "evaluated", candidate: quietCandidate } });
+    const deliveries = new NotificationRepository(database!, organizationId, { now: () => new Date("2026-10-01T05:01:00.000Z") });
+    expect(await deliveries.claim(warning.transition!.id)).toBeNull();
+    const [intent] = await database!.select().from(notificationDeliveryIntent).where(eq(notificationDeliveryIntent.transitionId, warning.transition!.id));
+    expect(intent).toMatchObject({ status: "suppressed", suppressionReason: "quiet_hours" });
+    await database!.delete(notificationPreference).where(and(eq(notificationPreference.organizationId, organizationId), eq(notificationPreference.userId, userId)));
   });
 });
