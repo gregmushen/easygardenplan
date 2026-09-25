@@ -1,0 +1,1 @@
+ALTER TABLE "climate_association" ADD COLUMN "source_evidence" jsonb DEFAULT '[]'::jsonb NOT NULL;

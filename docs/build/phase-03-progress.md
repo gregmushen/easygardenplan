@@ -12,6 +12,7 @@ Status: **in progress**. The local, provider-neutral location and climate flow i
 - MapLibre garden map with MapTiler aerial/map layers, provider attribution, a visible pin and coordinate entry. When tile configuration or imagery is unavailable, the measured/manual path remains usable.
 - The protected staging provider workflow resolves Geoapify and MapTiler values through Trestle, checks one representative US geocode, loads both street and aerial style documents, and verifies that the encrypted MapTiler value matches the key used for the browser build.
 - Versioned climate dataset, normalized record and immutable garden-association storage. Shared datasets are separate from forced-RLS household associations.
+- Hardiness and frost normals are independently versioned and matched. A garden association freezes both source releases, record identities, attribution, distance, elevation difference and confidence, preventing the latest imported source from silently replacing the other climate dimension. The synthetic combined fixture is eligible only when neither real source kind is published.
 - Checksum-verified atomic climate publication with idempotent replay. The prior published dataset remains intact if validation fails.
 - Nearest-record matching with distance, elevation context, confidence and explicit `known`, `frost_free`, `unknown` and `uncertain` states.
 - Gardener-supplied seasonal anchors with private provenance; they are never labeled as NOAA data.
@@ -20,6 +21,7 @@ Status: **in progress**. The local, provider-neutral location and climate flow i
 ## Proof
 
 - PostgreSQL integration publishes eight checksum-verified records, proves idempotent replay, rejects a mismatched checksum, matches a representative location and proves another tenant cannot read or replace the association.
+- A separate-source PostgreSQL case combines a USDA/OSU-style hardiness record with a NOAA-style frost-normal record and proves both attributions remain in the immutable association.
 - Worker system coverage exercises local no-result geocoding, manual pin confirmation, stale-revision rejection, climate association, gardener anchor replacement and current-association reading.
 - Unit coverage checks Alaska/Hawaii coordinates, IANA timezone validation, frost-state distinctions, invalid ranges, Geoapify normalization/rate errors and antimeridian distance behavior.
 - Browser proof: account → garden → tile-unavailable fallback → manual pin → climate match → gardener seasonal anchor → reload; 1 passed.

@@ -53,11 +53,12 @@ try {
     const forcedRls = Number(forcedRlsRows[0]?.forcedRls ?? 0);
     const requiredColumns = await client`select table_name, column_name from information_schema.columns where table_schema='public' and (
       (table_name='recommendation_version' and column_name in ('affected_task_ids','delivery_class','affected_crop_names')) or
-      (table_name='notification_digest_due' and column_name='local_date')
+      (table_name='notification_digest_due' and column_name='local_date') or
+      (table_name='climate_association' and column_name='source_evidence')
     ) order by table_name, column_name`;
     if (migrations !== journal.entries.length) throw new Error(`Expected ${journal.entries.length} migrations, found ${migrations}`);
     if (!preserved || preserved.name !== "Preserved garden" || preserved.timezone !== "America/Los_Angeles" || preserved.monitoring_enabled !== true || preserved.location_confirmed !== true) throw new Error("Representative garden did not survive the upgrade");
-    if (requiredColumns.length !== 4) throw new Error("The upgraded schema is missing required post-baseline columns");
+    if (requiredColumns.length !== 5) throw new Error("The upgraded schema is missing required post-baseline columns");
     process.stdout.write(`${JSON.stringify({
       status: "passed",
       priorTag,

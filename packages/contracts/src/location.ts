@@ -35,6 +35,17 @@ export const confirmedLocationSchema = z.object({
 
 export const climateValueStateSchema = z.enum(["known", "frost_free", "unknown", "uncertain"]);
 export const monthDaySchema = z.string().regex(/^(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/u, "Expected MM-DD");
+export const climateSourceEvidenceSchema = z.object({
+  kind: z.enum(["hardiness", "frost_normals", "combined_fixture"]),
+  datasetVersionId: z.string().uuid(),
+  recordId: z.string().uuid(),
+  sourceName: z.string().min(1),
+  sourceRelease: z.string().min(1),
+  attribution: z.string().min(1),
+  distanceMeters: z.number().nonnegative(),
+  elevationDifferenceMeters: z.number().nonnegative().nullable(),
+  confidence: z.number().min(0).max(1),
+});
 
 export const climateRecordSchema = z.object({
   externalId: z.string().min(1),
@@ -77,6 +88,7 @@ export const climateAssociationSchema = z.object({
   confidence: z.number().min(0).max(1),
   rationale: z.string().min(1),
   source: z.enum(["dataset_match", "user_anchor", "unavailable"]),
+  sourceEvidence: z.array(climateSourceEvidenceSchema).default([]),
 });
 
 export type Coordinate = z.infer<typeof coordinateSchema>;

@@ -52,6 +52,7 @@ export const climateAssociation = pgTable("climate_association", {
   confidence: numeric("confidence", { precision: 5, scale: 4 }).notNull(),
   rationale: text("rationale").notNull(),
   source: text("source").notNull(),
+  sourceEvidence: jsonb("source_evidence").default([]).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 }, (table) => [
   uniqueIndex("climate_association_version_uidx").on(table.gardenId, table.version),

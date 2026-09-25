@@ -9,7 +9,7 @@ const suite = connectionString ? describe : describe.skip;
 const admin = connectionString ? createDatabase(connectionString, "postgres-js") : undefined;
 const nonce = crypto.randomUUID();
 const ids = { userA: `climate-a-${nonce}`, userB: `climate-b-${nonce}`, organizationA: `climate-a-${nonce}`, organizationB: `climate-b-${nonce}` };
-let datasetId: string | undefined;
+const datasetIds: string[] = [];
 
 suite("versioned climate import and tenant association", () => {
   afterAll(async () => {
@@ -17,7 +17,7 @@ suite("versioned climate import and tenant association", () => {
     await admin!.delete(organization).where(eq(organization.id, ids.organizationB));
     await admin!.delete(user).where(eq(user.id, ids.userA));
     await admin!.delete(user).where(eq(user.id, ids.userB));
-    if (datasetId) await admin!.delete(climateDatasetVersion).where(eq(climateDatasetVersion.id, datasetId));
+    for (const datasetId of datasetIds) await admin!.delete(climateDatasetVersion).where(eq(climateDatasetVersion.id, datasetId));
     await admin!.$client.end();
   });
 
@@ -25,7 +25,7 @@ suite("versioned climate import and tenant association", () => {
     const records = representativeClimateRecords.map((record) => ({ ...record, externalId: `${nonce}-${record.externalId}` }));
     const manifest = { kind: "combined_fixture" as const, sourceName: "Synthetic integration fixture", sourceRelease: nonce, sourceUrl: `https://example.test/${nonce}`, checksumSha256: await climateRecordsChecksum(records), normalizationVersion: 1, attribution: "Synthetic integration data", coverage: { fixture: true }, records };
     const first = await new ClimateRepository(admin!).publishDataset(manifest);
-    datasetId = first.datasetVersionId;
+    datasetIds.push(first.datasetVersionId);
     expect(first).toMatchObject({ recordCount: 8, rejectedCount: 0 });
     expect((await new ClimateRepository(admin!).publishDataset(manifest)).datasetVersionId).toBe(first.datasetVersionId);
     await expect(new ClimateRepository(admin!).publishDataset({ ...manifest, checksumSha256: "0".repeat(64) })).rejects.toThrow("checksum");
@@ -37,7 +37,21 @@ suite("versioned climate import and tenant association", () => {
     const tenantB = createTenantDatabase(connectionString!, "postgres-js", ids.organizationB);
     try {
       const match = await new ClimateRepository(tenantA).associateGarden({ gardenId: plot!.id, coordinate: { latitude: 47.61, longitude: -122.33 } });
-      expect(match).toMatchObject({ source: "dataset_match", state: "known", hardinessZone: "9a", confidence: 1 });
+      expect(match).toMatchObject({ source: "dataset_match", state: "known", hardinessZone: "9a", confidence: 1, sourceEvidence: [expect.objectContaining({ kind: "combined_fixture", sourceRelease: nonce })] });
+
+      const hardinessRecords = [{ ...records[1]!, externalId: `${nonce}-hardiness`, hardinessZone: "8b", frostState: "unknown" as const, springFrostLocalDate: null, autumnFrostLocalDate: null }];
+      const frostRecords = [{ ...records[1]!, externalId: `${nonce}-frost`, hardinessZone: null, frostState: "known" as const, springFrostLocalDate: "03-20", autumnFrostLocalDate: "11-08" }];
+      const hardinessDataset = await new ClimateRepository(admin!).publishDataset({ ...manifest, kind: "hardiness", sourceName: "USDA/OSU hardiness fixture", sourceRelease: `${nonce}-hardiness`, checksumSha256: await climateRecordsChecksum(hardinessRecords), attribution: "USDA/OSU fixture attribution", records: hardinessRecords });
+      const frostDataset = await new ClimateRepository(admin!).publishDataset({ ...manifest, kind: "frost_normals", sourceName: "NOAA frost-normal fixture", sourceRelease: `${nonce}-frost`, checksumSha256: await climateRecordsChecksum(frostRecords), attribution: "NOAA fixture attribution", records: frostRecords });
+      datasetIds.push(hardinessDataset.datasetVersionId, frostDataset.datasetVersionId);
+      const combined = await new ClimateRepository(tenantA).associateGarden({ gardenId: plot!.id, coordinate: { latitude: 47.61, longitude: -122.33 } });
+      expect(combined).toMatchObject({
+        source: "dataset_match", state: "known", hardinessZone: "8b", springFrostLocalDate: "03-20", autumnFrostLocalDate: "11-08", confidence: 1,
+        sourceEvidence: [
+          expect.objectContaining({ kind: "hardiness", sourceName: "USDA/OSU hardiness fixture", attribution: "USDA/OSU fixture attribution" }),
+          expect.objectContaining({ kind: "frost_normals", sourceName: "NOAA frost-normal fixture", attribution: "NOAA fixture attribution" }),
+        ],
+      });
       expect(await new ClimateRepository(tenantB).current(plot!.id)).toBeNull();
       await expect(new ClimateRepository(tenantB).setUserAnchor({ gardenId: plot!.id, frostState: "unknown", rationale: "cross tenant attempt" })).rejects.toThrow("Garden not found");
     } finally { await tenantA.$client.end(); await tenantB.$client.end(); }
