@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { authClient } from "../auth-client.js";
 import { createGardenApi } from "../api/garden.js";
+import { LocationSetup } from "../location-setup.js";
 
 const apiOrigin = (import.meta.env.VITE_API_ORIGIN as string | undefined)?.replace(/\/$/u, "") ?? "";
 type Workspace = { organizationId: string; gardenId: string };
@@ -66,14 +67,13 @@ export function GardenScreen() {
     <p className="mt-3 text-slate-600">These details anchor planting dates and recommendations. You can refine them as the garden takes shape.</p>
     <form className="mt-8 space-y-6" onSubmit={(event) => { event.preventDefault(); void save.mutateAsync(); }}>
       {field("name", "Garden name")}
-      <div className="grid gap-4 sm:grid-cols-2">{field("latitude", "Latitude", "40.7128")}{field("longitude", "Longitude", "-74.0060")}</div>
-      <label className="flex items-center gap-3 text-sm text-slate-700"><input type="checkbox" checked={draft.locationConfirmed} onChange={(event) => setDraft({ ...draft, locationConfirmed: event.target.checked })} />I have confirmed this pin is inside my garden.</label>
-      <div className="grid gap-4 sm:grid-cols-2">{field("timezone", "Time zone")}<label className="block text-sm font-medium text-slate-700">Units<select className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3" value={draft.units} onChange={(event) => setDraft({ ...draft, units: event.target.value as Draft["units"] })}><option value="imperial">Imperial</option><option value="metric">Metric</option></select></label></div>
+      <label className="block text-sm font-medium text-slate-700">Units<select className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3" value={draft.units} onChange={(event) => setDraft({ ...draft, units: event.target.value as Draft["units"] })}><option value="imperial">Imperial</option><option value="metric">Metric</option></select></label>
       {field("conditions", "Site notes", "Slope, wind, drainage, shade, soil, or access notes")}
       <label className="flex items-center gap-3 text-sm text-slate-700"><input type="checkbox" checked={draft.monitoringEnabled} onChange={(event) => setDraft({ ...draft, monitoringEnabled: event.target.checked })} />Prepare this garden for weather monitoring.</label>
       {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error.message}</p>}
       <button className="button" disabled={save.isPending} type="submit">{save.isPending ? "Saving…" : "Save garden"}</button>
       {save.isSuccess && <span className="ml-4 text-sm font-medium text-emerald-700">Saved</span>}
     </form>
+    {gardenQuery.data && workspace.data && <LocationSetup garden={gardenQuery.data} organizationId={workspace.data.organizationId} onUpdated={(garden) => { setDraft(draftFrom(garden)); queryClient.setQueryData(["garden", session.user.id, workspace.data?.gardenId], garden); }} />}
   </section>;
 }

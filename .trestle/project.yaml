@@ -87,6 +87,9 @@ secrets:
   NEON_API_KEY:
     target: ci
     required: [preview, staging, production]
+  GEOAPIFY_API_KEY:
+    target: worker
+    required: [staging, production]
   R2_RECOVERY_ACCESS_KEY_ID:
     target: ci
     required: []

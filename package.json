@@ -13,6 +13,8 @@
     "db:migrate": "pnpm --filter ./packages/db db:migrate",
     "db:seed": "tsx seed/index.ts",
     "knowledge:coverage": "tsx scripts/knowledge-coverage.ts",
+    "climate:import": "tsx scripts/climate-import.ts",
+    "climate:import:fixture": "tsx scripts/climate-import.ts --fixture",
     "dev": "trestle dev",
     "test:browser": "playwright test",
     "test:deployed": "TRESTLE_BROWSER_MODE=deployed playwright test tests/browser/site-handoff.spec.ts",

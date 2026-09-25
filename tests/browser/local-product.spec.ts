@@ -29,16 +29,24 @@ test("a new gardener receives one private workspace and can save the garden", as
   await page.getByRole("link", { name: "Open my garden" }).click();
   await expect(page.getByRole("heading", { name: "Garden basics" })).toBeVisible();
   await page.getByLabel("Garden name").fill("Kitchen Garden");
+  await page.getByRole("button", { name: "Save garden" }).click();
+  await expect(page.getByText("Saved", { exact: true })).toBeVisible();
+  await expect(page.getByText("The aerial map is unavailable in this environment.", { exact: false })).toBeVisible();
   await page.getByLabel("Latitude").fill("34.0522");
   await page.getByLabel("Longitude").fill("-118.2437");
   await page.getByLabel("Time zone").fill("America/Los_Angeles");
-  await page.getByLabel("I have confirmed this pin is inside my garden.").check();
-  await page.getByRole("button", { name: "Save garden" }).click();
-  await expect(page.getByText("Saved", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Confirm this garden pin" }).click();
+  await expect(page.getByText("Location confirmed. Climate matching has been refreshed.")).toBeVisible();
+  await page.getByLabel("Hardiness zone").fill("10b");
+  await page.getByLabel("Last spring frost (MM-DD)").fill("02-15");
+  await page.getByLabel("First autumn frost (MM-DD)").fill("12-01");
+  await page.getByRole("button", { name: "Use these dates" }).click();
+  await expect(page.getByText("Your seasonal anchor has been saved as gardener-supplied information.")).toBeVisible();
   await page.reload();
   await expect(page.getByLabel("Garden name")).toHaveValue("Kitchen Garden");
   await expect(page.getByLabel("Latitude")).toHaveValue("34.0522");
-  await expect(page.getByLabel("I have confirmed this pin is inside my garden.")).toBeChecked();
+  await expect(page.getByText("Pin confirmed", { exact: true })).toBeVisible();
+  await expect(page.getByText("Status:", { exact: false })).toBeVisible();
 
   const bootstrap = await page.context().request.post(`${appURL}/api/workspace/bootstrap`, { headers: { origin: appURL } });
   const workspace = (await bootstrap.json() as { workspace: { organizationId: string } }).workspace;

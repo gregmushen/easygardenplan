@@ -9,3 +9,6 @@ export type WithTenant = <Result>(
 export * from "./resources/garden-repository.js";
 export * from "./knowledge-repository.js";
 export * from "./research-runs.js";
+export * from "./climate-repository.js";
+export * from "./location-repository.js";
+export * from "./fixtures/representative-climate.js";

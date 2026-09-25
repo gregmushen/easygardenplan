@@ -281,6 +281,20 @@
       "when": 1790334319482,
       "tag": "0039_huge_elektra",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1790334815548,
+      "tag": "0040_pretty_vapor",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1790334905069,
+      "tag": "0041_sleepy_lord_tyger",
+      "breakpoints": true
     }
   ]
 }

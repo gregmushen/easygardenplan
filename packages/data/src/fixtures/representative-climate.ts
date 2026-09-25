@@ -1,0 +1,12 @@
+import type { ClimateRecordInput } from "@easygardenplan/contracts";
+
+export const representativeClimateRecords: ClimateRecordInput[] = [
+  { externalId: "cold-continental-mn", coordinate: { latitude: 44.98, longitude: -93.27 }, elevationMeters: 253, hardinessZone: "5a", frostState: "known", springFrostLocalDate: "05-01", autumnFrostLocalDate: "10-07", referencePeriod: "synthetic-contract-fixture", probabilityPercent: 50 },
+  { externalId: "cool-maritime-wa", coordinate: { latitude: 47.61, longitude: -122.33 }, elevationMeters: 53, hardinessZone: "9a", frostState: "known", springFrostLocalDate: "03-15", autumnFrostLocalDate: "11-15", referencePeriod: "synthetic-contract-fixture", probabilityPercent: 50 },
+  { externalId: "hot-summer-tx", coordinate: { latitude: 32.78, longitude: -96.8 }, elevationMeters: 131, hardinessZone: "8b", frostState: "known", springFrostLocalDate: "03-12", autumnFrostLocalDate: "11-22", referencePeriod: "synthetic-contract-fixture", probabilityPercent: 50 },
+  { externalId: "arid-az", coordinate: { latitude: 33.45, longitude: -112.07 }, elevationMeters: 331, hardinessZone: "9b", frostState: "known", springFrostLocalDate: "02-10", autumnFrostLocalDate: "12-05", referencePeriod: "synthetic-contract-fixture", probabilityPercent: 50 },
+  { externalId: "high-elevation-co", coordinate: { latitude: 39.19, longitude: -106.82 }, elevationMeters: 2405, hardinessZone: "5b", frostState: "known", springFrostLocalDate: "06-10", autumnFrostLocalDate: "09-08", referencePeriod: "synthetic-contract-fixture", probabilityPercent: 50 },
+  { externalId: "frost-free-fl", coordinate: { latitude: 25.76, longitude: -80.19 }, elevationMeters: 2, hardinessZone: "11a", frostState: "frost_free", springFrostLocalDate: null, autumnFrostLocalDate: null, referencePeriod: "synthetic-contract-fixture", probabilityPercent: 50 },
+  { externalId: "alaska", coordinate: { latitude: 61.22, longitude: -149.9 }, elevationMeters: 31, hardinessZone: "4b", frostState: "known", springFrostLocalDate: "05-15", autumnFrostLocalDate: "09-15", referencePeriod: "synthetic-contract-fixture", probabilityPercent: 50 },
+  { externalId: "hawaii", coordinate: { latitude: 21.31, longitude: -157.86 }, elevationMeters: 6, hardinessZone: "12b", frostState: "frost_free", springFrostLocalDate: null, autumnFrostLocalDate: null, referencePeriod: "synthetic-contract-fixture", probabilityPercent: 50 },
+];

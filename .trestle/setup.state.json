@@ -1,33 +1,11 @@
 {
   "schemaVersion": 1,
-  "planHash": "7d2e054d37253645d59e1e32242ad721f7313231e4b054424af2390ab5d3fd77",
-  "updatedAt": "2026-09-25T10:40:43.903Z",
+  "planHash": "c3b05a0cdd47c559d649e5fef6980433e6daea7fd25cf43a123b66f899f7e54f",
+  "updatedAt": "2026-09-25T11:23:29.468Z",
   "operations": [
     {
       "id": "resources.Garden",
-      "status": "completed",
-      "files": [
-        ".trestle/resources/garden.json",
-        "packages/contracts/src/resources/garden.ts",
-        "packages/domain/src/resources/garden.ts",
-        "packages/data/src/resources/garden-repository.ts",
-        "packages/db/src/garden-schema.ts",
-        "apps/worker/src/resources/garden-routes.ts",
-        "apps/app/src/resources/garden.tsx",
-        "apps/app/src/api/garden.ts",
-        "apps/worker/src/resources/garden-events.ts",
-        "packages/data/src/resources/garden-events.integration.test.ts",
-        "packages/contracts/src/resources/garden.test.ts",
-        "packages/db/src/garden-rls.integration.test.ts"
-      ]
-    },
-    {
-      "id": "database.migration",
-      "status": "completed",
-      "files": [
-        "packages/db/migrations/0034_complete_expediter.sql",
-        "packages/db/migrations/meta/0034_snapshot.json"
-      ]
+      "status": "completed"
     }
   ]
 }

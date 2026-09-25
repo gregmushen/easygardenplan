@@ -20,6 +20,7 @@ import { accessRoutes } from "./access-routes.js";
 import { machineAccessRoutes } from "./machine-access-routes.js";
 import { regionalRoutes } from "./regional-routes.js";
 import { knowledgeRoutes } from "./knowledge-routes.js";
+import { locationRoutes } from "./location-routes.js";
 import { auditTenantAction } from "./audit.js";
 import { requireExecutionContext, type AppVariables } from "./execution-context.js";
 import { mapHttpError } from "./http-errors.js";
@@ -568,6 +569,7 @@ app.onError((error, context) => {
 });
 
 app.route("/", gardenRoutes);
+app.route("/", locationRoutes);
 
 eventConsumers.register(gardenCreatedEvent, handleGardenCreated, { authority: "tenant" });
 eventConsumers.register(gardenUpdatedEvent, handleGardenUpdated, { authority: "tenant" });
