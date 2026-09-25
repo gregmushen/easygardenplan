@@ -94,6 +94,11 @@ test("a new gardener receives one private workspace and can save the garden", as
   await page.getByRole("button", { name: "Record progress" }).click();
   await expect(page.getByText(/sown/u).last()).toBeVisible();
   await expect(page.getByText(/recalculated from an actual event/u)).toBeVisible();
+  await page.getByRole("button", { name: "Correct" }).first().click();
+  await page.getByLabel("Correction date").fill(`${new Date().getFullYear()}-03-11`);
+  await page.getByLabel("Correction reason").fill("Corrected my notebook date");
+  await page.getByRole("button", { name: "Save correction" }).click();
+  await expect(page.getByText(/correction \(correction\)/u)).toBeVisible();
   await page.getByRole("button", { name: "Complete" }).first().click();
   await expect(page.getByText(/task completed/u)).toBeVisible();
   await page.getByRole("button", { name: "Postpone one week" }).first().click();
