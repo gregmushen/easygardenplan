@@ -1,5 +1,6 @@
-import { planInputSnapshotSchema, progressEventInputSchema, taskTransitionSchema, type ProgressEventInput, type TaskTransition } from "@easygardenplan/contracts";
-import { bed, gardenPlanVersion, gardenProgressEvent, planTask, taskStatusVersion, type Database } from "@easygardenplan/db";
+import { bedGeometrySchema, metricPointSchema, planInputSnapshotSchema, progressEventInputSchema, taskTransitionSchema, type ProgressEventInput, type TaskTransition } from "@easygardenplan/contracts";
+import { bed, bedGeometryRevision, gardenPlanVersion, gardenProgressEvent, planTask, taskStatusVersion, type Database } from "@easygardenplan/db";
+import { circleFits } from "@easygardenplan/domain";
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { PlanningConflictError, PlanningInputError } from "./planning-repository.js";
 
@@ -15,7 +16,19 @@ export class ProgressRepository {
     return tasks.map(({ task, planState, planVersion }) => ({ ...task, planState, planVersion, status: latest.get(task.id) }));
   }
 
-  async listEvents(gardenId: string) { return await this.database.select().from(gardenProgressEvent).where(and(eq(gardenProgressEvent.organizationId, this.organizationId), eq(gardenProgressEvent.gardenId, gardenId))).orderBy(asc(gardenProgressEvent.occurredLocalDate), asc(gardenProgressEvent.createdAt)); }
+  async listEvents(gardenId: string) {
+    const events = await this.database.select().from(gardenProgressEvent).where(and(eq(gardenProgressEvent.organizationId, this.organizationId), eq(gardenProgressEvent.gardenId, gardenId))).orderBy(asc(gardenProgressEvent.occurredLocalDate), asc(gardenProgressEvent.createdAt));
+    const bedIds = [...new Set(events.flatMap(({ bedId }) => bedId ? [bedId] : []))];
+    const activeBeds = bedIds.length ? await this.database.select({ id: bed.id, revision: bed.revision, geometry: bedGeometryRevision.geometry }).from(bed).innerJoin(bedGeometryRevision, and(eq(bedGeometryRevision.organizationId, bed.organizationId), eq(bedGeometryRevision.id, bed.activeRevisionId))).where(and(eq(bed.organizationId, this.organizationId), inArray(bed.id, bedIds))) : [];
+    const current = new Map(activeBeds.map((item) => [item.id, item]));
+    return events.map((event) => {
+      if (!event.bedId || !event.position) return { ...event, geometryStatus: "not_recorded" as const, currentBedRevision: null };
+      const plot = current.get(event.bedId); if (!plot) return { ...event, geometryStatus: "bed_unavailable" as const, currentBedRevision: null };
+      const position = metricPointSchema.safeParse(event.position); const geometry = bedGeometrySchema.safeParse(plot.geometry);
+      if (!position.success || !geometry.success) return { ...event, geometryStatus: "bed_unavailable" as const, currentBedRevision: plot.revision };
+      return { ...event, geometryStatus: circleFits(position.data, 0, geometry.data) ? "inside_current_bed" as const : "outside_current_bed" as const, currentBedRevision: plot.revision };
+    });
+  }
 
   async transition(gardenId: string, taskId: string, raw: TaskTransition) {
     const command = taskTransitionSchema.parse(raw);

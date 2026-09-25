@@ -65,5 +65,9 @@ suite("planning persistence and concurrency", () => {
     const replacement = await repository!.generate(gardenId, 2027); await repository!.activate(gardenId, replacement.id, replacement.result.unresolved.map((item) => `${item.kind}:${item.selectionId}:${item.code}`));
     expect(await progress!.listEvents(gardenId)).toEqual(expect.arrayContaining([expect.objectContaining({ eventType: "sown", planVersionId: first.id })]));
     expect((await repository!.listPlans(gardenId)).map(({ state }) => state)).toEqual(expect.arrayContaining(["active", "superseded", "stale"]));
+    const nextRevisionId = id();
+    await database!.insert(bedGeometryRevision).values({ id: nextRevisionId, organizationId, bedId, revision: 2, geometry: { outer: [{ x: 1, y: 1 }, { x: 3, y: 1 }, { x: 3, y: 2 }, { x: 1, y: 2 }], exclusions: [] }, geographicTransform: { anchor: { latitude: 1, longitude: 1 }, rotationRadians: 0, scale: 1, translationMeters: { x: 0, y: 0 }, projection: "local_equirectangular_v1" }, measurementProvenance: "measured" });
+    await database!.update(bed).set({ revision: 2, activeRevisionId: nextRevisionId }).where(eq(bed.id, bedId));
+    expect(await progress!.listEvents(gardenId)).toEqual(expect.arrayContaining([expect.objectContaining({ eventType: "sown", geometryStatus: "outside_current_bed", currentBedRevision: 2 })]));
   });
 });
