@@ -9,6 +9,8 @@ import { StagingRedirectEmailService } from "./staging.js";
 import { EmailValidationError } from "./types.js";
 import type { EmailMessage, EmailService, ScheduledEmail } from "./types.js";
 import { verifyEmailTemplate } from "./templates/verify-email.js";
+import { gardenDigestTemplate } from "./templates/garden-digest.js";
+import { gardenRecommendationTemplate } from "./templates/garden-recommendation.js";
 
 const message: EmailMessage = { to: "greg@example.test", subject: "Verify your email", template: verifyEmailTemplate({ verificationUrl: "http://localhost/verify?token=secret" }) };
 
@@ -27,6 +29,13 @@ describe("transactional email", () => {
     const rendered = await renderEmail(message.template);
     expect(rendered.html).toContain("Verify your email");
     expect(rendered.text).toContain("http://localhost/verify?token=secret");
+  });
+
+  it("names affected crops and coalesced digest actions", async () => {
+    const immediate = await renderEmail(gardenRecommendationTemplate({ gardenName: "Backyard", kind: "warning", action: "Cover before sunset.", cropNames: ["Pepper", "Tomato"] }));
+    expect(immediate.text).toContain("Affected crops: Pepper, Tomato");
+    const digest = await renderEmail(gardenDigestTemplate({ gardenName: "Backyard", localDate: "2026-10-01", items: [{ action: "Cover before sunset.", cropNames: ["Pepper", "Tomato"] }] }));
+    expect(digest.text).toContain("Cover before sunset. — Pepper, Tomato");
   });
 
   it("captures immediate email and deduplicates a stable logical operation", async () => {

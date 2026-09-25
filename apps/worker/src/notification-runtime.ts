@@ -30,7 +30,7 @@ export async function handleRecommendationTransitioned(payload: RecommendationTr
     const receipt = await email.send({
       to: claimed.recipient,
       subject: claimed.kind === "resolution" ? `Weather risk cleared for ${claimed.gardenName}` : `Weather update for ${claimed.gardenName}`,
-      template: gardenRecommendationTemplate({ gardenName: claimed.gardenName, kind: claimed.kind, action: claimed.action ?? "Review the latest recommendation in your garden plan.", validFrom: claimed.validFrom, validThrough: claimed.validThrough }),
+      template: gardenRecommendationTemplate({ gardenName: claimed.gardenName, kind: claimed.kind, action: claimed.action ?? "Review the latest recommendation in your garden plan.", cropNames: claimed.cropNames, validFrom: claimed.validFrom, validThrough: claimed.validThrough }),
     }, { idempotencyKey: claimed.idempotencyKey, correlationId: context.event.correlationId, causationId: context.event.id, organizationId: context.organizationId });
     if (!await repository.accepted(claimed.intentId, claimed.attemptToken, receipt.id, receipt.acceptedAt)) throw new Error("Notification delivery lease was lost");
   } catch (error) {

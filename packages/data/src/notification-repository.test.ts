@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { affectedPlantingsComplete, affectedTasksComplete, digestDueAt, isWithinQuietHours, localDateAt, selectDigestRecommendationIds } from "./notification-repository.js";
+import { affectedPlantingsComplete, affectedTasksComplete, coalesceDigestItems, digestDueAt, isWithinQuietHours, localDateAt, selectDigestRecommendationIds } from "./notification-repository.js";
 
 const first = "11111111-1111-4111-8111-111111111111";
 const second = "22222222-2222-4222-8222-222222222222";
@@ -96,5 +96,18 @@ describe("daily digest clock", () => {
     expect(autumn.toISOString()).toBe("2026-11-01T15:00:00.000Z");
     expect(localDateAt(spring, "America/Los_Angeles")).toBe("2026-03-08");
     expect(localDateAt(autumn, "America/Los_Angeles")).toBe("2026-11-01");
+  });
+});
+
+describe("coalesceDigestItems", () => {
+  it("combines crop names for a shared action and removes duplicate names", () => {
+    expect(coalesceDigestItems([
+      { action: "Cover before sunset.", affectedCropNames: ["Tomato", "Pepper"] },
+      { action: "Cover before sunset.", affectedCropNames: ["Pepper", "Basil"] },
+      { action: "Move indoors.", affectedCropNames: ["Citrus"] },
+    ])).toEqual([
+      { action: "Cover before sunset.", cropNames: ["Basil", "Pepper", "Tomato"] },
+      { action: "Move indoors.", cropNames: ["Citrus"] },
+    ]);
   });
 });

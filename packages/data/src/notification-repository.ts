@@ -3,12 +3,12 @@ import { and, asc, desc, eq, inArray, isNull, lt, or, sql } from "drizzle-orm";
 
 export type ClaimedNotification = {
   intentId: string; attemptToken: string; idempotencyKey: string; recipient: string;
-  gardenName: string; kind: string; action: string | null; validFrom: Date | null; validThrough: Date | null;
+  gardenName: string; kind: string; action: string | null; cropNames: string[]; validFrom: Date | null; validThrough: Date | null;
 };
 
 export type ClaimedDigest = {
   digestId: string; attemptToken: string; idempotencyKey: string; recipient: string;
-  gardenName: string; localDate: string; actions: string[];
+  gardenName: string; localDate: string; items: Array<{ action: string; cropNames: string[] }>;
 };
 
 type PlantingProgress = {
@@ -39,6 +39,18 @@ export function affectedTasksComplete(affectedTaskIds: unknown, tasks: Array<{ i
   const latest = new Map<string, { revision: number; state: string }>();
   for (const status of [...statuses].sort((left, right) => right.revision - left.revision)) if (!latest.has(status.taskId)) latest.set(status.taskId, status);
   return affectedTaskIds.every((taskId) => ["completed", "skipped"].includes(latest.get(taskId)?.state ?? ""));
+}
+
+export function coalesceDigestItems(versions: Array<{ action: string | null; affectedCropNames: unknown }>): Array<{ action: string; cropNames: string[] }> {
+  const grouped = new Map<string, Set<string>>();
+  for (const version of versions) {
+    if (!version.action) continue;
+    const names = Array.isArray(version.affectedCropNames) ? version.affectedCropNames.filter((name): name is string => typeof name === "string" && name.trim().length > 0) : [];
+    const crops = grouped.get(version.action) ?? new Set<string>();
+    for (const name of names) crops.add(name);
+    grouped.set(version.action, crops);
+  }
+  return [...grouped].map(([action, names]) => ({ action, cropNames: [...names].sort() })).sort((left, right) => left.action.localeCompare(right.action));
 }
 
 function minuteOfDay(value: string): number {
@@ -100,7 +112,7 @@ export class NotificationRepository {
       const now = this.clock.now(); const token = crypto.randomUUID();
       const [claimed] = await transaction.update(notificationDeliveryIntent).set({ status: "sending", attemptToken: token, leaseExpiresAt: new Date(now.getTime() + leaseMilliseconds), updatedAt: now }).where(and(eq(notificationDeliveryIntent.organizationId, this.organizationId), eq(notificationDeliveryIntent.transitionId, transitionId), or(eq(notificationDeliveryIntent.status, "pending"), and(eq(notificationDeliveryIntent.status, "sending"), or(isNull(notificationDeliveryIntent.leaseExpiresAt), lt(notificationDeliveryIntent.leaseExpiresAt, now)))))).returning();
       if (!claimed) return null;
-      const [details] = await transaction.select({ gardenName: garden.name, timezone: garden.timezone, kind: recommendationTransition.kind, deliveryClass: recommendationVersion.deliveryClass, action: recommendationVersion.action, affectedIds: recommendationVersion.affectedIds, affectedTaskIds: recommendationVersion.affectedTaskIds, validFrom: recommendationVersion.validFrom, validThrough: recommendationVersion.validThrough, transitionEpisodeId: recommendationTransition.episodeId, currentEpisodeId: gardenRiskState.episodeId, riskState: gardenRiskState.state }).from(notificationDeliveryIntent).innerJoin(garden, and(eq(garden.organizationId, notificationDeliveryIntent.organizationId), eq(garden.id, notificationDeliveryIntent.gardenId))).innerJoin(recommendationTransition, and(eq(recommendationTransition.organizationId, notificationDeliveryIntent.organizationId), eq(recommendationTransition.id, notificationDeliveryIntent.transitionId))).innerJoin(recommendationVersion, and(eq(recommendationVersion.organizationId, notificationDeliveryIntent.organizationId), eq(recommendationVersion.id, notificationDeliveryIntent.recommendationVersionId))).innerJoin(recommendationEpisode, and(eq(recommendationEpisode.organizationId, notificationDeliveryIntent.organizationId), eq(recommendationEpisode.id, recommendationTransition.episodeId))).innerJoin(gardenRiskState, and(eq(gardenRiskState.organizationId, notificationDeliveryIntent.organizationId), eq(gardenRiskState.gardenId, notificationDeliveryIntent.gardenId), eq(gardenRiskState.hazard, recommendationEpisode.hazard), eq(gardenRiskState.groupKey, recommendationEpisode.groupKey))).where(eq(notificationDeliveryIntent.id, claimed.id)).limit(1);
+      const [details] = await transaction.select({ gardenName: garden.name, timezone: garden.timezone, kind: recommendationTransition.kind, deliveryClass: recommendationVersion.deliveryClass, action: recommendationVersion.action, affectedIds: recommendationVersion.affectedIds, affectedCropNames: recommendationVersion.affectedCropNames, affectedTaskIds: recommendationVersion.affectedTaskIds, validFrom: recommendationVersion.validFrom, validThrough: recommendationVersion.validThrough, transitionEpisodeId: recommendationTransition.episodeId, currentEpisodeId: gardenRiskState.episodeId, riskState: gardenRiskState.state }).from(notificationDeliveryIntent).innerJoin(garden, and(eq(garden.organizationId, notificationDeliveryIntent.organizationId), eq(garden.id, notificationDeliveryIntent.gardenId))).innerJoin(recommendationTransition, and(eq(recommendationTransition.organizationId, notificationDeliveryIntent.organizationId), eq(recommendationTransition.id, notificationDeliveryIntent.transitionId))).innerJoin(recommendationVersion, and(eq(recommendationVersion.organizationId, notificationDeliveryIntent.organizationId), eq(recommendationVersion.id, notificationDeliveryIntent.recommendationVersionId))).innerJoin(recommendationEpisode, and(eq(recommendationEpisode.organizationId, notificationDeliveryIntent.organizationId), eq(recommendationEpisode.id, recommendationTransition.episodeId))).innerJoin(gardenRiskState, and(eq(gardenRiskState.organizationId, notificationDeliveryIntent.organizationId), eq(gardenRiskState.gardenId, notificationDeliveryIntent.gardenId), eq(gardenRiskState.hazard, recommendationEpisode.hazard), eq(gardenRiskState.groupKey, recommendationEpisode.groupKey))).where(eq(notificationDeliveryIntent.id, claimed.id)).limit(1);
       const resolvedRecipient = recipientRows(await transaction.execute(sql`select user_id, email, email_verified from easygardenplan_household_recipient(${this.organizationId})`))[0];
       const recipient = resolvedRecipient && String(resolvedRecipient.user_id) === claimed.recipientUserId ? { email: String(resolvedRecipient.email), emailVerified: Boolean(resolvedRecipient.email_verified) } : undefined;
       const [preference] = await transaction.select().from(notificationPreference).where(and(eq(notificationPreference.organizationId, this.organizationId), eq(notificationPreference.userId, claimed.recipientUserId))).limit(1);
@@ -124,7 +136,7 @@ export class NotificationRepository {
         await transaction.update(notificationDeliveryIntent).set({ status: "suppressed", suppressionReason, attemptToken: null, leaseExpiresAt: null, updatedAt: now }).where(and(eq(notificationDeliveryIntent.id, claimed.id), eq(notificationDeliveryIntent.attemptToken, token)));
         return null;
       }
-      return { intentId: claimed.id, attemptToken: token, idempotencyKey: claimed.idempotencyKey, recipient: recipient.email, gardenName: details!.gardenName, kind: details!.kind, action: details!.action, validFrom: details!.validFrom, validThrough: details!.validThrough };
+      return { intentId: claimed.id, attemptToken: token, idempotencyKey: claimed.idempotencyKey, recipient: recipient.email, gardenName: details!.gardenName, kind: details!.kind, action: details!.action, cropNames: Array.isArray(details!.affectedCropNames) ? details!.affectedCropNames.filter((name): name is string => typeof name === "string") : [], validFrom: details!.validFrom, validThrough: details!.validThrough };
     });
   }
 
@@ -150,7 +162,7 @@ export class NotificationRepository {
       const sent = await transaction.select({ recommendationVersionId: notificationDeliveryIntent.recommendationVersionId }).from(notificationDeliveryIntent).where(and(eq(notificationDeliveryIntent.organizationId, this.organizationId), eq(notificationDeliveryIntent.gardenId, claimed.gardenId), eq(notificationDeliveryIntent.recipientUserId, claimed.recipientUserId), inArray(notificationDeliveryIntent.status, ["accepted", "delivered"])));
       const frozen = Array.isArray(claimed.includedRecommendationVersionIds) ? claimed.includedRecommendationVersionIds.filter((id): id is string => typeof id === "string" && uuidPattern.test(id)) : [];
       const unsent = frozen.filter((id) => !sent.some((delivery) => delivery.recommendationVersionId === id));
-      const versions = unsent.length ? await transaction.select({ id: recommendationVersion.id, episodeId: recommendationVersion.episodeId, version: recommendationVersion.version, action: recommendationVersion.action }).from(recommendationVersion).where(and(eq(recommendationVersion.organizationId, this.organizationId), inArray(recommendationVersion.id, unsent))).orderBy(asc(recommendationVersion.episodeId), desc(recommendationVersion.version)) : [];
+      const versions = unsent.length ? await transaction.select({ id: recommendationVersion.id, episodeId: recommendationVersion.episodeId, version: recommendationVersion.version, action: recommendationVersion.action, affectedCropNames: recommendationVersion.affectedCropNames }).from(recommendationVersion).where(and(eq(recommendationVersion.organizationId, this.organizationId), inArray(recommendationVersion.id, unsent))).orderBy(asc(recommendationVersion.episodeId), desc(recommendationVersion.version)) : [];
       const latestByEpisode = new Map<string, typeof versions[number]>();
       for (const version of versions) if (!latestByEpisode.has(version.episodeId)) latestByEpisode.set(version.episodeId, version);
       const retained = [...latestByEpisode.values()];
@@ -161,7 +173,7 @@ export class NotificationRepository {
         return null;
       }
       await transaction.update(notificationDigest).set({ includedRecommendationVersionIds: retained.map(({ id }) => id), updatedAt: now }).where(and(eq(notificationDigest.id, digestId), eq(notificationDigest.attemptToken, token)));
-      return { digestId, attemptToken: token, idempotencyKey: claimed.idempotencyKey, recipient: recipient.email, gardenName: details!.gardenName, localDate: claimed.localDate, actions: [...new Set(retained.map(({ action }) => action).filter((action): action is string => Boolean(action)))] };
+      return { digestId, attemptToken: token, idempotencyKey: claimed.idempotencyKey, recipient: recipient.email, gardenName: details!.gardenName, localDate: claimed.localDate, items: coalesceDigestItems(retained) };
     });
   }
 

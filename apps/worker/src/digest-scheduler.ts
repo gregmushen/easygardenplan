@@ -41,7 +41,7 @@ export async function scheduleDueGardenDigests(environment: AuthEnvironment, clo
           ...(environment.EMAIL_REPLY_TO ? { replyTo: environment.EMAIL_REPLY_TO } : {}),
           ...(environment.EMAIL_STAGING_REDIRECT ? { stagingRedirect: environment.EMAIL_STAGING_REDIRECT } : {}),
         });
-        const receipt = await email.send({ to: digestClaim.recipient, subject: `Your garden plan for ${digestClaim.gardenName}`, template: gardenDigestTemplate({ gardenName: digestClaim.gardenName, localDate: digestClaim.localDate, actions: digestClaim.actions }) }, { idempotencyKey: digestClaim.idempotencyKey, correlationId: crypto.randomUUID(), organizationId: item.organizationId });
+        const receipt = await email.send({ to: digestClaim.recipient, subject: `Your garden plan for ${digestClaim.gardenName}`, template: gardenDigestTemplate({ gardenName: digestClaim.gardenName, localDate: digestClaim.localDate, items: digestClaim.items }) }, { idempotencyKey: digestClaim.idempotencyKey, correlationId: crypto.randomUUID(), organizationId: item.organizationId });
         if (!await repository.acceptDigest(digestClaim.digestId, digestClaim.attemptToken, receipt.id, receipt.acceptedAt)) throw new Error("Daily digest delivery lease was lost");
         await platform.delete(notificationDigestDue).where(and(eq(notificationDigestDue.id, item.id), eq(notificationDigestDue.leaseToken, item.token)));
         delivered++;

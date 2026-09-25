@@ -20,6 +20,24 @@ export function isForecastSourceStale(sourceUpdatedAt: string, now: Date, maximu
   return !Number.isFinite(maximumAge) || maximumAge <= 0 || !Number.isFinite(sourceTime) || now.getTime() - sourceTime > maximumAge * 60_000;
 }
 
+type ColdResponseCandidate = {
+  cropId: string; stage: string; thresholdCelsius: number; clearAboveCelsius: number; resolutionConfirmations: number;
+  deliveryClass: "urgent" | "routine_digest"; action: string; affectedIds: string[];
+};
+
+export function coalesceColdResponses(candidates: ColdResponseCandidate[]): Array<ColdResponseCandidate & { groupKey: string }> {
+  const grouped = new Map<string, ColdResponseCandidate[]>();
+  for (const candidate of candidates) {
+    const policy = JSON.stringify({ stage: candidate.stage, thresholdCelsius: candidate.thresholdCelsius, clearAboveCelsius: candidate.clearAboveCelsius, resolutionConfirmations: candidate.resolutionConfirmations, deliveryClass: candidate.deliveryClass, action: candidate.action });
+    grouped.set(policy, [...(grouped.get(policy) ?? []), candidate]);
+  }
+  return [...grouped.values()].map((members) => {
+    const first = members[0]!; const cropIds = [...new Set(members.map(({ cropId }) => cropId))].sort();
+    const groupKey = cropIds.length === 1 ? `${cropIds[0]}:${first.stage}` : `crops:${cropIds.join(",")}:${first.stage}:${first.thresholdCelsius}:${first.clearAboveCelsius}:${first.resolutionConfirmations}:${first.deliveryClass}`;
+    return { ...first, cropId: cropIds.join(","), affectedIds: [...new Set(members.flatMap(({ affectedIds }) => affectedIds))].sort(), groupKey };
+  }).sort((left, right) => left.groupKey.localeCompare(right.groupKey));
+}
+
 export async function evaluateGardenWeather(input: { gardenId: string; environment: AuthEnvironment; context: EventHandlerContext<Database> }) {
   const { context } = input; if (!context.data || !context.organizationId) throw new Error("Weather evaluation requires tenant authority");
   const repository = new MonitoringRepository(context.data, context.organizationId, context.clock);
@@ -64,17 +82,20 @@ export async function evaluateGardenWeather(input: { gardenId: string; environme
   }
   const sourceStale = input.environment.NWS_MODE === "live" && isForecastSourceStale(forecast.sourceUpdatedAt, context.clock.now(), input.environment.NWS_MAX_SOURCE_AGE_MINUTES);
   const publisher = createEventPublisher({ organizationId: context.organizationId, correlationId: context.event.correlationId, clock: context.clock });
-  let evaluated = 0;
+  const candidates: ColdResponseCandidate[] = [];
   for (const rule of snapshot.rules) {
     if (rule.payload.state !== "known" || rule.payload.type !== "climate_response" || rule.payload.hazard !== "cold") continue;
     const response = rule.payload;
     const affectedIds = snapshot.selections.filter((selection) => selection.cropId === rule.cropId && stageBySelection.get(selection.id) === response.stage).map(({ id }) => id);
     if (affectedIds.length === 0) continue;
-    const groupKey = `${rule.cropId}:${response.stage}`;
-    const observation = sourceStale ? { status: "stale" as const } : evaluateColdRisk({ intervals: forecast.intervals, thresholdCelsius: response.thresholdCelsius.maximum, clearAboveCelsius: response.clearAboveCelsius, action: response.action, affectedIds, groupKey, evidenceFingerprint: forecast.fingerprint, deliveryClass: response.deliveryClass, now: context.clock.now(), horizonThrough: new Date(context.clock.now().getTime() + 48 * 60 * 60_000) });
-    await repository.evaluate({ gardenId: input.gardenId, hazard: "cold", groupKey, observation, snapshotId: stored.id, resolutionConfirmations: response.resolutionConfirmations, event: (payload) => publisher.statement(recommendationTransitionedEvent.name, payload, { idempotencyKey: `recommendation-transition:${payload.transitionId}`, causationId: context.event.id }) });
-    evaluated++;
+    candidates.push({ cropId: rule.cropId, stage: response.stage, thresholdCelsius: response.thresholdCelsius.maximum, clearAboveCelsius: response.clearAboveCelsius, resolutionConfirmations: response.resolutionConfirmations, deliveryClass: response.deliveryClass, action: response.action, affectedIds });
   }
+  const groups = coalesceColdResponses(candidates);
+  for (const response of groups) {
+    const observation = sourceStale ? { status: "stale" as const } : evaluateColdRisk({ intervals: forecast.intervals, thresholdCelsius: response.thresholdCelsius, clearAboveCelsius: response.clearAboveCelsius, action: response.action, affectedIds: response.affectedIds, groupKey: response.groupKey, evidenceFingerprint: forecast.fingerprint, deliveryClass: response.deliveryClass, now: context.clock.now(), horizonThrough: new Date(context.clock.now().getTime() + 48 * 60 * 60_000) });
+    await repository.evaluate({ gardenId: input.gardenId, hazard: "cold", groupKey: response.groupKey, observation, snapshotId: stored.id, resolutionConfirmations: response.resolutionConfirmations, event: (payload) => publisher.statement(recommendationTransitionedEvent.name, payload, { idempotencyKey: `recommendation-transition:${payload.transitionId}`, causationId: context.event.id }) });
+  }
+  const evaluated = groups.length;
   return { evaluated, reason: evaluated ? "complete" as const : "no_applicable_rules" as const, officialAlertsStored: officialAlerts.length, officialAlertsReason };
 }
 

@@ -1,0 +1,1 @@
+ALTER TABLE "recommendation_version" ADD COLUMN "affected_crop_names" jsonb DEFAULT '[]'::jsonb NOT NULL;

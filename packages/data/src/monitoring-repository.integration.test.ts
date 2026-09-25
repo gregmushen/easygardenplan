@@ -1,4 +1,4 @@
-import { createDatabase, garden, gardenPlanVersion, gardenProgressEvent, notificationDeliveryIntent, notificationDigest, notificationDigestDue, notificationFeedEntry, notificationPreference, organization, planTask, recommendationTransition, taskStatusVersion, user, weatherForecastSnapshot, weatherOfficialAlertGarden, weatherOfficialAlertSnapshot } from "@easygardenplan/db";
+import { createDatabase, crop, cropSelection, garden, gardenPlanVersion, gardenProgressEvent, notificationDeliveryIntent, notificationDigest, notificationDigestDue, notificationFeedEntry, notificationPreference, organization, planTask, recommendationTransition, taskStatusVersion, user, weatherForecastSnapshot, weatherOfficialAlertGarden, weatherOfficialAlertSnapshot } from "@easygardenplan/db";
 import { and, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { MonitoringRepository } from "./monitoring-repository.js";
@@ -9,11 +9,11 @@ const suite = connectionString ? describe : describe.skip;
 const database = connectionString ? createDatabase(connectionString, "postgres-js") : undefined;
 
 suite("weather episode persistence", () => {
-  const nonce = crypto.randomUUID(); const organizationId = `monitoring-${nonce}`; const gardenId = crypto.randomUUID(); const userId = `monitoring-user-${nonce}`;
+  const nonce = crypto.randomUUID(); const organizationId = `monitoring-${nonce}`; const gardenId = crypto.randomUUID(); const userId = `monitoring-user-${nonce}`; const cropId = crypto.randomUUID(); const namedSelectionId = crypto.randomUUID();
   const repository = database ? new MonitoringRepository(database, organizationId, { now: () => new Date("2026-10-01T05:00:00.000Z") }) : undefined;
   const candidate = { hazard: "cold" as const, groupKey: "crop:transplanted", action: "Cover the plants before the cold interval.", affectedIds: ["selection-1"], validFrom: "2026-10-01T06:00:00.000Z", validThrough: "2026-10-01T12:00:00.000Z", evidenceFingerprint: "fixture-a", minimumForecastCelsius: 0, thresholdCelsius: 2 };
-  beforeAll(async () => { await database!.insert(user).values({ id: userId, name: "Monitoring owner", email: `${nonce}@example.test`, emailVerified: true, createdAt: new Date(), updatedAt: new Date() }); await database!.insert(organization).values({ id: organizationId, name: "Monitoring fixture", slug: organizationId, householdOwnerUserId: userId, createdAt: new Date() }); await database!.insert(garden).values({ id: gardenId, organizationId, name: "Fixture garden", latitude: "37.774900", longitude: "-122.419400", timezone: "America/Los_Angeles", monitoringEnabled: true, locationConfirmed: true }); });
-  afterAll(async () => { await database!.delete(organization).where(eq(organization.id, organizationId)); await database!.delete(user).where(eq(user.id, userId)); await database!.$client.end(); });
+  beforeAll(async () => { await database!.insert(user).values({ id: userId, name: "Monitoring owner", email: `${nonce}@example.test`, emailVerified: true, createdAt: new Date(), updatedAt: new Date() }); await database!.insert(organization).values({ id: organizationId, name: "Monitoring fixture", slug: organizationId, householdOwnerUserId: userId, createdAt: new Date() }); await database!.insert(garden).values({ id: gardenId, organizationId, name: "Fixture garden", latitude: "37.774900", longitude: "-122.419400", timezone: "America/Los_Angeles", monitoringEnabled: true, locationConfirmed: true }); await database!.insert(crop).values({ id: cropId, slug: `monitoring-tomato-${nonce}`, commonName: "Tomato", status: "published" }); await database!.insert(cropSelection).values({ id: namedSelectionId, organizationId, gardenId, cropId, method: "direct_sow", quantity: 2 }); });
+  afterAll(async () => { await database!.delete(organization).where(eq(organization.id, organizationId)); await database!.delete(user).where(eq(user.id, userId)); await database!.delete(crop).where(eq(crop.id, cropId)); await database!.$client.end(); });
 
   it("serializes duplicate warnings, confirms resolution once and renews a later episode", async () => {
     const overlapping = await Promise.all([repository!.evaluate({ gardenId, hazard: "cold", groupKey: candidate.groupKey, observation: { status: "evaluated", candidate } }), repository!.evaluate({ gardenId, hazard: "cold", groupKey: candidate.groupKey, observation: { status: "evaluated", candidate } })]);
@@ -132,8 +132,8 @@ suite("weather episode persistence", () => {
     const claims = await Promise.all([digests.claimDigest(created.id), digests.claimDigest(created.id)]);
     expect(claims.filter(Boolean)).toHaveLength(1);
     const claim = claims.find(Boolean)!;
-    expect(claim.actions).toContain("Water the covered seedlings after sunrise.");
-    expect(new Set(claim.actions).size).toBe(claim.actions.length);
+    expect(claim.items.map(({ action }) => action)).toContain("Water the covered seedlings after sunrise.");
+    expect(new Set(claim.items.map(({ action }) => action)).size).toBe(claim.items.length);
     const [rechecked] = await database!.select().from(notificationDigest).where(eq(notificationDigest.id, created.id));
     expect(rechecked?.includedRecommendationVersionIds).not.toContain(pendingWarning.recommendation!.id);
     expect(await digests.acceptDigest(claim.digestId, crypto.randomUUID(), "wrong-digest-token", new Date())).toBe(false);
@@ -157,8 +157,20 @@ suite("weather episode persistence", () => {
     const digest = await delivery.createDigest(gardenId, userId, "2026-10-01");
     expect(digest.includedRecommendationVersionIds).toContain(routine.recommendation!.id);
     const claim = await delivery.claimDigest(digest.id);
-    expect(claim?.actions).toContain("Review tomorrow's planting window before setting out seedlings.");
+    expect(claim?.items.map(({ action }) => action)).toContain("Review tomorrow's planting window before setting out seedlings.");
     await delivery.retryDigest(claim!.digestId, claim!.attemptToken);
+  });
+
+  it("freezes affected crop names into the recommendation and immediate message", async () => {
+    const namedCandidate = { ...candidate, groupKey: "crop:named", affectedIds: [namedSelectionId], action: "Cover before sunset.", evidenceFingerprint: "fixture-named" };
+    const warning = await repository!.evaluate({ gardenId, hazard: "cold", groupKey: namedCandidate.groupKey, observation: { status: "evaluated", candidate: namedCandidate } });
+    expect(warning.recommendation?.affectedCropNames).toEqual(["Tomato"]);
+    const delivery = new NotificationRepository(database!, organizationId, { now: () => new Date("2026-10-01T05:01:00.000Z") });
+    const claim = await delivery.claim(warning.transition!.id);
+    expect(claim?.cropNames).toEqual(["Tomato"]);
+    await delivery.retry(claim!.intentId, claim!.attemptToken);
+    const resolution = await repository!.evaluate({ gardenId, hazard: "cold", groupKey: namedCandidate.groupKey, observation: { status: "evaluated" }, resolutionConfirmations: 1 });
+    expect(resolution.recommendation).toMatchObject({ affectedIds: [namedSelectionId], affectedCropNames: ["Tomato"] });
   });
 
   it("suppresses overnight warnings when the recipient disabled urgent quiet-hour delivery", async () => {
