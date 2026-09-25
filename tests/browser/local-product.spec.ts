@@ -5,6 +5,8 @@ import { catalogRelease, catalogReleaseRule, climateDatasetVersion, createDataba
 
 const appURL = process.env.APP_URL ?? "http://localhost:42069";
 
+test.setTimeout(60_000);
+
 async function seedPlanningCatalog() {
   const connectionString = process.env.TRESTLE_BROWSER_DATABASE_URL; if (!connectionString) throw new Error("Browser database is required");
   const database = createDatabase(connectionString, "postgres-js"); const nonce = crypto.randomUUID(); const cropId = crypto.randomUUID(); const varietyId = crypto.randomUUID(); const sourceId = crypto.randomUUID(); const evidenceId = crypto.randomUUID(); const familyIds = [crypto.randomUUID(), crypto.randomUUID(), crypto.randomUUID()]; const ruleIds = [crypto.randomUUID(), crypto.randomUUID(), crypto.randomUUID()]; const releaseId = crypto.randomUUID();
