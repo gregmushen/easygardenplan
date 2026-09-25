@@ -54,6 +54,7 @@ Stripe subscription reconciliation is now also queued after the signed receipt i
   - All other workspace suites and production builds passed.
 - Local product browser path: passed on desktop Chromium, Firefox and WebKit plus the Pixel 7 Chromium touch-emulation profile, including account, garden, location, touch/click boundary drawing, bed revision, sourced plan, print link, progress, Free/Pro downgrade preservation and deletion. A WCAG 2.0/2.1 A/AA scan runs on the loaded garden editor in all four profiles and passes. These automated profiles do not replace physical-device and screen-reader review.
 - Clean-database migration rehearsal: all 54 journal entries applied to a disposable database, producing 72 public tables with 39 tables reporting forced RLS. The disposable database was removed after inspection.
+- Supported-upgrade rehearsal: the repeatable `pnpm validation:migrations` check installed the application through migration 0049, inserted a representative located/monitored garden, upgraded through migration 0053, preserved the garden, verified all 54 journal entries plus later digest/recommendation columns, and removed the isolated database. Full evidence is in `docs/build/migration-upgrade-rehearsal.md`.
 - Product operations snapshot: executed successfully and returned aggregate crop coverage, forecast freshness, monitoring due work, event backlog, delivery outcomes, billing lag and provider usage without customer locations or message content.
 - Trestle SetupPlan validation/diff, architecture check and local doctor were rerun after the mobile-editor work; the plan remains converged and doctor reported 106 passed, 0 warnings and 0 failures.
 
@@ -65,7 +66,7 @@ Stripe subscription reconciliation is now also queued after the signed receipt i
 - Record live geocoder attribution and visually inspect tile attribution with the paid-plan key. The MapTiler policy/export review is recorded and customer print output is enforced as application geometry without provider imagery.
 - Complete physical mobile and screen-reader review; automated keyboard, touch emulation, WCAG scanning and Chromium/Firefox/WebKit coverage now pass.
 - Measure provider requests and cost at the agreed launch volume; connect provider invoices/rate data to the aggregate usage snapshot.
-- Rehearse the supported prior-revision migration, run the protected production backup restore workflow, and record rollback/forward-recovery notes.
+- Run the protected production backup restore workflow and record provider-backed rollback/forward-recovery notes. The supported prior-revision application migration is now rehearsed locally.
 - Close the incomplete claims listed in Phases 2–10. Production deployment and domain cutover require a separate explicit go-live decision.
 
 ## Residual risks accepted for continued development

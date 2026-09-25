@@ -14,6 +14,7 @@
     "db:seed": "tsx seed/index.ts",
     "knowledge:coverage": "tsx scripts/knowledge-coverage.ts",
     "operations:product": "tsx scripts/product-operations.ts",
+    "validation:migrations": "tsx scripts/migration-rehearsal.ts",
     "climate:import": "tsx scripts/climate-import.ts",
     "climate:import:fixture": "tsx scripts/climate-import.ts --fixture",
     "validation:nationwide": "vitest run scripts/nationwide-validation.test.ts",

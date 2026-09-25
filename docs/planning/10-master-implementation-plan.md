@@ -480,11 +480,11 @@ Update this table as the build progresses. Use `not started`, `in progress`, `bl
 | 4 Bed editor | External gate | Local implementation and deterministic/editor proof: `docs/build/phase-04-progress.md`; physical mobile, screen-reader, print and real measurement trials remain |
 | 5 Planner | In progress | Synthetic end-to-end and reviewed-override proof: `docs/build/phase-05-progress.md`; real reviewed catalog/climate validation remains |
 | 6 Progress | In progress | Deterministic product proof: `docs/build/phase-06-progress.md`; accessibility/offline review and real catalog validation remain |
-| 7 Monitoring | In progress | Deterministic/background, official-alert persistence and reviewed anti-flapping proof: `docs/build/phase-07-progress.md`; launch rules, official-alert action policy and staging Queue evidence remain |
+| 7 Monitoring | In progress | Deterministic/background, official-alert persistence and reviewed anti-flapping proof: `docs/build/phase-07-progress.md`; launch rules and staging Queue evidence remain |
 | 8 Notifications | External gate | Local implementation and deterministic delivery proof: `docs/build/phase-08-progress.md`; controlled staging delivery requires configured Resend credentials and an allowlisted recipient |
 | 9 Billing | In progress | Deterministic product proof: `docs/build/phase-09-progress.md`; controlled Stripe evidence remains |
 | 10 Public/operations | In progress | Local public/readiness/deletion/aggregate operations proof: `docs/build/phase-10-progress.md`; staging drills, provider cost and restore evidence remain |
-| 11 Launch | In progress | Local matrix and no-go review: `docs/build/phase-11-progress.md`; controlled staging/provider/accessibility/restore gates remain |
+| 11 Launch | In progress | Local matrix, clean and supported-upgrade migration rehearsals, and no-go review: `docs/build/phase-11-progress.md`; controlled staging/provider/accessibility/restore gates remain |
 
 ## 22. Deliberately deferred scope
 
