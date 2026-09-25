@@ -3,14 +3,14 @@ import { describe, expect, it } from "vitest";
 import { InMemoryBillingProjectionRepository, LocalBillingAdapter } from "./adapters/local.js";
 import { retrieveCurrentStripeSubscription, verifyAndNormalizeStripeEvent, type NormalizedBillingEvent } from "./events.js";
 
-const plans = { starter: ["article.basic"], pro: ["article.basic", "workflows.advanced"] };
+const plans = { free: ["garden.planning"], pro: ["garden.planning", "weather.monitoring"] };
 
 describe("payments boundary", () => {
   it("uses local canonical state without a Stripe account", async () => {
     const repository = new InMemoryBillingProjectionRepository();
     const billing = new LocalBillingAdapter(repository, plans);
     await billing.createCheckoutSession({ organizationId: "org-1", plan: "pro", requestId: "request-1" });
-    expect(await billing.getSubscription("org-1")).toMatchObject({ provider: "local", status: "active", entitlements: ["article.basic", "workflows.advanced"] });
+    expect(await billing.getSubscription("org-1")).toMatchObject({ provider: "local", status: "active", entitlements: ["garden.planning", "weather.monitoring"] });
   });
 
   it("accepts a valid raw-body Stripe signature and rejects a modified body", async () => {

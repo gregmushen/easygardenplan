@@ -4,7 +4,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 
 import { createAuth, ensureDefaultHousehold, type AuthEnvironment } from "@easygardenplan/auth";
-import { getPlan, planEntitlements, plans } from "@easygardenplan/billing";
+import { billablePlans, getPlan, planEntitlements, plans } from "@easygardenplan/billing";
 import { projectEmailDelivery } from "@easygardenplan/data";
 import { healthResponseSchema } from "@easygardenplan/contracts";
 import { createLogger, createMetrics, loggerSecretsFromEnvironment, safeErrorDiagnostic } from "@easygardenplan/context";
@@ -96,6 +96,7 @@ const createWebhookEndpointSchema = z.object({
 const billingRequestIdSchema = z.string().trim().min(1).max(128).regex(/^[A-Za-z0-9._:-]+$/u);
 const checkoutRequestSchema = z.object({ plan: z.string().trim().min(1).max(64), requestId: billingRequestIdSchema }).strict();
 const portalRequestSchema = z.object({ requestId: billingRequestIdSchema }).strict();
+const subscriptionActionSchema = z.object({ action: z.enum(["cancel", "resume"]), requestId: billingRequestIdSchema }).strict();
 
 app.get("/api/developer/webhooks/events", requireExecutionContext, (context) => {
   const execution = context.get("execution");
@@ -421,7 +422,7 @@ app.post("/api/billing/checkout", requireExecutionContext, async (context) => {
   const parsed = checkoutRequestSchema.safeParse(await context.req.json().catch(() => null));
   if (!parsed.success) return context.json({ error: "Invalid checkout request" }, 400);
   const input = parsed.data;
-  if (!getPlan(input.plan)) return context.json({ error: "Unknown billing plan" }, 400);
+  if (!billablePlans.includes(input.plan as typeof billablePlans[number])) return context.json({ error: "Plan is not available for checkout" }, 400);
   execution.log.info("billing.checkout.started", { plan: input.plan });
   const checkout = await execution.services.billing.createCheckoutSession({ organizationId: execution.tenant.organizationId, plan: input.plan, requestId: input.requestId, ...(execution.principal.email ? { customerEmail: execution.principal.email } : {}) });
   execution.log.info("billing.checkout.created", { plan: input.plan, checkoutSessionId: checkout.id });
@@ -442,7 +443,21 @@ app.post("/api/billing/portal", requireExecutionContext, async (context) => {
 
 app.get("/api/billing/subscription", requireExecutionContext, async (context) => {
   const execution = context.get("execution");
-  return context.json({ subscription: await execution.services.billing.getSubscription(execution.tenant.organizationId), usage: [] as Array<{ meter: string; used: number; limit: number | null }> });
+  const subscription = await execution.services.billing.getSubscription(execution.tenant.organizationId);
+  const paid = subscription && ["active", "trialing"].includes(subscription.status);
+  return context.json({ subscription, access: paid ? { plan: subscription.plan, entitlements: subscription.entitlements } : { plan: "free", entitlements: [...planEntitlements.free] }, usage: [] as Array<{ meter: string; used: number; limit: number | null }> });
+});
+
+app.post("/api/billing/subscription/actions", requireExecutionContext, async (context) => {
+  const execution = context.get("execution");
+  execution.access.require({ permission: "organization.billing.manage" });
+  const parsed = subscriptionActionSchema.safeParse(await context.req.json().catch(() => null));
+  if (!parsed.success) return context.json({ error: "Invalid subscription action" }, 400);
+  const command = { organizationId: execution.tenant.organizationId, commandId: parsed.data.requestId };
+  if (parsed.data.action === "cancel") await execution.services.billing.cancelSubscription(command);
+  else await execution.services.billing.resumeSubscription(command);
+  const subscription = await execution.services.billing.getSubscription(execution.tenant.organizationId);
+  return context.json({ state: context.env.STRIPE_MODE === "local" || !context.env.STRIPE_MODE ? "updated" : "processing", subscription }, context.env.STRIPE_MODE === "local" || !context.env.STRIPE_MODE ? 200 : 202);
 });
 
 app.post("/api/dev/billing", requireExecutionContext, async (context) => {
@@ -451,7 +466,7 @@ app.post("/api/dev/billing", requireExecutionContext, async (context) => {
   execution.access.require({ permission: "organization.billing.manage" });
   const input = await context.req.json<{ action: "activate" | "fail-payment" | "cancel"; plan?: string }>();
   const local = execution.services.billing as LocalBillingAdapter;
-  if (input.action === "activate") await local.activate({ organizationId: execution.tenant.organizationId, plan: input.plan ?? "starter" });
+  if (input.action === "activate") await local.activate({ organizationId: execution.tenant.organizationId, plan: input.plan ?? "pro" });
   else if (input.action === "fail-payment") await local.failPayment({ organizationId: execution.tenant.organizationId });
   else await local.cancel({ organizationId: execution.tenant.organizationId });
   return context.json({ subscription: await local.getSubscription(execution.tenant.organizationId) });

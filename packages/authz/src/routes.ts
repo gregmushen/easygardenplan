@@ -40,6 +40,7 @@ export const customerRoutePolicies = defineRoutePolicies(permissions, [
   { method: "POST", path: "/api/billing/checkout", audience: "tenant", permission: "organization.billing.manage" },
   { method: "POST", path: "/api/billing/portal", audience: "tenant", permission: "organization.billing.manage" },
   { method: "GET", path: "/api/billing/subscription", audience: "tenant", permission: "organization.billing.read" },
+  { method: "POST", path: "/api/billing/subscription/actions", audience: "tenant", permission: "organization.billing.manage" },
   // Local-only billing simulator; acts on the caller's own organization.
   { method: "POST", path: "/api/dev/billing", audience: "tenant", permission: "organization.billing.manage" },
 

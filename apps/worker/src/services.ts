@@ -1,4 +1,4 @@
-import { getPlan, planEntitlements, plans, PostgresBillingProjectionRepository } from "@easygardenplan/billing";
+import { billablePlans, getPlan, planEntitlements, plans, PostgresBillingProjectionRepository } from "@easygardenplan/billing";
 import { LocalBillingAdapter, StripeBillingAdapter, type BillingService } from "@easygardenplan/integrations";
 import type { AuthEnvironment } from "@easygardenplan/auth";
 
@@ -18,7 +18,7 @@ export function stripeConfigurationReady(environment: AuthEnvironment): boolean 
     const prices: unknown = JSON.parse(environment.STRIPE_PRICES ?? "");
     if (!prices || typeof prices !== "object" || Array.isArray(prices)) return false;
     const mapping = prices as Record<string, unknown>;
-    const declared = Object.keys(plans);
+    const declared = [...billablePlans];
     if (Object.keys(mapping).length !== declared.length) return false;
     const ids = declared.map((plan) => mapping[plan]);
     return ids.every((id) => typeof id === "string" && /^price_[A-Za-z0-9_]+$/u.test(id))

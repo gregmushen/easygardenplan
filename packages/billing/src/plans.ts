@@ -1,9 +1,5 @@
 export const featureDefinitions = {
-  "workspace.single": { description: "One organization workspace", privileges: ["use"] },
-  "article.basic": { description: "Core article publishing", privileges: ["read", "publish"] },
-  "workflows.advanced": { description: "Advanced workflow automation", privileges: ["run", "manage"] },
-  "members.unlimited": { description: "Unlimited organization members", privileges: ["invite"] },
-  "support.priority": { description: "Priority support", privileges: ["request"] },
+  "garden.planning": { description: "Private garden planning, calendar and progress", privileges: ["use"] },
   "weather.monitoring": { description: "Current weather recommendations and frost alerts", privileges: ["run"] },
 } as const;
 
@@ -13,12 +9,12 @@ export type PlanLifecycle = "draft" | "active" | "grandfathered" | "retired";
 export type PlanDefinition = Readonly<{ version: number; lifecycle: PlanLifecycle; entitlements: readonly FeatureCode[] }>;
 
 export const plans = {
-  starter: { version: 1, lifecycle: "active", entitlements: ["workspace.single", "article.basic"] },
-  pro: { version: 1, lifecycle: "active", entitlements: ["workspace.single", "article.basic", "workflows.advanced", "members.unlimited", "weather.monitoring"] },
-  business: { version: 1, lifecycle: "active", entitlements: ["workspace.single", "article.basic", "workflows.advanced", "members.unlimited", "support.priority", "weather.monitoring"] },
+  free: { version: 1, lifecycle: "active", entitlements: ["garden.planning"] },
+  pro: { version: 1, lifecycle: "active", entitlements: ["garden.planning", "weather.monitoring"] },
 } as const satisfies Record<string, PlanDefinition>;
 
 export type PlanName = keyof typeof plans;
 export type Entitlement = FeatureCode;
-export const planEntitlements: Record<PlanName, readonly Entitlement[]> = { starter: plans.starter.entitlements, pro: plans.pro.entitlements, business: plans.business.entitlements };
+export const planEntitlements: Record<PlanName, readonly Entitlement[]> = { free: plans.free.entitlements, pro: plans.pro.entitlements };
+export const billablePlans = ["pro"] as const satisfies readonly PlanName[];
 export function getPlan(name: string): PlanDefinition | undefined { return plans[name as PlanName]; }

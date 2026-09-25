@@ -125,7 +125,7 @@ describe("worker routes", () => {
   });
 
   it("reports provider capability readiness without returning credential values", async () => {
-    const response = await app.request("/api/health/operational", undefined, { ...environment, APP_ENV: "staging" as const, EMAIL_DELIVERY_MODE: "resend" as const, RESEND_API_KEY: "re_sensitive", EMAIL_FROM: "sender@example.test", EMAIL_STAGING_REDIRECT: "capture@example.test", STRIPE_MODE: "test" as const, STRIPE_SECRET_KEY: "sk_test_sensitive", STRIPE_WEBHOOK_SECRET: "whsec_sensitive", STRIPE_PUBLISHABLE_KEY: "pk_test_example", STRIPE_PRICES: JSON.stringify({ starter: "price_starter", pro: "price_pro", business: "price_business" }), BILLING_RETURN_URL: "https://example.test/billing" });
+    const response = await app.request("/api/health/operational", undefined, { ...environment, APP_ENV: "staging" as const, EMAIL_DELIVERY_MODE: "resend" as const, RESEND_API_KEY: "re_sensitive", EMAIL_FROM: "sender@example.test", EMAIL_STAGING_REDIRECT: "capture@example.test", STRIPE_MODE: "test" as const, STRIPE_SECRET_KEY: "sk_test_sensitive", STRIPE_WEBHOOK_SECRET: "whsec_sensitive", STRIPE_PUBLISHABLE_KEY: "pk_test_example", STRIPE_PRICES: JSON.stringify({ pro: "price_pro" }), BILLING_RETURN_URL: "https://example.test/billing" });
     expect(response.status).toBe(200);
     const body = await response.text();
     expect(body).toContain('"configured":true');
@@ -135,7 +135,7 @@ describe("worker routes", () => {
   it("does not report billing ready for a partial price map or local mode in staging", async () => {
     const partial = { ...environment, APP_ENV: "staging" as const, STRIPE_MODE: "test" as const,
       STRIPE_SECRET_KEY: "sk_test_sensitive", STRIPE_WEBHOOK_SECRET: "whsec_sensitive",
-      STRIPE_PUBLISHABLE_KEY: "pk_test_example", STRIPE_PRICES: JSON.stringify({ pro: "price_pro" }),
+      STRIPE_PUBLISHABLE_KEY: "pk_test_example", STRIPE_PRICES: JSON.stringify({}),
       BILLING_RETURN_URL: "https://example.test/billing" };
     const response = await app.request("/api/health/operational", undefined, partial);
     await expect(response.json()).resolves.toMatchObject({ capabilities: { billing: { configured: false } } });
@@ -146,7 +146,7 @@ describe("worker routes", () => {
   it("accepts a restricted test-mode Stripe server key without accepting a live one", async () => {
     const base = { ...environment, APP_ENV: "staging" as const, STRIPE_MODE: "test" as const,
       STRIPE_SECRET_KEY: "rk_test_sensitive", STRIPE_WEBHOOK_SECRET: "whsec_sensitive",
-      STRIPE_PUBLISHABLE_KEY: "pk_test_example", STRIPE_PRICES: JSON.stringify({ starter: "price_starter", pro: "price_pro", business: "price_business" }),
+      STRIPE_PUBLISHABLE_KEY: "pk_test_example", STRIPE_PRICES: JSON.stringify({ pro: "price_pro" }),
       BILLING_RETURN_URL: "https://example.test/billing" };
     const accepted = await app.request("/api/health/operational", undefined, base);
     await expect(accepted.json()).resolves.toMatchObject({ capabilities: { billing: { configured: true } } });

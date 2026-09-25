@@ -480,8 +480,8 @@ Update this table as the build progresses. Use `not started`, `in progress`, `bl
 | 6 Progress | In progress | Deterministic product proof: `docs/build/phase-06-progress.md`; reconciliation UI, correction UI and accessibility/offline review remain |
 | 7 Monitoring | In progress | Deterministic/background proof: `docs/build/phase-07-progress.md`; reviewed rules, official-alert persistence and staging Queue evidence remain |
 | 8 Notifications | In progress | Deterministic delivery proof: `docs/build/phase-08-progress.md`; digests, quiet hours, suppression coverage and staging delivery remain |
-| 9 Billing | In progress | Finish platform billing follow-ups and product account flow |
-| 10 Public/operations | Not started | Build throughout; gate after product features |
+| 9 Billing | In progress | Deterministic product proof: `docs/build/phase-09-progress.md`; queued reconciliation and controlled Stripe evidence remain |
+| 10 Public/operations | In progress | Finish public claims, readiness, privacy/deletion and operational recovery |
 | 11 Launch | Not started | Full validation matrix |
 
 ## 22. Deliberately deferred scope

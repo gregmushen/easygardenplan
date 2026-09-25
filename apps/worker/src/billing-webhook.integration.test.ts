@@ -66,7 +66,7 @@ suite("signed Stripe webhook route", () => {
     await expect(duplicate.json()).resolves.toEqual({ duplicate: true });
     expect(await sql!`select id from outbox_message where idempotency_key=${`billing:stripe:${eventId}`}`).toHaveLength(1);
     expect((await sql!`select plan, status, cancel_at_period_end, current_period_start, current_period_end from organization_subscription where organization_id=${organizationId}`)[0]).toEqual({ plan: "pro", status: "active", cancel_at_period_end: true, current_period_start: new Date(1_790_000_000_000), current_period_end: new Date(1_792_592_000_000) });
-    expect((await sql!`select entitlement from organization_entitlement where organization_id=${organizationId} order by entitlement`).map((row) => row.entitlement)).toEqual(["article.basic", "members.unlimited", "workflows.advanced", "workspace.single"]);
+    expect((await sql!`select entitlement from organization_entitlement where organization_id=${organizationId} order by entitlement`).map((row) => row.entitlement)).toEqual(["garden.planning", "weather.monitoring"]);
   });
 
   it("rejects a signed subscription lacking tenant or plan metadata without an event receipt", async () => {

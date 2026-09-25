@@ -74,5 +74,5 @@ test("preview verifies deployed sign-in, tenant-safe test Checkout, and webhook 
     return body.subscription?.status ?? "none";
   }, { timeout: 60_000, intervals: [1000, 2000, 5000] }).toBe("active");
   const paid = await page.context().request.get(`${appOrigin}/api/billing/subscription`, { headers });
-  expect(await paid.json()).toMatchObject({ subscription: { provider: "stripe", plan: "pro", entitlements: expect.arrayContaining(["workflows.advanced"]) } });
+  expect(await paid.json()).toMatchObject({ subscription: { provider: "stripe", plan: "pro", entitlements: expect.arrayContaining(["weather.monitoring"]) } });
 });

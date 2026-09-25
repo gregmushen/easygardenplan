@@ -100,5 +100,18 @@ test("a new gardener receives one private workspace and can save the garden", as
   const workspace = (await bootstrap.json() as { workspace: { organizationId: string } }).workspace;
   const subscription = await page.context().request.get(`${appURL}/api/billing/subscription`, { headers: { "x-trestle-tenant": workspace.organizationId } });
   expect(subscription.status()).toBe(200);
-  expect((await subscription.json() as { subscription: unknown }).subscription).toBeNull();
+  const free = await subscription.json() as { subscription: unknown; access: { plan: string } };
+  expect(free.subscription).toBeNull();
+  expect(free.access.plan).toBe("free");
+
+  await page.getByRole("link", { name: "Plan", exact: true }).click();
+  await expect(page.getByText("Current access:")).toContainText("free");
+  await page.getByRole("button", { name: "Continue to Pro checkout" }).click();
+  await expect(page.getByText("Current access:")).toContainText("pro");
+  await expect(page.getByText("Forecast monitoring and frost-risk alerts")).toBeVisible();
+  await page.getByRole("button", { name: "Cancel Pro" }).click();
+  await expect(page.getByText("Current access:")).toContainText("free");
+  await expect(page.getByText(/garden, plan and history remain available/u)).toBeVisible();
+  await page.getByRole("link", { name: "My garden" }).click();
+  await expect(page.getByLabel("Garden name")).toHaveValue("Kitchen Garden");
 });
