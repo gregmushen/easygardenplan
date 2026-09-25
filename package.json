@@ -12,6 +12,7 @@
     "db:generate": "pnpm --filter ./packages/db db:generate",
     "db:migrate": "pnpm --filter ./packages/db db:migrate",
     "db:seed": "tsx seed/index.ts",
+    "knowledge:coverage": "tsx scripts/knowledge-coverage.ts",
     "dev": "trestle dev",
     "test:browser": "playwright test",
     "test:deployed": "TRESTLE_BROWSER_MODE=deployed playwright test tests/browser/site-handoff.spec.ts",

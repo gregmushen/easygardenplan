@@ -1,0 +1,1531 @@
+{
+  "schemaVersion": 1,
+  "fixture": "synthetic-contract-coverage",
+  "disclaimer": "This report exercises catalog shapes and is not horticultural coverage evidence.",
+  "dimensions": {
+    "crops": 1,
+    "methods": 3,
+    "ruleTypes": 9,
+    "regionClasses": 8
+  },
+  "counts": {
+    "supported": 72,
+    "partial": 0,
+    "missing": 144,
+    "conflicted": 0
+  },
+  "cells": [
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "spacing",
+      "regionClass": "cold_continental",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "spacing",
+      "regionClass": "cool_maritime",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "spacing",
+      "regionClass": "hot_summer",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "spacing",
+      "regionClass": "arid",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "spacing",
+      "regionClass": "high_elevation",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "spacing",
+      "regionClass": "frost_free",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "spacing",
+      "regionClass": "alaska",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "spacing",
+      "regionClass": "hawaii",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "light",
+      "regionClass": "cold_continental",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "light",
+      "regionClass": "cool_maritime",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "light",
+      "regionClass": "hot_summer",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "light",
+      "regionClass": "arid",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "light",
+      "regionClass": "high_elevation",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "light",
+      "regionClass": "frost_free",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "light",
+      "regionClass": "alaska",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "light",
+      "regionClass": "hawaii",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "planting_window",
+      "regionClass": "cold_continental",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "planting_window",
+      "regionClass": "cool_maritime",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "planting_window",
+      "regionClass": "hot_summer",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "planting_window",
+      "regionClass": "arid",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "planting_window",
+      "regionClass": "high_elevation",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "planting_window",
+      "regionClass": "frost_free",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "planting_window",
+      "regionClass": "alaska",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "planting_window",
+      "regionClass": "hawaii",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "seed_start_lead",
+      "regionClass": "cold_continental",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "seed_start_lead",
+      "regionClass": "cool_maritime",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "seed_start_lead",
+      "regionClass": "hot_summer",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "seed_start_lead",
+      "regionClass": "arid",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "seed_start_lead",
+      "regionClass": "high_elevation",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "seed_start_lead",
+      "regionClass": "frost_free",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "seed_start_lead",
+      "regionClass": "alaska",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "seed_start_lead",
+      "regionClass": "hawaii",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "maturity",
+      "regionClass": "cold_continental",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "maturity",
+      "regionClass": "cool_maritime",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "maturity",
+      "regionClass": "hot_summer",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "maturity",
+      "regionClass": "arid",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "maturity",
+      "regionClass": "high_elevation",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "maturity",
+      "regionClass": "frost_free",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "maturity",
+      "regionClass": "alaska",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "maturity",
+      "regionClass": "hawaii",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "environmental_prerequisite",
+      "regionClass": "cold_continental",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "environmental_prerequisite",
+      "regionClass": "cool_maritime",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "environmental_prerequisite",
+      "regionClass": "hot_summer",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "environmental_prerequisite",
+      "regionClass": "arid",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "environmental_prerequisite",
+      "regionClass": "high_elevation",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "environmental_prerequisite",
+      "regionClass": "frost_free",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "environmental_prerequisite",
+      "regionClass": "alaska",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "environmental_prerequisite",
+      "regionClass": "hawaii",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "support",
+      "regionClass": "cold_continental",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "support",
+      "regionClass": "cool_maritime",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "support",
+      "regionClass": "hot_summer",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "support",
+      "regionClass": "arid",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "support",
+      "regionClass": "high_elevation",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "support",
+      "regionClass": "frost_free",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "support",
+      "regionClass": "alaska",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "support",
+      "regionClass": "hawaii",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "climate_response",
+      "regionClass": "cold_continental",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "climate_response",
+      "regionClass": "cool_maritime",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "climate_response",
+      "regionClass": "hot_summer",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "climate_response",
+      "regionClass": "arid",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "climate_response",
+      "regionClass": "high_elevation",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "climate_response",
+      "regionClass": "frost_free",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "climate_response",
+      "regionClass": "alaska",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "climate_response",
+      "regionClass": "hawaii",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "instruction",
+      "regionClass": "cold_continental",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "instruction",
+      "regionClass": "cool_maritime",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "instruction",
+      "regionClass": "hot_summer",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "instruction",
+      "regionClass": "arid",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "instruction",
+      "regionClass": "high_elevation",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "instruction",
+      "regionClass": "frost_free",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "instruction",
+      "regionClass": "alaska",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "direct_sow",
+      "ruleType": "instruction",
+      "regionClass": "hawaii",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "spacing",
+      "regionClass": "cold_continental",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "spacing",
+      "regionClass": "cool_maritime",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "spacing",
+      "regionClass": "hot_summer",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "spacing",
+      "regionClass": "arid",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "spacing",
+      "regionClass": "high_elevation",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "spacing",
+      "regionClass": "frost_free",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "spacing",
+      "regionClass": "alaska",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "spacing",
+      "regionClass": "hawaii",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "light",
+      "regionClass": "cold_continental",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "light",
+      "regionClass": "cool_maritime",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "light",
+      "regionClass": "hot_summer",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "light",
+      "regionClass": "arid",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "light",
+      "regionClass": "high_elevation",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "light",
+      "regionClass": "frost_free",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "light",
+      "regionClass": "alaska",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "light",
+      "regionClass": "hawaii",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "planting_window",
+      "regionClass": "cold_continental",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "planting_window",
+      "regionClass": "cool_maritime",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "planting_window",
+      "regionClass": "hot_summer",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "planting_window",
+      "regionClass": "arid",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "planting_window",
+      "regionClass": "high_elevation",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "planting_window",
+      "regionClass": "frost_free",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "planting_window",
+      "regionClass": "alaska",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "planting_window",
+      "regionClass": "hawaii",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "seed_start_lead",
+      "regionClass": "cold_continental",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "seed_start_lead",
+      "regionClass": "cool_maritime",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "seed_start_lead",
+      "regionClass": "hot_summer",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "seed_start_lead",
+      "regionClass": "arid",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "seed_start_lead",
+      "regionClass": "high_elevation",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "seed_start_lead",
+      "regionClass": "frost_free",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "seed_start_lead",
+      "regionClass": "alaska",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "seed_start_lead",
+      "regionClass": "hawaii",
+      "status": "supported"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "maturity",
+      "regionClass": "cold_continental",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "maturity",
+      "regionClass": "cool_maritime",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "maturity",
+      "regionClass": "hot_summer",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "maturity",
+      "regionClass": "arid",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "maturity",
+      "regionClass": "high_elevation",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "maturity",
+      "regionClass": "frost_free",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "maturity",
+      "regionClass": "alaska",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "maturity",
+      "regionClass": "hawaii",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "environmental_prerequisite",
+      "regionClass": "cold_continental",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "environmental_prerequisite",
+      "regionClass": "cool_maritime",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "environmental_prerequisite",
+      "regionClass": "hot_summer",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "environmental_prerequisite",
+      "regionClass": "arid",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "environmental_prerequisite",
+      "regionClass": "high_elevation",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "environmental_prerequisite",
+      "regionClass": "frost_free",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "environmental_prerequisite",
+      "regionClass": "alaska",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "environmental_prerequisite",
+      "regionClass": "hawaii",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "support",
+      "regionClass": "cold_continental",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "support",
+      "regionClass": "cool_maritime",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "support",
+      "regionClass": "hot_summer",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "support",
+      "regionClass": "arid",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "support",
+      "regionClass": "high_elevation",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "support",
+      "regionClass": "frost_free",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "support",
+      "regionClass": "alaska",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "support",
+      "regionClass": "hawaii",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "climate_response",
+      "regionClass": "cold_continental",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "climate_response",
+      "regionClass": "cool_maritime",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "climate_response",
+      "regionClass": "hot_summer",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "climate_response",
+      "regionClass": "arid",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "climate_response",
+      "regionClass": "high_elevation",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "climate_response",
+      "regionClass": "frost_free",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "climate_response",
+      "regionClass": "alaska",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "climate_response",
+      "regionClass": "hawaii",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "instruction",
+      "regionClass": "cold_continental",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "instruction",
+      "regionClass": "cool_maritime",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "instruction",
+      "regionClass": "hot_summer",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "instruction",
+      "regionClass": "arid",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "instruction",
+      "regionClass": "high_elevation",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "instruction",
+      "regionClass": "frost_free",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "instruction",
+      "regionClass": "alaska",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "indoor_start",
+      "ruleType": "instruction",
+      "regionClass": "hawaii",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "spacing",
+      "regionClass": "cold_continental",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "spacing",
+      "regionClass": "cool_maritime",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "spacing",
+      "regionClass": "hot_summer",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "spacing",
+      "regionClass": "arid",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "spacing",
+      "regionClass": "high_elevation",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "spacing",
+      "regionClass": "frost_free",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "spacing",
+      "regionClass": "alaska",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "spacing",
+      "regionClass": "hawaii",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "light",
+      "regionClass": "cold_continental",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "light",
+      "regionClass": "cool_maritime",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "light",
+      "regionClass": "hot_summer",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "light",
+      "regionClass": "arid",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "light",
+      "regionClass": "high_elevation",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "light",
+      "regionClass": "frost_free",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "light",
+      "regionClass": "alaska",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "light",
+      "regionClass": "hawaii",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "planting_window",
+      "regionClass": "cold_continental",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "planting_window",
+      "regionClass": "cool_maritime",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "planting_window",
+      "regionClass": "hot_summer",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "planting_window",
+      "regionClass": "arid",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "planting_window",
+      "regionClass": "high_elevation",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "planting_window",
+      "regionClass": "frost_free",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "planting_window",
+      "regionClass": "alaska",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "planting_window",
+      "regionClass": "hawaii",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "seed_start_lead",
+      "regionClass": "cold_continental",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "seed_start_lead",
+      "regionClass": "cool_maritime",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "seed_start_lead",
+      "regionClass": "hot_summer",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "seed_start_lead",
+      "regionClass": "arid",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "seed_start_lead",
+      "regionClass": "high_elevation",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "seed_start_lead",
+      "regionClass": "frost_free",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "seed_start_lead",
+      "regionClass": "alaska",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "seed_start_lead",
+      "regionClass": "hawaii",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "maturity",
+      "regionClass": "cold_continental",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "maturity",
+      "regionClass": "cool_maritime",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "maturity",
+      "regionClass": "hot_summer",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "maturity",
+      "regionClass": "arid",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "maturity",
+      "regionClass": "high_elevation",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "maturity",
+      "regionClass": "frost_free",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "maturity",
+      "regionClass": "alaska",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "maturity",
+      "regionClass": "hawaii",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "environmental_prerequisite",
+      "regionClass": "cold_continental",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "environmental_prerequisite",
+      "regionClass": "cool_maritime",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "environmental_prerequisite",
+      "regionClass": "hot_summer",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "environmental_prerequisite",
+      "regionClass": "arid",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "environmental_prerequisite",
+      "regionClass": "high_elevation",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "environmental_prerequisite",
+      "regionClass": "frost_free",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "environmental_prerequisite",
+      "regionClass": "alaska",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "environmental_prerequisite",
+      "regionClass": "hawaii",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "support",
+      "regionClass": "cold_continental",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "support",
+      "regionClass": "cool_maritime",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "support",
+      "regionClass": "hot_summer",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "support",
+      "regionClass": "arid",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "support",
+      "regionClass": "high_elevation",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "support",
+      "regionClass": "frost_free",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "support",
+      "regionClass": "alaska",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "support",
+      "regionClass": "hawaii",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "climate_response",
+      "regionClass": "cold_continental",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "climate_response",
+      "regionClass": "cool_maritime",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "climate_response",
+      "regionClass": "hot_summer",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "climate_response",
+      "regionClass": "arid",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "climate_response",
+      "regionClass": "high_elevation",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "climate_response",
+      "regionClass": "frost_free",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "climate_response",
+      "regionClass": "alaska",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "climate_response",
+      "regionClass": "hawaii",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "instruction",
+      "regionClass": "cold_continental",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "instruction",
+      "regionClass": "cool_maritime",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "instruction",
+      "regionClass": "hot_summer",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "instruction",
+      "regionClass": "arid",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "instruction",
+      "regionClass": "high_elevation",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "instruction",
+      "regionClass": "frost_free",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "instruction",
+      "regionClass": "alaska",
+      "status": "missing"
+    },
+    {
+      "cropId": "10000000-0000-4000-8000-000000000001",
+      "method": "purchased_start",
+      "ruleType": "instruction",
+      "regionClass": "hawaii",
+      "status": "missing"
+    }
+  ]
+}

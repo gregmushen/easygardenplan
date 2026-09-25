@@ -13,6 +13,7 @@ import * as artifactMaintenanceSchema from "./artifact-maintenance-schema.js";
 import * as billingSchema from "./billing-schema.js";
 import * as emailSchema from "./email-schema.js";
 import * as tenantSchema from "./tenant-schema.js";
+import * as knowledgeSchema from "./knowledge-schema.js";
 import * as outboxSchema from "./outbox-schema.js";
 import * as webhookSchema from "./webhook-schema.js";
 import * as webhookProjectionSchema from "./webhook-projection-schema.js";
@@ -46,6 +47,7 @@ export * from "./billing-events.js";
 export * from "./email-schema.js";
 export * from "./roles.js";
 export * from "./tenant-schema.js";
+export * from "./knowledge-schema.js";
 export * from "./outbox-schema.js";
 export * from "./webhook-schema.js";
 export * from "./webhook-projection-schema.js";
@@ -68,7 +70,7 @@ export * from "./outbox.js";
 export * from "./inbox.js";
 export * from "./tenancy.js";
 
-const schema = { ...accessSchema, ...assuranceSchema, ...auditSchema, ...platformSchema, ...authSchema, ...artifactSchema, ...artifactMaintenanceSchema, ...billingSchema, ...emailSchema, ...tenantSchema, ...outboxSchema, ...webhookSchema, ...webhookProjectionSchema, ...webhookAttemptSchema, ...webhookSecretSchema };
+const schema = { ...accessSchema, ...assuranceSchema, ...auditSchema, ...platformSchema, ...authSchema, ...artifactSchema, ...artifactMaintenanceSchema, ...billingSchema, ...emailSchema, ...tenantSchema, ...knowledgeSchema, ...outboxSchema, ...webhookSchema, ...webhookProjectionSchema, ...webhookAttemptSchema, ...webhookSecretSchema };
 
 export type DatabaseDriver = "neon-http" | "neon-serverless" | "postgres-js";
 

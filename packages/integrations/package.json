@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@easygardenplan/contracts": "workspace:*",
     "@react-email/render": "2.1.0",
     "react": "19.3.0",
     "resend": "6.28.1",

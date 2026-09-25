@@ -7,3 +7,5 @@ export type WithTenant = <Result>(
   operation: (transaction: TenantTransaction) => Promise<Result>,
 ) => Promise<Result>;
 export * from "./resources/garden-repository.js";
+export * from "./knowledge-repository.js";
+export * from "./research-runs.js";

@@ -12,6 +12,7 @@
     "@easygardenplan/contracts": "workspace:*",
     "@easygardenplan/db": "workspace:*",
     "@easygardenplan/domain": "workspace:*",
+    "@easygardenplan/integrations": "workspace:*",
     "drizzle-orm": "0.45.3"
   }
 }

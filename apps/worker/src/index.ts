@@ -19,6 +19,7 @@ import { artifactRuntimeReady, artifactSigner, artifactStore, publicArtifactUrl 
 import { accessRoutes } from "./access-routes.js";
 import { machineAccessRoutes } from "./machine-access-routes.js";
 import { regionalRoutes } from "./regional-routes.js";
+import { knowledgeRoutes } from "./knowledge-routes.js";
 import { auditTenantAction } from "./audit.js";
 import { requireExecutionContext, type AppVariables } from "./execution-context.js";
 import { mapHttpError } from "./http-errors.js";
@@ -461,6 +462,7 @@ app.post("/api/workspace/bootstrap", async (context) => {
 app.route("/", accessRoutes);
 app.route("/", machineAccessRoutes);
 app.route("/", regionalRoutes);
+app.route("/", knowledgeRoutes);
 
 app.get("/api/me", async (context) => {
   const session = await createAuth(context.env, { correlationId: context.get("correlationId") }).api.getSession({ headers: context.req.raw.headers });

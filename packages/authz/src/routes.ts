@@ -63,6 +63,14 @@ export const customerRoutePolicies = defineRoutePolicies(permissions, [
   { method: "GET", path: "/api/gardens/:id", audience: "tenant", permission: "garden.read" },
   { method: "PATCH", path: "/api/gardens/:id", audience: "tenant", permission: "garden.write" },
   { method: "DELETE", path: "/api/gardens/:id", audience: "tenant", permission: "garden.write" },
+  { method: "GET", path: "/api/catalog", audience: "tenant", permission: "garden.read" },
+  { method: "GET", path: "/api/editorial/rules", audience: "tenant", permission: "catalog.publish" },
+  { method: "POST", path: "/api/editorial/research", audience: "tenant", permission: "catalog.publish" },
+  { method: "POST", path: "/api/editorial/drafts", audience: "tenant", permission: "catalog.publish" },
+  { method: "POST", path: "/api/editorial/rules/:id/review", audience: "tenant", permission: "catalog.publish" },
+  { method: "POST", path: "/api/editorial/releases", audience: "tenant", permission: "catalog.publish" },
+  { method: "POST", path: "/api/editorial/rules/:id/withdraw", audience: "tenant", permission: "catalog.publish" },
+  { method: "POST", path: "/api/editorial/coverage", audience: "tenant", permission: "catalog.publish" },
 ]);
 
 /** Generated tenant resources without an explicit policy read with resource.read and mutate with resource.write. */

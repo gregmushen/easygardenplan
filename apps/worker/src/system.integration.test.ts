@@ -80,6 +80,9 @@ suite("local product path", () => {
       const freeBilling = await app.request("http://localhost:8787/api/billing/subscription", { headers: gardenHeaders }, environment);
       expect(freeBilling.status).toBe(200);
       await expect(freeBilling.json()).resolves.toMatchObject({ subscription: null });
+      expect((await app.request("http://localhost:8787/api/catalog", { headers: gardenHeaders }, environment)).status).toBe(200);
+      expect((await app.request("http://localhost:8787/api/editorial/rules", { headers: gardenHeaders }, environment)).status).toBe(403);
+      expect((await app.request("http://localhost:8787/api/editorial/releases", { method: "POST", headers: { ...gardenHeaders, "content-type": "application/json" }, body: JSON.stringify({ releaseName: "forbidden", ruleVersionIds: [crypto.randomUUID()] }) }, environment)).status).toBe(403);
 
       const create = await app.request("http://localhost:8787/api/auth/organization/create", {
         method: "POST", headers: { "content-type": "application/json", origin: environment.WEB_ORIGIN, cookie: cookie! },

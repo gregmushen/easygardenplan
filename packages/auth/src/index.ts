@@ -31,6 +31,7 @@ export interface AuthEnvironment {
   STRIPE_PRICES?: string;
   STRIPE_PUBLISHABLE_KEY?: string;
   BILLING_RETURN_URL?: string;
+  EXA_API_KEY?: string;
   WEB_ORIGIN?: string;
   TRESTLE_ARTIFACTS?: R2BucketBinding;
   ARTIFACT_SIGNING_SECRET?: string;

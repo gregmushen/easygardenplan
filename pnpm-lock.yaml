@@ -248,6 +248,9 @@ importers:
       '@easygardenplan/domain':
         specifier: workspace:*
         version: link:../domain
+      '@easygardenplan/integrations':
+        specifier: workspace:*
+        version: link:../integrations
       drizzle-orm:
         specifier: 0.45.3
         version: 0.45.3(@neondatabase/serverless@1.1.0)(kysely@0.29.6)(postgres@3.4.9)
@@ -297,6 +300,9 @@ importers:
 
   packages/integrations:
     dependencies:
+      '@easygardenplan/contracts':
+        specifier: workspace:*
+        version: link:../contracts
       '@react-email/render':
         specifier: 2.1.0
         version: 2.1.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)

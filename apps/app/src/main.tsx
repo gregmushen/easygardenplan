@@ -8,6 +8,7 @@ import { healthResponseSchema } from "@easygardenplan/contracts";
 import { authClient } from "./auth-client";
 import { billingSubscriptionQueryKey } from "./tenant-query.js";
 import { WebhookInspection } from "./webhook-inspection";
+import { EditorialScreen } from "./editorial";
 import "./styles.css";
 
 const apiOrigin = (import.meta.env.VITE_API_ORIGIN as string | undefined)?.replace(/\/$/u, "") ?? "";
@@ -161,7 +162,8 @@ const acceptInvitationRoute = createRoute({ getParentRoute: () => rootRoute, pat
 const billingRoute = createRoute({ getParentRoute: () => rootRoute, path: "/settings/billing", component: BillingSettings });
 const webhookInspectionRoute = createRoute({ getParentRoute: () => rootRoute, path: "/settings/webhooks", component: WebhookInspection });
 const gardenRoute = createRoute({ getParentRoute: () => rootRoute, path: "/gardens", component: GardenScreen });
-const routeTree = rootRoute.addChildren([gardenRoute, indexRoute, signInRoute, signUpRoute, dashboardRoute, checkEmailRoute, forgotPasswordRoute, resetPasswordRoute, acceptInvitationRoute, billingRoute, webhookInspectionRoute]);
+const editorialRoute = createRoute({ getParentRoute: () => rootRoute, path: "/editorial", component: EditorialScreen });
+const routeTree = rootRoute.addChildren([gardenRoute, editorialRoute, indexRoute, signInRoute, signUpRoute, dashboardRoute, checkEmailRoute, forgotPasswordRoute, resetPasswordRoute, acceptInvitationRoute, billingRoute, webhookInspectionRoute]);
 const router = createRouter({ routeTree });
 const queryClient = new QueryClient();
 
