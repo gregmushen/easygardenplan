@@ -5,6 +5,7 @@ import { cors } from "hono/cors";
 
 import { createAuth, ensureDefaultHousehold, type AuthEnvironment } from "@easygardenplan/auth";
 import { getPlan, planEntitlements, plans } from "@easygardenplan/billing";
+import { projectEmailDelivery } from "@easygardenplan/data";
 import { healthResponseSchema } from "@easygardenplan/contracts";
 import { createLogger, createMetrics, loggerSecretsFromEnvironment, safeErrorDiagnostic } from "@easygardenplan/context";
 import { applyBillingNotificationEvent, applyBillingProviderEvent, beginBillingSubscriptionReconciliation, createDatabase, emailDeliveryEvent, listWebhookAttempts, listWebhookDeliveries, listWebhookEndpoints, listWebhookSubscriptions, markBillingReconciliationUnavailable, createTenantDatabase, PostgresEventInbox, PostgresOutboxStore, replayTenantWebhookDelivery, replaceWebhookSubscriptions, setWebhookEndpointState, WebhookSecretError, WebhookSecretService } from "@easygardenplan/db";
@@ -26,6 +27,7 @@ import { planningRoutes } from "./planning-routes.js";
 import { progressRoutes } from "./progress-routes.js";
 import { monitoringRoutes } from "./monitoring-routes.js";
 import { handleWeatherEvaluationRequested, weatherEvaluationRequestedConsumer } from "./monitoring-runtime.js";
+import { handleRecommendationTransitioned, recommendationTransitionedConsumer } from "./notification-runtime.js";
 import { scheduleDueWeatherEvaluations } from "./monitoring-scheduler.js";
 import { auditTenantAction } from "./audit.js";
 import { requireExecutionContext, type AppVariables } from "./execution-context.js";
@@ -323,7 +325,9 @@ app.post("/api/webhooks/resend", async (context) => {
     return context.json({ error: "Invalid webhook" }, 400);
   }
   try {
-    const inserted = await createDatabase(context.env.DATABASE_URL, context.env.DATABASE_DRIVER).insert(emailDeliveryEvent).values(event).onConflictDoNothing().returning();
+    const database = createDatabase(context.env.DATABASE_URL, context.env.DATABASE_DRIVER);
+    const inserted = await database.insert(emailDeliveryEvent).values(event).onConflictDoNothing().returning();
+    if (inserted.length) await projectEmailDelivery(database, event);
     const duplicate = inserted.length === 0;
     log.info(duplicate ? "email.webhook.duplicate" : "email.webhook.processed", { providerEventId: event.id, emailDeliveryId: event.emailDeliveryId, deliveryStatus: event.status });
     return context.json({ duplicate, event }, duplicate ? 200 : 202);
@@ -586,6 +590,7 @@ eventConsumers.register(gardenCreatedEvent, handleGardenCreated, { authority: "t
 eventConsumers.register(gardenUpdatedEvent, handleGardenUpdated, { authority: "tenant" });
 eventConsumers.register(gardenDeletedEvent, handleGardenDeleted, { authority: "tenant" });
 eventConsumers.register(weatherEvaluationRequestedConsumer, handleWeatherEvaluationRequested, { authority: "tenant", requires: { entitlement: "weather.monitoring" } });
+eventConsumers.register(recommendationTransitionedConsumer, handleRecommendationTransitioned, { authority: "tenant", requires: { entitlement: "weather.monitoring" } });
 
 type WorkerEnvironment = AuthEnvironment & { TRESTLE_EVENTS?: CloudflareQueueBinding<EventEnvelope | NativeWebhookWakeup>; TRESTLE_WORKFLOW?: CloudflareWorkflowBinding; TRESTLE_WORKFLOWS_ENABLED?: string };
 export default {

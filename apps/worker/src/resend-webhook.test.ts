@@ -2,6 +2,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ verify: vi.fn(), returning: vi.fn() }));
 
+vi.mock("@easygardenplan/data", async (importOriginal) => ({
+  ...await importOriginal<object>(),
+  projectEmailDelivery: vi.fn().mockResolvedValue(0),
+}));
+
 vi.mock("@easygardenplan/integrations", async (importOriginal) => ({
   ...await importOriginal<object>(),
   verifyResendWebhook: mocks.verify,

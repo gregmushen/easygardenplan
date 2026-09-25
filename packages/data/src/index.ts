@@ -16,3 +16,4 @@ export * from "./bed-repository.js";
 export * from "./planning-repository.js";
 export * from "./progress-repository.js";
 export * from "./monitoring-repository.js";
+export * from "./notification-repository.js";

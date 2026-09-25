@@ -1,7 +1,7 @@
 import type { NormalizedForecast } from "@easygardenplan/contracts";
-import { gardenRiskState, recommendationEpisode, recommendationTransition, recommendationVersion, weatherEvaluation, weatherForecastSnapshot, type Database } from "@easygardenplan/db";
+import { gardenRiskState, notificationDeliveryIntent, notificationFeedEntry, notificationPreference, organization, recommendationEpisode, recommendationTransition, recommendationVersion, user, weatherEvaluation, weatherForecastSnapshot, type Database } from "@easygardenplan/db";
 import { decideRiskTransition, type RiskObservation } from "@easygardenplan/domain";
-import { and, asc, desc, eq, max, sql, type SQL } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, max, sql, type SQL } from "drizzle-orm";
 
 export type TransitionEventFactory = (payload: { gardenId: string; episodeId: string; recommendationVersionId: string; transitionId: string; kind: "warning" | "material_change" | "resolution" | "renewed_warning"; riskRevision: number }) => SQL;
 
@@ -40,6 +40,18 @@ export class MonitoringRepository {
       const transitionId = crypto.randomUUID();
       const semanticKey = `${decision.episodeId}:${recommendation.version}:${decision.transition}`;
       const [transition] = await transaction.insert(recommendationTransition).values({ id: transitionId, organizationId: this.organizationId, gardenId: input.gardenId, episodeId: decision.episodeId, recommendationVersionId: recommendation.id, semanticKey, kind: decision.transition, createdAt: now }).returning();
+      await transaction.insert(notificationFeedEntry).values({ organizationId: this.organizationId, gardenId: input.gardenId, transitionId, recommendationVersionId: recommendation.id, kind: decision.transition, createdAt: now });
+      const [recipient] = await transaction.select({ userId: organization.householdOwnerUserId, emailVerified: user.emailVerified }).from(organization).innerJoin(user, eq(user.id, organization.householdOwnerUserId)).where(eq(organization.id, this.organizationId)).limit(1);
+      if (recipient?.userId && recipient.emailVerified) {
+        const [preference] = await transaction.select().from(notificationPreference).where(and(eq(notificationPreference.organizationId, this.organizationId), eq(notificationPreference.userId, recipient.userId))).limit(1);
+        const enabled = decision.transition === "resolution" ? (preference?.resolutionEmailEnabled ?? true) : (preference?.urgentEmailEnabled ?? true);
+        let warningWasSent = true;
+        if (decision.transition === "resolution") {
+          const [prior] = await transaction.select({ id: notificationDeliveryIntent.id }).from(notificationDeliveryIntent).innerJoin(recommendationTransition, eq(notificationDeliveryIntent.transitionId, recommendationTransition.id)).where(and(eq(notificationDeliveryIntent.organizationId, this.organizationId), eq(recommendationTransition.episodeId, decision.episodeId), inArray(recommendationTransition.kind, ["warning", "renewed_warning"]), inArray(notificationDeliveryIntent.status, ["accepted", "delivered"]), eq(notificationDeliveryIntent.recipientUserId, recipient.userId))).limit(1);
+          warningWasSent = Boolean(prior);
+        }
+        await transaction.insert(notificationDeliveryIntent).values({ organizationId: this.organizationId, gardenId: input.gardenId, transitionId, recommendationVersionId: recommendation.id, recipientUserId: recipient.userId, channel: "email", idempotencyKey: `recommendation-email:${transitionId}:${recipient.userId}`, status: enabled && warningWasSent ? "pending" : "suppressed", suppressionReason: enabled ? "warning_not_delivered" : "preference_disabled", createdAt: now, updatedAt: now });
+      }
       if (input.event) await transaction.execute(input.event({ gardenId: input.gardenId, episodeId: decision.episodeId, recommendationVersionId: recommendation.id, transitionId, kind: decision.transition, riskRevision: nextRevision }));
       return { evaluation, decision, recommendation, transition: transition! };
     });
@@ -47,4 +59,5 @@ export class MonitoringRepository {
 
   async listRisk(gardenId: string) { return await this.database.select().from(gardenRiskState).where(and(eq(gardenRiskState.organizationId, this.organizationId), eq(gardenRiskState.gardenId, gardenId))).orderBy(asc(gardenRiskState.hazard), asc(gardenRiskState.groupKey)); }
   async listRecommendations(gardenId: string) { return await this.database.select().from(recommendationVersion).where(and(eq(recommendationVersion.organizationId, this.organizationId), eq(recommendationVersion.gardenId, gardenId))).orderBy(desc(recommendationVersion.createdAt)); }
+  async listFeed(gardenId: string) { return await this.database.select().from(notificationFeedEntry).where(and(eq(notificationFeedEntry.organizationId, this.organizationId), eq(notificationFeedEntry.gardenId, gardenId))).orderBy(desc(notificationFeedEntry.createdAt)); }
 }
