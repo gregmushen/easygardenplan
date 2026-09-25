@@ -19,7 +19,7 @@ async function seedPlanningCatalog() {
   await database.$client.end();
 }
 
-test("a new gardener receives one private workspace and can save the garden", async ({ page }) => {
+test("a new gardener receives one private workspace and can save the garden", async ({ page }, testInfo) => {
   await seedPlanningCatalog();
   const readiness = await page.request.get(`${appURL}/api/health/product`);
   expect(readiness.status()).toBe(200);
@@ -80,11 +80,13 @@ test("a new gardener receives one private workspace and can save the garden", as
   const closePolygon = page.getByRole("button", { name: "Close polygon" });
   await expect(closePolygon).toBeDisabled();
   const preview = page.getByRole("img", { name: "Interactive metric bed preview" });
+  await preview.scrollIntoViewIfNeeded();
   const previewBox = await preview.boundingBox();
   expect(previewBox).not.toBeNull();
-  await page.mouse.click(previewBox!.x + 100, previewBox!.y + 220);
-  await page.mouse.click(previewBox!.x + 260, previewBox!.y + 220);
-  await page.mouse.click(previewBox!.x + 180, previewBox!.y + 80);
+  const addDrawPoint = async (x: number, y: number) => testInfo.project.use.hasTouch ? await preview.dispatchEvent("touchend", { touches: [], targetTouches: [], changedTouches: [{ identifier: 0, clientX: previewBox!.x + x, clientY: previewBox!.y + y }] }) : await page.mouse.click(previewBox!.x + x, previewBox!.y + y);
+  await addDrawPoint(60, 60);
+  await addDrawPoint(260, 60);
+  await addDrawPoint(160, 160);
   await expect(closePolygon).toBeEnabled();
   await closePolygon.click();
   await expect(page.getByLabel("Outer boundary vertex 4 X")).toHaveCount(0);
@@ -96,15 +98,17 @@ test("a new gardener receives one private workspace and can save the garden", as
   await expect(page.getByLabel("Outer boundary vertex 2 X")).toHaveValue("3.5");
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   await expect(page.getByLabel("Outer boundary vertex 2 X")).toHaveValue("3");
-  const vertexBox = await vertex.boundingBox();
-  expect(vertexBox).not.toBeNull();
-  await page.mouse.move(vertexBox!.x + vertexBox!.width / 2, vertexBox!.y + vertexBox!.height / 2);
-  await page.mouse.down();
-  await page.mouse.move(vertexBox!.x + vertexBox!.width / 2 + 24, vertexBox!.y + vertexBox!.height / 2);
-  await page.mouse.up();
-  await expect(page.getByLabel("Outer boundary vertex 2 X")).not.toHaveValue("3");
-  await page.getByRole("button", { name: "Undo", exact: true }).click();
-  await expect(page.getByLabel("Outer boundary vertex 2 X")).toHaveValue("3");
+  if (!testInfo.project.use.hasTouch) {
+    const vertexBox = await vertex.boundingBox();
+    expect(vertexBox).not.toBeNull();
+    await page.mouse.move(vertexBox!.x + vertexBox!.width / 2, vertexBox!.y + vertexBox!.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(vertexBox!.x + vertexBox!.width / 2 + 24, vertexBox!.y + vertexBox!.height / 2);
+    await page.mouse.up();
+    await expect(page.getByLabel("Outer boundary vertex 2 X")).not.toHaveValue("3");
+    await page.getByRole("button", { name: "Undo", exact: true }).click();
+    await expect(page.getByLabel("Outer boundary vertex 2 X")).toHaveValue("3");
+  }
   await page.getByRole("button", { name: "Add exclusion" }).click();
   await expect(page.getByLabel("Exclusion 1 vertex 1 X")).toBeVisible();
   await page.getByRole("button", { name: "Undo", exact: true }).click();

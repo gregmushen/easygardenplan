@@ -19,6 +19,7 @@
     "validation:nationwide": "vitest run scripts/nationwide-validation.test.ts",
     "dev": "trestle dev",
     "test:browser": "playwright test",
+    "test:browser:mobile": "TRESTLE_BROWSER_DEVICE=mobile playwright test tests/browser/local-product.spec.ts",
     "test:deployed": "TRESTLE_BROWSER_MODE=deployed playwright test tests/browser/site-handoff.spec.ts",
     "test:preview": "TRESTLE_BROWSER_MODE=deployed TRESTLE_DEPLOY_ENV=preview TRESTLE_ALLOW_LIVE_EMAIL_TESTS=0 playwright test tests/browser/site-handoff.spec.ts tests/browser/preview-product.spec.ts",
     "test:preview:live-email": "TRESTLE_BROWSER_MODE=deployed TRESTLE_DEPLOY_ENV=preview TRESTLE_ALLOW_LIVE_EMAIL_TESTS=1 playwright test tests/browser/preview-email.spec.ts",

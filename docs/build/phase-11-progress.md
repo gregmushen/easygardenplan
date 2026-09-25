@@ -14,7 +14,7 @@ Date: 2026-09-25
 | 1 Household/garden | `3bc773b` | `docs/build/phase-01-evidence.md` |
 | 2 Knowledge | `6861c1a` | `docs/build/phase-02-progress.md` and `phase-02-coverage.json` |
 | 3 Location/climate | `3d7b322` | `docs/build/phase-03-progress.md` |
-| 4 Bed editor | `eda3c12` | `docs/build/phase-04-progress.md` |
+| 4 Bed editor | `d88d5ab` | `docs/build/phase-04-progress.md` |
 | 5 Planner | `d67cdab` | `docs/build/phase-05-progress.md` |
 | 6 Progress | `92f38b8` | `docs/build/phase-06-progress.md` |
 | 7 Monitoring | `1cdb005` | `docs/build/phase-07-progress.md` |
@@ -47,14 +47,14 @@ Stripe subscription reconciliation is now also queued after the signed receipt i
 - `pnpm check`: passed.
   - Root Node suite: 65 passed, 0 failed.
   - Root Vitest operational/nationwide suite: 21 passed, 0 failed.
-  - Worker with both PostgreSQL integration environments enabled: 141 passed, 0 skipped.
+  - Worker with both PostgreSQL integration environments enabled: 146 passed, 0 skipped.
   - Database: 134 passed, 13 skipped environment-specific cases.
-  - Integrations: 90 passed, 4 skipped live-provider cases.
+  - Integrations: 92 passed, 4 skipped live-provider cases.
   - All other workspace suites and production builds passed.
-- Local product browser path: passed in Phase 10, including account, garden, location, concave bed revision, sourced plan, print link, progress, Free/Pro downgrade preservation and deletion.
-- Clean-database migration rehearsal: passed the first 47 journal entries into a disposable database; 68 public tables created and 38 tables reported forced RLS. Migration 0047 then applied successfully to the local database and passed the complete PostgreSQL-enabled repository check; the next clean rehearsal must include all 48 entries.
+- Local product browser path: passed on desktop Chromium and the Pixel 7 Chromium touch-emulation profile, including account, garden, location, touch/click boundary drawing, bed revision, sourced plan, print link, progress, Free/Pro downgrade preservation and deletion. These automated profiles reduce the remaining device matrix; they do not replace physical-device, screen-reader, WebKit or Firefox review.
+- Clean-database migration rehearsal: all 54 journal entries applied to a disposable database, producing 72 public tables with 39 tables reporting forced RLS. The disposable database was removed after inspection.
 - Product operations snapshot: executed successfully and returned aggregate crop coverage, forecast freshness, monitoring due work, event backlog, delivery outcomes, billing lag and provider usage without customer locations or message content.
-- Trestle SetupPlan validation/diff, architecture check and local doctor passed in Phase 10; doctor reported 106 passed, 0 warnings and 0 failures.
+- Trestle SetupPlan validation/diff, architecture check and local doctor were rerun after the mobile-editor work; the plan remains converged and doctor reported 106 passed, 0 warnings and 0 failures.
 
 ## Remaining controlled gates
 
