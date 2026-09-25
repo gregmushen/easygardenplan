@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { check, foreignKey, index, integer, jsonb, pgPolicy, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { boolean, check, foreignKey, index, integer, jsonb, pgPolicy, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { organization } from "./auth-schema.js";
 import { garden } from "./garden-schema.js";
 
@@ -10,6 +10,14 @@ export const weatherLocationDue = pgTable("weather_location_due", {
 export const weatherForecastSnapshot = pgTable("weather_forecast_snapshot", {
   id: uuid("id").defaultRandom().primaryKey(), provider: text("provider").notNull(), sourceKey: text("source_key").notNull(), sourceUpdatedAt: timestamp("source_updated_at", { withTimezone: true }).notNull(), retrievedAt: timestamp("retrieved_at", { withTimezone: true }).notNull(), validFrom: timestamp("valid_from", { withTimezone: true }).notNull(), validThrough: timestamp("valid_through", { withTimezone: true }).notNull(), fingerprint: text("fingerprint").notNull(), normalizationVersion: integer("normalization_version").notNull(), intervals: jsonb("intervals").notNull(),
 }, (table) => [uniqueIndex("weather_forecast_identity_uidx").on(table.provider, table.sourceKey, table.fingerprint), index("weather_forecast_source_idx").on(table.provider, table.sourceKey, table.retrievedAt), check("weather_forecast_window_check", sql`${table.validFrom} < ${table.validThrough}`)]);
+
+export const weatherOfficialAlertSnapshot = pgTable("weather_official_alert_snapshot", {
+  id: uuid("id").defaultRandom().primaryKey(), provider: text("provider").notNull(), providerAlertId: text("provider_alert_id").notNull(), event: text("event").notNull(), status: text("status").notNull(), messageType: text("message_type").notNull(), sentAt: timestamp("sent_at", { withTimezone: true }).notNull(), effectiveAt: timestamp("effective_at", { withTimezone: true }).notNull(), onsetAt: timestamp("onset_at", { withTimezone: true }), expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(), endsAt: timestamp("ends_at", { withTimezone: true }), retrievedAt: timestamp("retrieved_at", { withTimezone: true }).notNull(), cancelled: boolean("cancelled").default(false).notNull(), headline: text("headline"), sourceUrl: text("source_url").notNull(), areaDescription: text("area_description").notNull(),
+}, (table) => [uniqueIndex("weather_official_alert_identity_uidx").on(table.provider, table.providerAlertId, table.sentAt), index("weather_official_alert_expiry_idx").on(table.provider, table.expiresAt)]);
+
+export const weatherOfficialAlertGarden = pgTable("weather_official_alert_garden", {
+  id: uuid("id").defaultRandom().primaryKey(), organizationId: text("organization_id").notNull().references(() => organization.id, { onDelete: "cascade" }), gardenId: uuid("garden_id").notNull(), alertSnapshotId: uuid("alert_snapshot_id").notNull().references(() => weatherOfficialAlertSnapshot.id, { onDelete: "restrict" }), matchedAt: timestamp("matched_at", { withTimezone: true }).notNull(),
+}, (table) => [uniqueIndex("weather_official_alert_garden_uidx").on(table.gardenId, table.alertSnapshotId), uniqueIndex("weather_official_alert_garden_tenant_key").on(table.organizationId, table.id), foreignKey({ columns: [table.organizationId, table.gardenId], foreignColumns: [garden.organizationId, garden.id], name: "weather_official_alert_garden_tenant_garden_fk" }).onDelete("cascade"), pgPolicy("weather_official_alert_garden_tenant", { for: "all", to: "trestle_app", using: sql`${table.organizationId} = current_setting('app.organization_id', true)`, withCheck: sql`${table.organizationId} = current_setting('app.organization_id', true)` })]).enableRLS();
 
 export const weatherEvaluation = pgTable("weather_evaluation", {
   id: uuid("id").defaultRandom().primaryKey(), organizationId: text("organization_id").notNull().references(() => organization.id, { onDelete: "cascade" }), gardenId: uuid("garden_id").notNull(), hazard: text("hazard").notNull(), groupKey: text("group_key").notNull(), status: text("status").notNull(), snapshotId: uuid("snapshot_id").references(() => weatherForecastSnapshot.id, { onDelete: "restrict" }), trace: jsonb("trace").notNull(), evaluatedAt: timestamp("evaluated_at", { withTimezone: true }).notNull(),

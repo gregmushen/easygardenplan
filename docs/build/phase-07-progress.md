@@ -2,12 +2,13 @@
 
 Recorded: September 25, 2026
 
-Status: **in progress**. Deterministic monitoring, background authority, scheduling, NWS normalization and transition persistence are implemented and verified. The phase remains open for a reviewed launch cold-response catalog, a configured NWS source-age policy, official-alert persistence/matching, relocation/downgrade browser cases and deployed Queue evidence.
+Status: **in progress**. Deterministic monitoring, background authority, scheduling, NWS normalization and transition persistence are implemented and verified. The phase remains open for a reviewed launch cold-response catalog, a configured NWS source-age policy, official-alert risk evaluation, relocation/downgrade browser cases and deployed Queue evidence.
 
 ## Implemented and proved
 
 - The NWS adapter follows the official point-discovery and hourly-grid flow, supplies an identifying `User-Agent`, accepts provider timestamps with UTC offsets, normalizes Fahrenheit/Celsius to Celsius and keeps source update time separate from retrieval time.
 - Forecast snapshots are immutable and deduplicated by provider source and content fingerprint. Evaluations retain the exact snapshot and a typed trace.
+- Official-alert snapshots retain NWS identity, issuance/effective/expiry times, cancellation state, source link and area description. Each result from the NWS point query is linked to the garden whose coordinate produced the match, and repeated retrieval is idempotent.
 - Cold evaluation consumes only explicit published `climate_response` thresholds for the matching crop and actual growth stage. It does not invent a universal frost threshold.
 - A persisted state exists per garden, hazard and crop/stage group with `unknown`, `clear`, `active` and `resolved`, supporting snapshot, current episode, clear-confirmation count and revision.
 - PostgreSQL advisory locking serializes overlapping evaluation attempts. Recommendation versions and semantic transitions are append-only; state and the transition outbox event commit in one transaction.
@@ -33,6 +34,6 @@ References: [NWS API Web Service](https://www.weather.gov/documentation/services
 
 - Publish reviewed cold-response rules with stage thresholds/actions and run the representative nationwide matrix.
 - Set and validate `NWS_MAX_SOURCE_AGE_MINUTES` from documented/measured provider semantics before live advice; missing configuration makes live source freshness unusable rather than assuming safety.
-- Persist and match normalized official alerts, including cancellation and partial-area behavior.
+- Define the reviewed event/action policy that turns a point-matched official alert into recommendation state, and validate polygon/partial-area provider behavior in staging. Cancellation normalization and persistence are covered locally; an empty active-alert response is deliberately not treated as an all-clear.
 - Exercise deletion, relocation, planting completion and entitlement downgrade between scheduling and execution.
 - Run the Queue and hourly application cron in staging with real runtime roles and retain a normalized live snapshot/evaluation trace there.

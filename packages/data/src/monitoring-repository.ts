@@ -1,5 +1,5 @@
-import type { NormalizedForecast } from "@easygardenplan/contracts";
-import { gardenRiskState, notificationDeliveryIntent, notificationFeedEntry, notificationPreference, organization, recommendationEpisode, recommendationTransition, recommendationVersion, user, weatherEvaluation, weatherForecastSnapshot, type Database } from "@easygardenplan/db";
+import type { NormalizedForecast, NormalizedOfficialAlert } from "@easygardenplan/contracts";
+import { gardenRiskState, notificationDeliveryIntent, notificationFeedEntry, notificationPreference, organization, recommendationEpisode, recommendationTransition, recommendationVersion, user, weatherEvaluation, weatherForecastSnapshot, weatherOfficialAlertGarden, weatherOfficialAlertSnapshot, type Database } from "@easygardenplan/db";
 import { decideRiskTransition, type RiskObservation } from "@easygardenplan/domain";
 import { and, asc, desc, eq, inArray, max, sql, type SQL } from "drizzle-orm";
 
@@ -14,6 +14,20 @@ export class MonitoringRepository {
     const [existing] = await this.database.select().from(weatherForecastSnapshot).where(and(eq(weatherForecastSnapshot.provider, value.provider), eq(weatherForecastSnapshot.sourceKey, value.sourceKey), eq(weatherForecastSnapshot.fingerprint, value.fingerprint))).limit(1);
     if (!existing) throw new Error("Forecast snapshot identity was not recoverable");
     return existing;
+  }
+
+  async storeOfficialAlerts(gardenId: string, values: NormalizedOfficialAlert[], retrievedAt = this.clock.now()) {
+    return await this.database.transaction(async (transaction) => {
+      const stored = [];
+      for (const value of values) {
+        const rows = await transaction.insert(weatherOfficialAlertSnapshot).values({ provider: value.provider, providerAlertId: value.providerAlertId, event: value.event, status: value.status, messageType: value.messageType, sentAt: new Date(value.sentAt), effectiveAt: new Date(value.effectiveAt), onsetAt: value.onsetAt ? new Date(value.onsetAt) : null, expiresAt: new Date(value.expiresAt), endsAt: value.endsAt ? new Date(value.endsAt) : null, retrievedAt, cancelled: value.cancelled, headline: value.headline, sourceUrl: value.sourceUrl, areaDescription: value.areaDescription }).onConflictDoNothing({ target: [weatherOfficialAlertSnapshot.provider, weatherOfficialAlertSnapshot.providerAlertId, weatherOfficialAlertSnapshot.sentAt] }).returning();
+        const [snapshot] = rows.length ? rows : await transaction.select().from(weatherOfficialAlertSnapshot).where(and(eq(weatherOfficialAlertSnapshot.provider, value.provider), eq(weatherOfficialAlertSnapshot.providerAlertId, value.providerAlertId), eq(weatherOfficialAlertSnapshot.sentAt, new Date(value.sentAt)))).limit(1);
+        if (!snapshot) throw new Error("Official alert snapshot identity was not recoverable");
+        await transaction.insert(weatherOfficialAlertGarden).values({ organizationId: this.organizationId, gardenId, alertSnapshotId: snapshot.id, matchedAt: retrievedAt }).onConflictDoNothing({ target: [weatherOfficialAlertGarden.gardenId, weatherOfficialAlertGarden.alertSnapshotId] });
+        stored.push(snapshot);
+      }
+      return stored;
+    });
   }
 
   async evaluate(input: { gardenId: string; hazard: "cold" | "heat" | "official_alert"; groupKey: string; observation: RiskObservation; snapshotId?: string; event?: TransitionEventFactory; resolutionConfirmations?: number }) {

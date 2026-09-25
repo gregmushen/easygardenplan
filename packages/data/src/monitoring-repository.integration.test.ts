@@ -1,4 +1,4 @@
-import { createDatabase, garden, gardenPlanVersion, gardenProgressEvent, notificationDeliveryIntent, notificationFeedEntry, organization, recommendationTransition, user, weatherForecastSnapshot } from "@easygardenplan/db";
+import { createDatabase, garden, gardenPlanVersion, gardenProgressEvent, notificationDeliveryIntent, notificationFeedEntry, organization, recommendationTransition, user, weatherForecastSnapshot, weatherOfficialAlertGarden, weatherOfficialAlertSnapshot } from "@easygardenplan/db";
 import { and, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { MonitoringRepository } from "./monitoring-repository.js";
@@ -51,6 +51,17 @@ suite("weather episode persistence", () => {
     const first = await repository!.storeForecast(forecast); const second = await repository!.storeForecast(forecast);
     expect(second.id).toBe(first.id);
     await database!.delete(weatherForecastSnapshot).where(eq(weatherForecastSnapshot.id, first.id));
+  });
+
+  it("retains normalized official cancellations and their point-matched garden", async () => {
+    const alert = { provider: "nws" as const, providerAlertId: `cancel-${nonce}`, event: "Freeze Warning", status: "Actual", messageType: "Cancel", sentAt: "2026-10-01T04:30:00.000Z", effectiveAt: "2026-10-01T04:30:00.000Z", onsetAt: null, expiresAt: "2026-10-01T12:00:00.000Z", endsAt: "2026-10-01T05:00:00.000Z", cancelled: true, headline: "Freeze Warning cancelled", sourceUrl: `https://api.weather.gov/alerts/cancel-${nonce}`, areaDescription: "Fixture County" };
+    const first = await repository!.storeOfficialAlerts(gardenId, [alert], new Date("2026-10-01T04:31:00.000Z"));
+    const repeat = await repository!.storeOfficialAlerts(gardenId, [alert], new Date("2026-10-01T04:32:00.000Z"));
+    expect(repeat[0]?.id).toBe(first[0]?.id);
+    expect(first[0]).toMatchObject({ cancelled: true, messageType: "Cancel", areaDescription: "Fixture County" });
+    expect(await database!.select().from(weatherOfficialAlertGarden).where(eq(weatherOfficialAlertGarden.alertSnapshotId, first[0]!.id))).toHaveLength(1);
+    await database!.delete(weatherOfficialAlertGarden).where(eq(weatherOfficialAlertGarden.alertSnapshotId, first[0]!.id));
+    await database!.delete(weatherOfficialAlertSnapshot).where(eq(weatherOfficialAlertSnapshot.id, first[0]!.id));
   });
 
   it("recovers an expired lease and keeps one idempotency key across provider retry", async () => {

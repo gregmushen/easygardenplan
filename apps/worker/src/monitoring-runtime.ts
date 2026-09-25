@@ -1,4 +1,4 @@
-import { planInputSnapshotSchema, type NormalizedForecast } from "@easygardenplan/contracts";
+import { planInputSnapshotSchema, type NormalizedForecast, type NormalizedOfficialAlert } from "@easygardenplan/contracts";
 import { MonitoringRepository } from "@easygardenplan/data";
 import { garden, gardenPlanVersion, gardenProgressEvent, type Database } from "@easygardenplan/db";
 import { evaluateColdRisk } from "@easygardenplan/domain";
@@ -23,13 +23,29 @@ export async function evaluateGardenWeather(input: { gardenId: string; environme
   if (!active) return { evaluated: 0, reason: "no_active_plan" as const };
   const snapshot = planInputSnapshotSchema.parse(active.inputSnapshot);
   let forecast: NormalizedForecast;
-  try {
-    forecast = input.environment.NWS_MODE === "live" ? await new NwsAdapter({ userAgent: input.environment.NWS_USER_AGENT ?? "easygardenplan.com (weather integration)", clock: context.clock }).forecast(Number(place.latitude), Number(place.longitude)) : fixtureForecast(context.clock.now());
-  } catch (error) {
-    if (!(error instanceof NwsAdapterError)) throw error;
-    const risks = await repository.listRisk(input.gardenId);
-    for (const risk of risks) await repository.evaluate({ gardenId: input.gardenId, hazard: risk.hazard as "cold" | "heat" | "official_alert", groupKey: risk.groupKey, observation: { status: "unavailable" } });
-    return { evaluated: risks.length, reason: error.reason };
+  let officialAlerts: NormalizedOfficialAlert[] = [];
+  let officialAlertsReason: "complete" | NwsAdapterError["reason"] = "complete";
+  if (input.environment.NWS_MODE === "live") {
+    const adapter = new NwsAdapter({ userAgent: input.environment.NWS_USER_AGENT ?? "easygardenplan.com (weather integration)", clock: context.clock });
+    const [forecastResult, alertResult] = await Promise.allSettled([adapter.forecast(Number(place.latitude), Number(place.longitude)), adapter.alerts(Number(place.latitude), Number(place.longitude))]);
+    if (alertResult.status === "fulfilled") {
+      officialAlerts = alertResult.value;
+      await repository.storeOfficialAlerts(input.gardenId, officialAlerts, context.clock.now());
+    } else {
+      const error = alertResult.reason;
+      if (!(error instanceof NwsAdapterError)) throw error;
+      officialAlertsReason = error.reason;
+    }
+    if (forecastResult.status === "rejected") {
+      const error = forecastResult.reason;
+      if (!(error instanceof NwsAdapterError)) throw error;
+      const risks = await repository.listRisk(input.gardenId);
+      for (const risk of risks) await repository.evaluate({ gardenId: input.gardenId, hazard: risk.hazard as "cold" | "heat" | "official_alert", groupKey: risk.groupKey, observation: { status: "unavailable" } });
+      return { evaluated: risks.length, reason: error.reason, officialAlertsStored: officialAlerts.length, officialAlertsReason };
+    }
+    forecast = forecastResult.value;
+  } else {
+    forecast = fixtureForecast(context.clock.now());
   }
   const stored = await repository.storeForecast(forecast);
   const events = await context.data.select().from(gardenProgressEvent).where(and(eq(gardenProgressEvent.organizationId, context.organizationId), eq(gardenProgressEvent.gardenId, input.gardenId))).orderBy(asc(gardenProgressEvent.createdAt));
@@ -54,7 +70,7 @@ export async function evaluateGardenWeather(input: { gardenId: string; environme
     await repository.evaluate({ gardenId: input.gardenId, hazard: "cold", groupKey, observation, snapshotId: stored.id, event: (payload) => publisher.statement(recommendationTransitionedEvent.name, payload, { idempotencyKey: `recommendation-transition:${payload.transitionId}`, causationId: context.event.id }) });
     evaluated++;
   }
-  return { evaluated, reason: evaluated ? "complete" as const : "no_applicable_rules" as const };
+  return { evaluated, reason: evaluated ? "complete" as const : "no_applicable_rules" as const, officialAlertsStored: officialAlerts.length, officialAlertsReason };
 }
 
 export async function handleWeatherEvaluationRequested(payload: { gardenId: string }, _envelope: unknown, environment: AuthEnvironment, context: EventHandlerContext<Database>): Promise<void> {
