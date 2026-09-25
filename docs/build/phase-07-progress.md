@@ -2,7 +2,7 @@
 
 Recorded: September 25, 2026
 
-Status: **in progress**. Deterministic monitoring, background authority, scheduling, NWS normalization, official cold-alert policy and transition persistence are implemented and verified. The phase remains open for a reviewed launch cold-response catalog, relocation/downgrade browser cases and deployed Queue evidence.
+Status: **in progress**. Deterministic monitoring, background authority, scheduling, NWS normalization, official cold-alert policy and transition persistence are implemented and verified. The phase remains open for a reviewed launch cold-response catalog and deployed Queue evidence.
 
 ## Implemented and proved
 
@@ -21,6 +21,8 @@ Status: **in progress**. Deterministic monitoring, background authority, schedul
 - A narrow due index stores garden/tenant IDs, location revision, due time and bounded lease state without coordinates. Platform discovery claims it with `SKIP LOCKED`, then opens tenant-scoped data to commit a tenant-provenanced evaluation event.
 - The evaluation consumer declares tenant authority and the current `weather.monitoring` entitlement. The framework re-verifies the committed event, tenant and current entitlement at each Queue/Workflow execution.
 - Monitoring eligibility is updated atomically when a garden's location or monitoring preference changes. Hourly scheduling is an application cron; Trestle's framework minute tick remains separate.
+- A PostgreSQL lifecycle test proves an incomplete garden has no due work; enabling monitoring at a confirmed location creates it; relocation advances the location revision, clears a previously claimed lease and resets failures; disabling removes it; and garden deletion removes it even after re-enabling.
+- Planting and task completion are re-read immediately before notification delivery and suppress obsolete warnings. The Workflow execution suite separately proves a Pro entitlement revoked after Queue creation prevents the handler from running, including resumed execution.
 - Staging and production explicitly select live NWS mode and fail closed when the provider's own update timestamp is more than six hours old. Local and preview environments retain deterministic fixture mode. The Queue-config test proves Trestle rendering preserves this application policy and the required NWS identity credential.
 - The protected staging provider workflow resolves the NWS identity through Trestle and performs bounded forecast and active-alert requests for one representative point before a staging release is accepted.
 - Free guidance and persisted monitoring status are visible in the garden. Pro evaluation requests are entitlement-gated at both HTTP and background boundaries.
@@ -41,5 +43,4 @@ References: [NWS API Web Service](https://www.weather.gov/documentation/services
 - Publish reviewed cold-response rules with stage thresholds/actions and run the representative nationwide matrix.
 - Reassess the six-hour `NWS_MAX_SOURCE_AGE_MINUTES` ceiling with staging observations before launch. Missing or invalid configuration still makes live source freshness unusable rather than assuming safety.
 - Validate NWS point matching against polygon/partial-area alerts in staging. The local policy, cancellation/expiry behavior and source-attributed customer display are covered; an empty active-alert response is deliberately not treated as an all-clear.
-- Exercise deletion, relocation, planting completion and entitlement downgrade between scheduling and execution.
 - Run the Queue and hourly application cron in staging with real runtime roles and retain a normalized live snapshot/evaluation trace there.
