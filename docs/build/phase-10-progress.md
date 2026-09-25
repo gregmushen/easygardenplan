@@ -4,7 +4,7 @@ Date: 2026-09-25
 
 ## Claim status
 
-**In progress.** The local product now makes accurate public claims, exposes a fail-closed product readiness result, and proves household deletion. Completion still requires deployed operational drills, production provider configuration, map attribution review against a live map, and a production backup/restore record.
+**In progress.** The local product now makes accurate public claims, exposes a fail-closed product readiness result, and proves household deletion. The provider-policy and print-export review is recorded in `maptiler-attribution-export-review.md`. Completion still requires deployed operational drills, production provider configuration, attribution review against a live paid-plan map, and a production backup/restore record.
 
 ## Implemented
 
@@ -33,7 +33,7 @@ Date: 2026-09-25
 
 - Exercise readiness in staging with real Geoapify, MapTiler, Exa, NWS, Resend, Stripe and Queue configuration.
 - Record distinct staging drills for stale weather, failed delivery, delayed billing and expired work.
-- Review live map attribution and provider export rights; printed garden diagrams currently contain application geometry only and no provider imagery.
+- Review attribution visually against a live paid-plan map; the policy and print-export rights review is complete and printed diagrams are enforced as application geometry without provider imagery.
 - Record a successful isolated production restore from the scheduled Trestle backup workflow.
 - Connect provider billing exports to the request-count snapshot so the operator view can report actual cost as well as usage.
 - Review production analytics/error tooling after it is selected; automated logger fixtures already cover credential and payload redaction.

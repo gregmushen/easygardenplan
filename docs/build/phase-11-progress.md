@@ -60,7 +60,7 @@ Stripe subscription reconciliation is now also queued after the signed receipt i
 
 - Obtain and configure Geoapify, restricted MapTiler, Exa, NWS, Resend and Stripe staging/production values; publish real reviewed climate and crop datasets.
 - Run the required end-to-end path in staging with real runtime roles, Queue delivery, scheduled monitoring, NWS retrieval, Stripe test state and an allowlisted Resend recipient.
-- Record live geocoder/tile attribution and export-rights review. Customer print output currently contains application geometry and no provider imagery.
+- Record live geocoder attribution and visually inspect tile attribution with the paid-plan key. The MapTiler policy/export review is recorded and customer print output is enforced as application geometry without provider imagery.
 - Complete keyboard, screen-reader, touch and supported browser/device review.
 - Measure provider requests and cost at the agreed launch volume; connect provider invoices/rate data to the aggregate usage snapshot.
 - Rehearse the supported prior-revision migration, run the protected production backup restore workflow, and record rollback/forward-recovery notes.

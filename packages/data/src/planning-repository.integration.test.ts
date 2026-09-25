@@ -63,6 +63,10 @@ suite("planning persistence and concurrency", () => {
     await expect(repository!.activate(gardenId, stale.id, stale.result.unresolved.map((item) => `${item.kind}:${item.selectionId}:${item.code}`))).rejects.toBeInstanceOf(PlanningConflictError);
     const [stored] = await database!.select({ state: gardenPlanVersion.state }).from(gardenPlanVersion).where(eq(gardenPlanVersion.id, stale.id)); expect(stored?.state).toBe("stale");
     const replacement = await repository!.generate(gardenId, 2027); await repository!.activate(gardenId, replacement.id, replacement.result.unresolved.map((item) => `${item.kind}:${item.selectionId}:${item.code}`));
+    const print = await repository!.printSvg(gardenId, replacement.id);
+    expect(print).toContain("provider imagery is excluded");
+    expect(print).not.toContain("<image");
+    expect(print).not.toMatch(/(?:href|src)=/u);
     expect(await progress!.listEvents(gardenId)).toEqual(expect.arrayContaining([expect.objectContaining({ eventType: "sown", planVersionId: first.id })]));
     expect((await repository!.listPlans(gardenId)).map(({ state }) => state)).toEqual(expect.arrayContaining(["active", "superseded", "stale"]));
     const nextRevisionId = id();

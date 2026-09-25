@@ -366,7 +366,7 @@ Implementation note: at the pinned baseline, `trestle plan init` rejects the sta
 - [ ] Add provider unit costs and budget thresholds after launch credentials and contracted rates are known.
 - [x] Add bounded operational replay/recovery actions that honor current authority, event age and recommendation validity.
 - [x] Review logs, analytics and error reporting for exact coordinates, addresses, email content and provider secrets.
-- [ ] Verify MapTiler attribution and ensure printed exports do not include provider imagery without established rights.
+- [x] Verify MapTiler attribution and ensure printed exports do not include provider imagery without established rights.
 
 ### Completion claim
 
