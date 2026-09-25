@@ -19,7 +19,7 @@
   },
   "capabilities": {
     "r2": false,
-    "queues": false,
+    "queues": true,
     "workflows": false,
     "durableObjects": false,
     "admin": false

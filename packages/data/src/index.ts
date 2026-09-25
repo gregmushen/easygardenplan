@@ -15,3 +15,4 @@ export * from "./fixtures/representative-climate.js";
 export * from "./bed-repository.js";
 export * from "./planning-repository.js";
 export * from "./progress-repository.js";
+export * from "./monitoring-repository.js";

@@ -67,7 +67,7 @@ test("rendered Worker config binds producer, consumer, and DLQ without a preview
 
 test("staging retains its cron trigger for scheduled delivery", () => {
   const rendered = JSON.parse(renderQueueConfig(wrangler, "staging", "example-worker-staging", { queues: true, r2: true, workflows: true }));
-  assert.deepEqual(rendered.env.staging.triggers.crons, ["* * * * *"]);
+  assert.deepEqual(rendered.env.staging.triggers.crons, ["0 * * * *", "* * * * *"]);
   assert.equal(rendered.env.preview.triggers, undefined);
 });
 

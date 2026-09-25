@@ -478,8 +478,8 @@ Update this table as the build progresses. Use `not started`, `in progress`, `bl
 | 4 Bed editor | In progress | Deterministic/editor proof: `docs/build/phase-04-progress.md`; touch and real measurement trials remain |
 | 5 Planner | In progress | Synthetic end-to-end proof: `docs/build/phase-05-progress.md`; real reviewed catalog/climate validation and override relationships remain |
 | 6 Progress | In progress | Deterministic product proof: `docs/build/phase-06-progress.md`; reconciliation UI, correction UI and accessibility/offline review remain |
-| 7 Monitoring | In progress | Implement persisted weather state, serialized transitions and NWS fixtures |
-| 8 Notifications | Not started | Depends on recommendation transitions |
+| 7 Monitoring | In progress | Deterministic/background proof: `docs/build/phase-07-progress.md`; reviewed rules, official-alert persistence and staging Queue evidence remain |
+| 8 Notifications | In progress | Build feed/delivery intents and transition-deduplicated email |
 | 9 Billing | Not started | Finish platform billing follow-ups |
 | 10 Public/operations | Not started | Build throughout; gate after product features |
 | 11 Launch | Not started | Full validation matrix |

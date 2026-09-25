@@ -1,5 +1,5 @@
 import type { Garden, CreateGarden, UpdateGarden } from "@easygardenplan/contracts";
-import { garden, type Database } from "@easygardenplan/db";
+import { garden, weatherLocationDue, type Database } from "@easygardenplan/db";
 import type { GardenRepository } from "@easygardenplan/domain";
 import { and, asc, eq, gt, or, sql, type SQL } from "drizzle-orm";
 
@@ -24,6 +24,7 @@ export class PostgresGardenRepository implements GardenRepository {
       await transaction.execute(this.events.statement("resource.garden.created", { resourceId: record.id }, {
         schemaVersion: 1, idempotencyKey: "resource.garden.created:" + record.id,
       }));
+      if (record.monitoringEnabled && record.locationConfirmed && record.latitude && record.longitude && record.timezone) await transaction.insert(weatherLocationDue).values({ gardenId: record.id, organizationId: this.organizationId, locationRevision: record.revision, nextDueAt: new Date(), updatedAt: new Date() });
       return record;
     });
   }
@@ -56,6 +57,9 @@ export class PostgresGardenRepository implements GardenRepository {
       await transaction.execute(this.events.statement("resource.garden.updated", { resourceId: record.id, revision: record.revision }, {
         schemaVersion: 1, idempotencyKey: "resource.garden.updated:" + record.id + ":" + record.revision,
       }));
+      if (record.monitoringEnabled && record.locationConfirmed && record.latitude && record.longitude && record.timezone) {
+        await transaction.insert(weatherLocationDue).values({ gardenId: record.id, organizationId: this.organizationId, locationRevision: record.revision, nextDueAt: new Date(), updatedAt: new Date() }).onConflictDoUpdate({ target: weatherLocationDue.gardenId, set: { locationRevision: record.revision, nextDueAt: new Date(), leaseToken: null, leaseExpiresAt: null, failureCount: 0, updatedAt: new Date() } });
+      } else await transaction.delete(weatherLocationDue).where(and(eq(weatherLocationDue.organizationId, this.organizationId), eq(weatherLocationDue.gardenId, record.id)));
       return record;
     });
   }

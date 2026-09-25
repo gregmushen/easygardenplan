@@ -24,6 +24,9 @@ import { locationRoutes } from "./location-routes.js";
 import { bedRoutes } from "./bed-routes.js";
 import { planningRoutes } from "./planning-routes.js";
 import { progressRoutes } from "./progress-routes.js";
+import { monitoringRoutes } from "./monitoring-routes.js";
+import { handleWeatherEvaluationRequested, weatherEvaluationRequestedConsumer } from "./monitoring-runtime.js";
+import { scheduleDueWeatherEvaluations } from "./monitoring-scheduler.js";
 import { auditTenantAction } from "./audit.js";
 import { requireExecutionContext, type AppVariables } from "./execution-context.js";
 import { mapHttpError } from "./http-errors.js";
@@ -499,6 +502,7 @@ app.get("/api/health/operational", (context) => context.json({
 
 /** Matches FRAMEWORK_MAINTENANCE_CRON in scripts/queue-config.mjs, which adds it to deployed Workers. */
 const frameworkMaintenanceCron = "* * * * *";
+const weatherMonitoringCron = "0 * * * *";
 const artifactIdPattern =/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
 
 // Artifacts are product resources: only application-plane authority grants them.
@@ -576,10 +580,12 @@ app.route("/", locationRoutes);
 app.route("/", bedRoutes);
 app.route("/", planningRoutes);
 app.route("/", progressRoutes);
+app.route("/", monitoringRoutes);
 
 eventConsumers.register(gardenCreatedEvent, handleGardenCreated, { authority: "tenant" });
 eventConsumers.register(gardenUpdatedEvent, handleGardenUpdated, { authority: "tenant" });
 eventConsumers.register(gardenDeletedEvent, handleGardenDeleted, { authority: "tenant" });
+eventConsumers.register(weatherEvaluationRequestedConsumer, handleWeatherEvaluationRequested, { authority: "tenant", requires: { entitlement: "weather.monitoring" } });
 
 type WorkerEnvironment = AuthEnvironment & { TRESTLE_EVENTS?: CloudflareQueueBinding<EventEnvelope | NativeWebhookWakeup>; TRESTLE_WORKFLOW?: CloudflareWorkflowBinding; TRESTLE_WORKFLOWS_ENABLED?: string };
 export default {
@@ -626,6 +632,12 @@ export default {
   scheduled: async (event: { cron?: string } | undefined, environment: WorkerEnvironment) => {
     // Application crons declared in wrangler.jsonc arrive with their own expression: handle them here.
     // Framework maintenance runs only on its own tick (or a local invocation that names no cron).
+    if (event?.cron === weatherMonitoringCron) {
+      const result = await scheduleDueWeatherEvaluations(environment);
+      createLogger({ environment: environment.APP_ENV ?? "local" }, undefined, { secretValues: loggerSecretsFromEnvironment(environment) }).info("weather.scheduling.completed", result);
+      if (result.failed > 0) throw new Error("Weather scheduling left incomplete work");
+      return;
+    }
     if (event?.cron !== undefined && event.cron !== frameworkMaintenanceCron) return;
     const log = createLogger({ environment: environment.APP_ENV ?? "local" }, undefined, { secretValues: loggerSecretsFromEnvironment(environment) });
     if (!environment.TRESTLE_EVENTS && !environment.TRESTLE_ARTIFACTS && environment.WEBHOOK_DELIVERY_MODE !== "local") {

@@ -49,7 +49,7 @@ describe("worker routes", () => {
 
   it("runs framework maintenance only on the framework tick", async () => {
     // Without bindings, maintenance throws, so resolving proves an application cron skipped it.
-    await expect(worker.scheduled({ cron: "0 * * * *" }, { ...environment, APP_ENV: "preview" })).resolves.toBeUndefined();
+    await expect(worker.scheduled({ cron: "15 * * * *" }, { ...environment, APP_ENV: "preview" })).resolves.toBeUndefined();
     await expect(worker.scheduled({ cron: "* * * * *" }, { ...environment, APP_ENV: "preview" })).rejects.toThrow("Queue or R2 binding");
   });
 

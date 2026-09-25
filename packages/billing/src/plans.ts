@@ -4,6 +4,7 @@ export const featureDefinitions = {
   "workflows.advanced": { description: "Advanced workflow automation", privileges: ["run", "manage"] },
   "members.unlimited": { description: "Unlimited organization members", privileges: ["invite"] },
   "support.priority": { description: "Priority support", privileges: ["request"] },
+  "weather.monitoring": { description: "Current weather recommendations and frost alerts", privileges: ["run"] },
 } as const;
 
 export type FeatureCode = keyof typeof featureDefinitions;
@@ -13,8 +14,8 @@ export type PlanDefinition = Readonly<{ version: number; lifecycle: PlanLifecycl
 
 export const plans = {
   starter: { version: 1, lifecycle: "active", entitlements: ["workspace.single", "article.basic"] },
-  pro: { version: 1, lifecycle: "active", entitlements: ["workspace.single", "article.basic", "workflows.advanced", "members.unlimited"] },
-  business: { version: 1, lifecycle: "active", entitlements: ["workspace.single", "article.basic", "workflows.advanced", "members.unlimited", "support.priority"] },
+  pro: { version: 1, lifecycle: "active", entitlements: ["workspace.single", "article.basic", "workflows.advanced", "members.unlimited", "weather.monitoring"] },
+  business: { version: 1, lifecycle: "active", entitlements: ["workspace.single", "article.basic", "workflows.advanced", "members.unlimited", "support.priority", "weather.monitoring"] },
 } as const satisfies Record<string, PlanDefinition>;
 
 export type PlanName = keyof typeof plans;

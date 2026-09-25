@@ -65,6 +65,18 @@ export const gardenDeletedApplicationEvent = defineEvent({
   resource: { type: "garden", id: (payload: { resourceId: string }) => payload.resourceId },
 
 });
+export const weatherEvaluationRequestedEvent = defineEvent({
+  name: "garden.weather_evaluation.requested", schemaVersion: 1,
+  description: "A private garden requested a fresh weather evaluation", sensitivity: "confidential",
+  payload: z.object({ gardenId: z.uuid(), reason: z.enum(["manual", "scheduled", "plan_activated", "progress_recorded", "location_changed", "recovery"]), requestedAt: z.iso.datetime() }),
+  resource: { type: "garden", id: (payload: { gardenId: string }) => payload.gardenId },
+});
+export const recommendationTransitionedEvent = defineEvent({
+  name: "garden.recommendation.transitioned", schemaVersion: 1,
+  description: "A garden recommendation entered a meaningful new state", sensitivity: "confidential",
+  payload: z.object({ gardenId: z.uuid(), episodeId: z.uuid(), recommendationVersionId: z.uuid(), transitionId: z.uuid(), kind: z.enum(["warning", "material_change", "resolution", "renewed_warning"]), riskRevision: z.number().int().positive() }),
+  resource: { type: "garden", id: (payload: { gardenId: string }) => payload.gardenId },
+});
 // trestle:resource-event-definitions
 export const applicationEventCatalog = defineEventCatalog([
   billingSubscriptionActivatedEvent,
@@ -77,5 +89,7 @@ export const applicationEventCatalog = defineEventCatalog([
   gardenCreatedApplicationEvent,
   gardenUpdatedApplicationEvent,
   gardenDeletedApplicationEvent,
+  weatherEvaluationRequestedEvent,
+  recommendationTransitionedEvent,
   // trestle:resource-event-list
 ]);

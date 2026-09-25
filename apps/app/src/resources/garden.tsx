@@ -8,6 +8,7 @@ import { LocationSetup } from "../location-setup.js";
 import { BedEditor } from "../bed-editor.js";
 import { PlanBuilder } from "../plan-builder.js";
 import { GardenCalendar } from "../garden-calendar.js";
+import { WeatherMonitoring } from "../weather-monitoring.js";
 
 const apiOrigin = (import.meta.env.VITE_API_ORIGIN as string | undefined)?.replace(/\/$/u, "") ?? "";
 type Workspace = { organizationId: string; gardenId: string };
@@ -81,5 +82,6 @@ export function GardenScreen() {
     {gardenQuery.data && workspace.data && <BedEditor garden={gardenQuery.data} organizationId={workspace.data.organizationId} />}
     {gardenQuery.data && workspace.data && <PlanBuilder garden={gardenQuery.data} organizationId={workspace.data.organizationId} />}
     {gardenQuery.data && workspace.data && <GardenCalendar garden={gardenQuery.data} organizationId={workspace.data.organizationId} />}
+    {gardenQuery.data && workspace.data && <WeatherMonitoring garden={gardenQuery.data} organizationId={workspace.data.organizationId} />}
   </section>;
 }

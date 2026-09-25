@@ -33,6 +33,9 @@ export interface AuthEnvironment {
   BILLING_RETURN_URL?: string;
   EXA_API_KEY?: string;
   GEOAPIFY_API_KEY?: string;
+  NWS_MODE?: "fixture" | "live";
+  NWS_USER_AGENT?: string;
+  NWS_MAX_SOURCE_AGE_MINUTES?: string;
   WEB_ORIGIN?: string;
   TRESTLE_ARTIFACTS?: R2BucketBinding;
   ARTIFACT_SIGNING_SECRET?: string;

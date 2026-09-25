@@ -18,6 +18,7 @@ import * as climateSchema from "./climate-schema.js";
 import * as bedSchema from "./bed-schema.js";
 import * as planningSchema from "./planning-schema.js";
 import * as progressSchema from "./progress-schema.js";
+import * as monitoringSchema from "./monitoring-schema.js";
 import * as outboxSchema from "./outbox-schema.js";
 import * as webhookSchema from "./webhook-schema.js";
 import * as webhookProjectionSchema from "./webhook-projection-schema.js";
@@ -56,6 +57,7 @@ export * from "./climate-schema.js";
 export * from "./bed-schema.js";
 export * from "./planning-schema.js";
 export * from "./progress-schema.js";
+export * from "./monitoring-schema.js";
 export * from "./outbox-schema.js";
 export * from "./webhook-schema.js";
 export * from "./webhook-projection-schema.js";
@@ -78,7 +80,7 @@ export * from "./outbox.js";
 export * from "./inbox.js";
 export * from "./tenancy.js";
 
-const schema = { ...accessSchema, ...assuranceSchema, ...auditSchema, ...platformSchema, ...authSchema, ...artifactSchema, ...artifactMaintenanceSchema, ...billingSchema, ...emailSchema, ...tenantSchema, ...knowledgeSchema, ...climateSchema, ...bedSchema, ...planningSchema, ...progressSchema, ...outboxSchema, ...webhookSchema, ...webhookProjectionSchema, ...webhookAttemptSchema, ...webhookSecretSchema };
+const schema = { ...accessSchema, ...assuranceSchema, ...auditSchema, ...platformSchema, ...authSchema, ...artifactSchema, ...artifactMaintenanceSchema, ...billingSchema, ...emailSchema, ...tenantSchema, ...knowledgeSchema, ...climateSchema, ...bedSchema, ...planningSchema, ...progressSchema, ...monitoringSchema, ...outboxSchema, ...webhookSchema, ...webhookProjectionSchema, ...webhookAttemptSchema, ...webhookSecretSchema };
 
 export type DatabaseDriver = "neon-http" | "neon-serverless" | "postgres-js";
 
