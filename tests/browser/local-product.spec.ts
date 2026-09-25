@@ -83,6 +83,8 @@ test("a new gardener receives one private workspace and can save the garden", as
   await expect(page.getByLabel("Outer boundary vertex 2 X")).not.toHaveValue("3");
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   await expect(page.getByLabel("Outer boundary vertex 2 X")).toHaveValue("3");
+  await page.getByLabel("Sunlight condition").selectOption("full_sun");
+  await page.getByLabel("Sunlight observed hours").fill("7");
   await page.getByRole("button", { name: "Save bed", exact: true }).click();
   await expect(page.getByText("Bed revision saved.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Main bed · revision 1" })).toBeVisible();

@@ -87,16 +87,16 @@ One platform detail needs an explicit implementation check: the merged replay ve
 
 ### Work
 
-- [ ] Record the exact Trestle source commit and package provenance.
-- [ ] Generate into a new empty directory named `easygardenplan`; do not generate over the populated planning directory.
-- [ ] Reconcile generated source into the intended repository while preserving `docs/planning` and `.gitignore`.
-- [ ] Initialize Git and establish the default branch and required CI checks.
-- [ ] Run the setup plan flow and review every proposed change before applying it.
-- [ ] Keep queues enabled. Enable R2 only when the first stored artifact needs it. Enable Workflows only for a demonstrated long-running flow. Keep unused capabilities off.
-- [ ] Configure local PostgreSQL, captured email, local billing and fixed-clock/provider fixture modes.
-- [ ] Define encrypted credential names for each environment; do not create a parallel plaintext secret system.
-- [ ] Add application-level test commands and a test-evidence convention that records skipped suites.
-- [ ] Run install, typecheck, test, build, architecture check and doctor on the untouched scaffold.
+- [x] Record the exact Trestle source commit and package provenance.
+- [x] Generate into a new empty directory named `easygardenplan`; do not generate over the populated planning directory.
+- [x] Reconcile generated source into the intended repository while preserving `docs/planning` and `.gitignore`.
+- [x] Initialize Git and establish the default branch and required CI checks.
+- [x] Run the setup plan flow and review every proposed change before applying it.
+- [x] Keep queues enabled. Enable R2 only when the first stored artifact needs it. Enable Workflows only for a demonstrated long-running flow. Keep unused capabilities off.
+- [x] Configure local PostgreSQL, captured email, local billing and fixed-clock/provider fixture modes.
+- [x] Define encrypted credential names for each environment; do not create a parallel plaintext secret system.
+- [x] Add application-level test commands and a test-evidence convention that records skipped suites.
+- [x] Run install, typecheck, test, build, architecture check and doctor on the untouched scaffold.
 
 ### Completion claim
 
@@ -116,14 +116,14 @@ Implementation note: at the pinned baseline, `trestle plan init` rejects the sta
 
 ### Work
 
-- [ ] Replace template product naming, sample navigation and sample entitlement codes.
-- [ ] Define application permissions for garden reading/editing and editorial publishing, separate from organization roles.
-- [ ] Implement idempotent default-household creation after account setup and select it automatically.
-- [ ] Hide organization terminology from the gardener-facing flow while retaining the tenant model.
-- [ ] Add the private `garden` aggregate with name, confirmed pin, timezone, display units, conditions, monitoring preference and revision.
-- [ ] Add authenticated garden routes, typed clients and the app shell/onboarding progress state.
-- [ ] Apply forced RLS, runtime grants and real database isolation tests.
-- [ ] Add account deletion semantics for garden-owned records and queued work.
+- [x] Replace template product naming, sample navigation and sample entitlement codes.
+- [x] Define application permissions for garden reading/editing and editorial publishing, separate from organization roles.
+- [x] Implement idempotent default-household creation after account setup and select it automatically.
+- [x] Hide organization terminology from the gardener-facing flow while retaining the tenant model.
+- [x] Add the private `garden` aggregate with name, confirmed pin, timezone, display units, conditions, monitoring preference and revision.
+- [x] Add authenticated garden routes, typed clients and the app shell/onboarding progress state.
+- [x] Apply forced RLS, runtime grants and real database isolation tests.
+- [x] Add account deletion semantics for garden-owned records and queued work.
 
 ### Completion claim
 
@@ -141,14 +141,14 @@ Implementation note: at the pinned baseline, `trestle plan init` rejects the sta
 
 ### Work
 
-- [ ] Implement shared schemas for crop, alias, variety, source, evidence, research run, rule family/version, review decision and catalog release.
-- [ ] Implement typed rule payloads and declarative applicability predicates from 07, including explicit known/not-applicable/unknown/conflicted states.
-- [ ] Add restricted editorial routes and screens for draft review, conflict resolution, publication, withdrawal and replacement.
-- [ ] Add the Exa adapter with deterministic fixtures, request fingerprints, provider-run tracking, resumability and cost accounting.
-- [ ] Add source-retrieval safeguards and keep customer data out of research requests.
-- [ ] Publish catalog releases atomically; expose only published data to ordinary users.
-- [ ] Build the coverage matrix by crop, method, rule type and regional/climate class.
-- [ ] Research a representative seed catalog that exercises every rule shape before scaling breadth.
+- [x] Implement shared schemas for crop, alias, variety, source, evidence, research run, rule family/version, review decision and catalog release.
+- [x] Implement typed rule payloads and declarative applicability predicates from 07, including explicit known/not-applicable/unknown/conflicted states.
+- [x] Add restricted editorial routes and screens for draft review, conflict resolution, publication, withdrawal and replacement.
+- [x] Add the Exa adapter with deterministic fixtures, request fingerprints, provider-run tracking, resumability and cost accounting.
+- [x] Add source-retrieval safeguards and keep customer data out of research requests.
+- [x] Publish catalog releases atomically; expose only published data to ordinary users.
+- [x] Build the coverage matrix by crop, method, rule type and regional/climate class.
+- [x] Research a representative seed catalog that exercises every rule shape before scaling breadth.
 - [ ] Expand the reviewed catalog toward launch coverage without treating fixture size as a product cap.
 
 ### Completion claim
@@ -168,13 +168,13 @@ Implementation note: at the pinned baseline, `trestle plan init` rejects the sta
 
 ### Work
 
-- [ ] Implement server-side Geoapify forward geocoding, candidate normalization, rate controls and manual-pin fallback.
-- [ ] Add MapLibre with an origin-restricted MapTiler key and correct attribution; support map and aerial layers.
-- [ ] Confirm timezone from location and allow correction.
-- [ ] Implement versioned USDA/OSU hardiness and NOAA climate/frost imports with staging, validation and atomic publication.
-- [ ] Persist garden climate associations with source version, match rationale, distance/elevation context and uncertainty.
-- [ ] Support user-supplied seasonal anchors with private provenance where data is unavailable or weak.
-- [ ] Add provider health, usage and freshness instrumentation without logging exact private locations.
+- [x] Implement server-side Geoapify forward geocoding, candidate normalization, rate controls and manual-pin fallback.
+- [x] Add MapLibre with an origin-restricted MapTiler key and correct attribution; support map and aerial layers.
+- [x] Confirm timezone from location and allow correction.
+- [x] Implement versioned USDA/OSU hardiness and NOAA climate/frost imports with staging, validation and atomic publication.
+- [x] Persist garden climate associations with source version, match rationale, distance/elevation context and uncertainty.
+- [x] Support user-supplied seasonal anchors with private provenance where data is unavailable or weak.
+- [x] Add provider health, usage and freshness instrumentation without logging exact private locations.
 
 ### Completion claim
 
@@ -193,14 +193,14 @@ Implementation note: at the pinned baseline, `trestle plan init` rejects the sta
 
 ### Work
 
-- [ ] Select and implement the local metric projection/transform, with numerical and longitude-wrap fixtures.
-- [ ] Implement immutable bed geometry revisions, outer polygons, exclusions, orientation, provenance and optimistic concurrency.
+- [x] Select and implement the local metric projection/transform, with numerical and longitude-wrap fixtures.
+- [x] Implement immutable bed geometry revisions, outer polygons, exclusions, orientation, provenance and optimistic concurrency.
 - [ ] Prototype Terra Draw on desktop and touch; adopt it only if the required interactions and accessibility alternatives hold.
 - [ ] Implement draw, close, move, add/delete vertex, exclusion, undo/redo, pan/edit modes and keyboard/field alternatives.
-- [ ] Validate self-intersections, degenerate edges, ring containment/overlap and supported request limits in browser and server.
+- [x] Validate self-intersections, degenerate edges, ring containment/overlap and supported request limits in browser and server.
 - [ ] Implement measured-edge calibration, translation and rotation with preview and explicit application.
-- [ ] Add manual sunlight observations and clear unknown state.
-- [ ] Generate an app-owned printable dimensioned bed diagram without provider imagery.
+- [x] Add manual sunlight observations and clear unknown state.
+- [x] Generate an app-owned printable dimensioned bed diagram without provider imagery.
 
 ### Completion claim
 
@@ -221,15 +221,15 @@ Implementation note: at the pinned baseline, `trestle plan init` rejects the sta
 ### Work
 
 - [ ] Add crop/variety/method selection, retained-plant quantity, soft/hard bed preferences and pinned positions.
-- [ ] Freeze `PlanInputSnapshot` with garden, geometry, selections, climate, catalog and algorithm versions.
+- [x] Freeze `PlanInputSnapshot` with garden, geometry, selections, climate, catalog and algorithm versions.
 - [ ] Implement rule resolution with selection traces, explicit conflicts and reviewed override relationships.
-- [ ] Implement local-date window evaluation for multiple seasons, cross-year windows, leap days and missing anchors.
-- [ ] Implement deterministic placement footprints, obstacles, exclusions, stable ordering and bounded search from 08.
-- [ ] Return requested/placed/unplaced counts and distinguish proven constraints from heuristic-search limits.
-- [ ] Persist immutable proposals, explanations and partial-result state.
-- [ ] Implement manual placement adjustment/pinning using the same validation rules.
-- [ ] Activate a proposal atomically against current revisions and create future tasks.
-- [ ] Detect stale asynchronous results; never auto-activate them.
+- [x] Implement local-date window evaluation for multiple seasons, cross-year windows, leap days and missing anchors.
+- [x] Implement deterministic placement footprints, obstacles, exclusions, stable ordering and bounded search from 08.
+- [x] Return requested/placed/unplaced counts and distinguish proven constraints from heuristic-search limits.
+- [x] Persist immutable proposals, explanations and partial-result state.
+- [x] Implement manual placement adjustment/pinning using the same validation rules.
+- [x] Activate a proposal atomically against current revisions and create future tasks.
+- [x] Detect stale asynchronous results; never auto-activate them.
 
 ### Completion claim
 
@@ -249,13 +249,13 @@ Implementation note: at the pinned baseline, `trestle plan init` rejects the sta
 
 ### Work
 
-- [ ] Implement task windows and dependencies using garden-local calendar dates.
-- [ ] Build calendar and This Week views with instructions and rule/evidence explanations.
-- [ ] Implement planted/completed/postponed/skipped transitions with expected revisions and actual dates.
-- [ ] Model sowing, emergence, transplant, harvest, removal and correction as distinct progress events.
-- [ ] Recalculate estimates from the matching actual-event anchor while preserving ranges and uncertainty.
-- [ ] Preserve actual planting positions/history across replanning and geometry changes; surface reconciliation conflicts.
-- [ ] Finish the staking print view with origin, orientation, dimensions, crop legend and unresolved-item notes.
+- [x] Implement task windows and dependencies using garden-local calendar dates.
+- [x] Build calendar and This Week views with instructions and rule/evidence explanations.
+- [x] Implement planted/completed/postponed/skipped transitions with expected revisions and actual dates.
+- [x] Model sowing, emergence, transplant, harvest, removal and correction as distinct progress events.
+- [x] Recalculate estimates from the matching actual-event anchor while preserving ranges and uncertainty.
+- [x] Preserve actual planting positions/history across replanning and geometry changes; surface reconciliation conflicts.
+- [x] Finish the staking print view with origin, orientation, dimensions, crop legend and unresolved-item notes.
 
 ### Completion claim
 
@@ -274,16 +274,16 @@ Implementation note: at the pinned baseline, `trestle plan init` rejects the sta
 
 ### Work
 
-- [ ] Adopt and verify the framework's tenant-authority handler API and provenance lifecycle in the generated application.
+- [x] Adopt and verify the framework's tenant-authority handler API and provenance lifecycle in the generated application.
 - [ ] Implement NWS forecast and official-alert adapters with normalized fixtures, source/retrieval freshness and coverage metadata.
-- [ ] Implement the narrow due-location index, leases, cursors and shared forecast cache.
-- [ ] Register private evaluation handlers with tenant authority and the Pro entitlement requirement.
-- [ ] Evaluate active plantings/future tasks only against published stage-specific rules and usable forecast intervals.
-- [ ] Persist risk state per garden, hazard and affected crop/stage group: unknown, clear, active and resolved.
-- [ ] Serialize episode transitions; emit warning, material-change, resolution and renewed-risk events exactly as defined in 09.
+- [x] Implement the narrow due-location index, leases, cursors and shared forecast cache.
+- [x] Register private evaluation handlers with tenant authority and the Pro entitlement requirement.
+- [x] Evaluate active plantings/future tasks only against published stage-specific rules and usable forecast intervals.
+- [x] Persist risk state per garden, hazard and affected crop/stage group: unknown, clear, active and resolved.
+- [x] Serialize episode transitions; emit warning, material-change, resolution and renewed-risk events exactly as defined in 09.
 - [ ] Implement hysteresis/confirmation policy from reviewed hazard rules to prevent threshold flapping.
-- [ ] Treat stale/unavailable data as unknown, never resolved.
-- [ ] Implement fresh authorized recovery rather than replaying expired advice.
+- [x] Treat stale/unavailable data as unknown, never resolved.
+- [x] Implement fresh authorized recovery rather than replaying expired advice.
 
 ### Completion claim
 
@@ -304,14 +304,14 @@ Implementation note: at the pinned baseline, `trestle plan init` rejects the sta
 ### Work
 
 - [ ] Implement notification preferences for urgent protection, routine guidance and digests, including timezone-aware quiet hours.
-- [ ] Commit recommendation versions, feed entries and outbox events atomically.
-- [ ] Create one delivery intent per transition, recipient and channel under a unique constraint.
+- [x] Commit recommendation versions, feed entries and outbox events atomically.
+- [x] Create one delivery intent per transition, recipient and channel under a unique constraint.
 - [ ] Coalesce affected crops for the same garden/action episode and exclude immediately emailed versions from digests.
-- [ ] Claim delivery intents with bounded leases/fencing and use stable provider idempotency keys.
+- [x] Claim delivery intents with bounded leases/fencing and use stable provider idempotency keys.
 - [ ] Recheck entitlement, preferences, current risk/recommendation state and affected task/planting immediately before send.
-- [ ] Project verified Resend receipts without regressing delivery state on out-of-order receipts.
-- [ ] Expose accepted, delivered, bounced, suppressed, failed and unknown outcomes operationally.
-- [ ] Send a resolution email only to a recipient whose warning was accepted/delivered according to the defined ambiguity policy.
+- [x] Project verified Resend receipts without regressing delivery state on out-of-order receipts.
+- [x] Expose accepted, delivered, bounced, suppressed, failed and unknown outcomes operationally.
+- [x] Send a resolution email only to a recipient whose warning was accepted/delivered according to the defined ambiguity policy.
 
 ### Completion claim
 
@@ -331,13 +331,13 @@ Implementation note: at the pinned baseline, `trestle plan init` rejects the sta
 
 ### Work
 
-- [ ] Define Free and Pro plan/entitlement codes and replace sample billing products.
+- [x] Define Free and Pro plan/entitlement codes and replace sample billing products.
 - [x] Complete or adopt durable queued billing reconciliation and local-adapter parity before paid launch.
 - [ ] Configure Stripe test products/prices and environment-specific webhook endpoints through Trestle's supported flow.
-- [ ] Build pricing, checkout, payment-processing return, subscription status and manage/cancel experiences.
-- [ ] Enforce entitlements independently from garden permissions at HTTP and background boundaries.
-- [ ] Define downgrade/grace behavior: stop new paid monitoring/delivery at the effective point while preserving Free data/history.
-- [ ] Add duplicate, delayed, out-of-order, replacement-subscription, provider-outage and recovery tests.
+- [x] Build pricing, checkout, payment-processing return, subscription status and manage/cancel experiences.
+- [x] Enforce entitlements independently from garden permissions at HTTP and background boundaries.
+- [x] Define downgrade/grace behavior: stop new paid monitoring/delivery at the effective point while preserving Free data/history.
+- [x] Add duplicate, delayed, out-of-order, replacement-subscription, provider-outage and recovery tests.
 
 ### Completion claim
 
@@ -357,13 +357,13 @@ Implementation note: at the pinned baseline, `trestle plan init` rejects the sta
 
 ### Work
 
-- [ ] Build the public site: value proposition, how it works, Free/Pro comparison, pricing and sourced general guidance.
-- [ ] Provide a representative sample plan without exposing private data or requiring sign-in.
-- [ ] Complete account, preferences, attribution, privacy, terms/support and deletion flows.
-- [ ] Add product-specific doctor/readiness checks for Geoapify, MapTiler, Exa, climate datasets, NWS, Stripe and Resend.
+- [x] Build the public site: value proposition, how it works, Free/Pro comparison, pricing and sourced general guidance.
+- [x] Provide a representative sample plan without exposing private data or requiring sign-in.
+- [x] Complete account, preferences, attribution, privacy, terms/support and deletion flows.
+- [x] Add product-specific doctor/readiness checks for Geoapify, MapTiler, Exa, climate datasets, NWS, Stripe and Resend.
 - [ ] Add dashboards/queries for crop coverage, forecast freshness, overdue eligible gardens, evaluation backlog, delivery outcomes, billing lag and provider usage/cost.
-- [ ] Add bounded operational replay/recovery actions that honor current authority, event age and recommendation validity.
-- [ ] Review logs, analytics and error reporting for exact coordinates, addresses, email content and provider secrets.
+- [x] Add bounded operational replay/recovery actions that honor current authority, event age and recommendation validity.
+- [x] Review logs, analytics and error reporting for exact coordinates, addresses, email content and provider secrets.
 - [ ] Verify MapTiler attribution and ensure printed exports do not include provider imagery without established rights.
 
 ### Completion claim
@@ -388,14 +388,14 @@ Locate a real test garden → draw and measure a concave bed → choose crops �
 
 ### Validation matrix
 
-- [ ] Cold continental, cool maritime, hot-summer, arid, high-elevation and frost-free settings.
-- [ ] Alaska and Hawaii; longitude wrapping, timezone and provider-coverage behavior.
-- [ ] Multiple planting seasons, cross-year windows, leap day and daylight-saving transitions.
-- [ ] Concave/excluded geometry, measured correction, stale edits, pinned placements and partial fit.
-- [ ] Missing/conflicted crop guidance and weak/unavailable climate association.
+- [x] Cold continental, cool maritime, hot-summer, arid, high-elevation and frost-free settings.
+- [x] Alaska and Hawaii; longitude wrapping, timezone and provider-coverage behavior.
+- [x] Multiple planting seasons, cross-year windows, leap day and daylight-saving transitions.
+- [x] Concave/excluded geometry, measured correction, stale edits, pinned placements and partial fit.
+- [x] Missing/conflicted crop guidance and weak/unavailable climate association.
 - [ ] Stale forecast, fresh retrieval of old data, missing forecast intervals and canceled official alerts.
-- [ ] Duplicate/concurrent jobs, expired provenance, provider outages and ambiguous email outcomes.
-- [ ] Duplicate/out-of-order billing and entitlement changes during queued work.
+- [x] Duplicate/concurrent jobs, expired provenance, provider outages and ambiguous email outcomes.
+- [x] Duplicate/out-of-order billing and entitlement changes during queued work.
 - [ ] Keyboard/touch/accessibility flows and supported browser/device matrix.
 - [ ] Provider usage and cost under representative load.
 
@@ -475,13 +475,13 @@ Update this table as the build progresses. Use `not started`, `in progress`, `bl
 | 1 Household/garden | Complete | Evidence: `docs/build/phase-01-evidence.md` |
 | 2 Knowledge | In progress | Deterministic pipeline proof: `docs/build/phase-02-progress.md`; live Exa run and reviewed catalog remain |
 | 3 Location/climate | In progress | Deterministic pipeline proof: `docs/build/phase-03-progress.md`; controlled providers and real datasets remain |
-| 4 Bed editor | In progress | Deterministic/editor proof: `docs/build/phase-04-progress.md`; touch and real measurement trials remain |
+| 4 Bed editor | In progress | Deterministic/editor proof: `docs/build/phase-04-progress.md`; physical mobile, screen-reader, print and real measurement trials remain |
 | 5 Planner | In progress | Synthetic end-to-end proof: `docs/build/phase-05-progress.md`; real reviewed catalog/climate validation and override relationships remain |
-| 6 Progress | In progress | Deterministic product proof: `docs/build/phase-06-progress.md`; reconciliation UI, correction UI and accessibility/offline review remain |
+| 6 Progress | In progress | Deterministic product proof: `docs/build/phase-06-progress.md`; accessibility/offline review and real catalog validation remain |
 | 7 Monitoring | In progress | Deterministic/background proof: `docs/build/phase-07-progress.md`; reviewed rules, official-alert persistence and staging Queue evidence remain |
-| 8 Notifications | In progress | Deterministic delivery proof: `docs/build/phase-08-progress.md`; digests, quiet hours, suppression coverage and staging delivery remain |
-| 9 Billing | In progress | Deterministic product proof: `docs/build/phase-09-progress.md`; queued reconciliation and controlled Stripe evidence remain |
-| 10 Public/operations | In progress | Local public/readiness/deletion proof: `docs/build/phase-10-progress.md`; staging drills, operator aggregation and restore evidence remain |
+| 8 Notifications | In progress | Deterministic delivery proof: `docs/build/phase-08-progress.md`; digests, quiet hours, planting/task suppression and staging delivery remain |
+| 9 Billing | In progress | Deterministic product proof: `docs/build/phase-09-progress.md`; controlled Stripe evidence remains |
+| 10 Public/operations | In progress | Local public/readiness/deletion/aggregate operations proof: `docs/build/phase-10-progress.md`; staging drills, provider cost and restore evidence remain |
 | 11 Launch | In progress | Local matrix and no-go review: `docs/build/phase-11-progress.md`; controlled staging/provider/accessibility/restore gates remain |
 
 ## 22. Deliberately deferred scope
