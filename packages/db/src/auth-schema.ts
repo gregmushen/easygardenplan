@@ -92,6 +92,7 @@ export const organization = pgTable(
     logo: text("logo"),
     createdAt: timestamp("created_at").notNull(),
     metadata: text("metadata"),
+    householdOwnerUserId: text("household_owner_user_id").unique().references(() => user.id, { onDelete: "cascade" }),
   },
   (table) => [uniqueIndex("organization_slug_uidx").on(table.slug)],
 );

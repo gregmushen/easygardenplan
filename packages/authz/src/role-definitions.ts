@@ -20,8 +20,11 @@ export const organizationRoles = defineRoles(permissions, "organization", {
  */
 export const applicationRoles = defineRoles(permissions, "application", {
   app_admin: { name: "Application administrator", description: "Every product action, including application-role assignment", permissions: inPlane("application") },
-  editor: { name: "Editor", description: "Creates and changes product resources", permissions: ["resource.read", "resource.write", "application.roles.read"] },
-  reader: { name: "Reader", description: "Read-only product access", permissions: ["resource.read"] },
+  gardener: { name: "Gardener", description: "Reads and changes the household garden", permissions: ["garden.read", "garden.write"] },
+  garden_reader: { name: "Garden reader", description: "Reads the household garden", permissions: ["garden.read"] },
+  catalog_editor: { name: "Crop catalog editor", description: "Publishes reviewed crop knowledge", permissions: ["catalog.publish"] },
+  editor: { name: "Editor", description: "Creates and changes generic product resources", permissions: ["resource.read", "resource.write", "application.roles.read"] },
+  reader: { name: "Reader", description: "Reads generic product resources", permissions: ["resource.read"] },
 });
 
 /**

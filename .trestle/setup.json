@@ -86,5 +86,30 @@
       "required": ["preview", "staging", "production"]
     }
   ],
-  "resources": []
+  "resources": [
+    {
+      "name": "Garden",
+      "tenant": true,
+      "crud": true,
+      "fields": [
+        { "name": "name", "type": "string", "required": true },
+        { "name": "latitude", "type": "string", "required": false },
+        { "name": "longitude", "type": "string", "required": false },
+        { "name": "timezone", "type": "string", "required": false },
+        { "name": "units", "type": "string", "required": false },
+        { "name": "conditions", "type": "text", "required": false },
+        { "name": "monitoringEnabled", "type": "boolean", "required": false },
+        { "name": "locationConfirmed", "type": "boolean", "required": false }
+      ],
+      "webhookEvents": [],
+      "authorization": {
+        "read": "garden.read",
+        "write": "garden.write"
+      },
+      "pagination": {
+        "defaultLimit": 25,
+        "maxLimit": 100
+      }
+    }
+  ]
 }

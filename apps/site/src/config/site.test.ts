@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import { appLink, navigation, site } from "./site";
 
-describe("Southwind public configuration", () => {
+describe("Easy Garden Plan public configuration", () => {
   it("centralizes starter identity", () => {
-    expect(site.name).toBe("Southwind");
+    expect(site.name).toBe("Easy Garden Plan");
     expect(navigation.map(({ href }) => href)).toEqual(["/features", "/pricing", "/about"]);
   });
 

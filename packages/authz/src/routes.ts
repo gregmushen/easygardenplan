@@ -23,6 +23,7 @@ export const customerRoutePolicies = defineRoutePolicies(permissions, [
   // Signed, expiring artifact downloads; the signature is the authority.
   { method: "GET", path: "/artifacts/:id", public: true, audience: "public" },
   { method: "GET", path: "/api/me", audience: "session" },
+  { method: "POST", path: "/api/workspace/bootstrap", audience: "session" },
 
   { method: "GET", path: "/api/tenant/access", audience: "tenant", permission: "organization.read" },
   { method: "GET", path: "/api/tenant/application-role-assignments", audience: "tenant", permission: "application.roles.read" },
@@ -56,6 +57,12 @@ export const customerRoutePolicies = defineRoutePolicies(permissions, [
   { method: "POST", path: "/api/artifacts", audience: "tenant", permission: "resource.write" },
   { method: "GET", path: "/api/artifacts/:id/access", audience: "tenant", permission: "resource.read" },
   { method: "DELETE", path: "/api/artifacts/:id", audience: "tenant", permission: "resource.write" },
+
+  { method: "GET", path: "/api/gardens", audience: "tenant", permission: "garden.read" },
+  { method: "POST", path: "/api/gardens", audience: "tenant", permission: "garden.write" },
+  { method: "GET", path: "/api/gardens/:id", audience: "tenant", permission: "garden.read" },
+  { method: "PATCH", path: "/api/gardens/:id", audience: "tenant", permission: "garden.write" },
+  { method: "DELETE", path: "/api/gardens/:id", audience: "tenant", permission: "garden.write" },
 ]);
 
 /** Generated tenant resources without an explicit policy read with resource.read and mutate with resource.write. */

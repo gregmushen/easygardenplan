@@ -1,0 +1,3 @@
+ALTER TABLE "organization" ADD COLUMN "household_owner_user_id" text;--> statement-breakpoint
+ALTER TABLE "organization" ADD CONSTRAINT "organization_household_owner_user_id_user_id_fk" FOREIGN KEY ("household_owner_user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "organization" ADD CONSTRAINT "organization_household_owner_user_id_unique" UNIQUE("household_owner_user_id");

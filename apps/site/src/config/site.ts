@@ -1,7 +1,7 @@
 export const site = {
-  name: "Southwind",
-  description: "A simpler way for teams to organize work, automate routine processes, and stay aligned.",
-  tagline: "Run your business without fighting your software.",
+  name: "Easy Garden Plan",
+  description: "Map your garden, choose what to grow, and get a planting schedule shaped by your location.",
+  tagline: "A practical garden plan for your exact patch of ground.",
   socialImage: "/social-preview.svg",
 } as const;
 

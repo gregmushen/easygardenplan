@@ -239,6 +239,34 @@
       "when": 1790316985968,
       "tag": "0033_jazzy_lilith",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1790332843889,
+      "tag": "0034_complete_expediter",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1790332986123,
+      "tag": "0035_special_ink",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1790333022989,
+      "tag": "0036_low_virginia_dare",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1790333301070,
+      "tag": "0037_charming_moondragon",
+      "breakpoints": true
     }
   ]
 }

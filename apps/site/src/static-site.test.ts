@@ -17,7 +17,7 @@ async function listFiles(directory: string): Promise<string[]> {
   }))).flat();
 }
 
-describe("Southwind static output", () => {
+describe("Easy Garden Plan static output", () => {
   beforeAll(async () => {
     await execFileAsync("pnpm", ["exec", "astro", "build"], {
       cwd: root,
@@ -42,7 +42,7 @@ describe("Southwind static output", () => {
     const pricing = await readFile(path.join(output, "pricing", "index.html"), "utf8");
     expect(home).toContain('href="http://localhost:42069/sign-in"');
     expect(home).toContain('href="http://localhost:42069/sign-up"');
-    expect(pricing).toContain('href="http://localhost:42069/sign-up?plan=starter"');
+    expect(pricing).toContain('href="http://localhost:42069/sign-up?plan=free"');
     expect(pricing).toContain('href="http://localhost:42069/sign-up?plan=pro"');
   });
 

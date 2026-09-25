@@ -1,0 +1,69 @@
+import type { Garden, CreateGarden, UpdateGarden } from "@easygardenplan/contracts";
+import { garden, type Database } from "@easygardenplan/db";
+import type { GardenRepository } from "@easygardenplan/domain";
+import { and, asc, eq, gt, or, sql, type SQL } from "drizzle-orm";
+
+type ResourceEvents = { statement(name: string, payload: unknown, options: { schemaVersion?: number; idempotencyKey: string }): SQL };
+
+export class PostgresGardenRepository implements GardenRepository {
+  constructor(private readonly database: Database, private readonly organizationId: string, private readonly events: ResourceEvents) {}
+  async list(input: { cursor?: string; limit: number }): Promise<{ items: Garden[]; nextCursor?: string }> {
+    const rows = await this.database.select().from(garden).where(and(eq(garden.organizationId, this.organizationId), input.cursor ? gt(garden.id, input.cursor) : undefined)).orderBy(asc(garden.id)).limit(input.limit + 1);
+    const hasMore = rows.length > input.limit;
+    const items = hasMore ? rows.slice(0, input.limit) : rows;
+    return { items, ...(hasMore && items.at(-1) ? { nextCursor: items.at(-1)!.id } : {}) };
+  }
+  async get(id: string): Promise<Garden | null> {
+    const [record] = await this.database.select().from(garden).where(and(eq(garden.id, id), eq(garden.organizationId, this.organizationId))).limit(1);
+    return record ?? null;
+  }
+  async create(input: CreateGarden): Promise<Garden> {
+    return this.database.transaction(async (transaction) => {
+      const [record] = await transaction.insert(garden).values({ ...input, organizationId: this.organizationId }).returning();
+      if (!record) throw new Error("Failed to create Garden");
+      await transaction.execute(this.events.statement("resource.garden.created", { resourceId: record.id }, {
+        schemaVersion: 1, idempotencyKey: "resource.garden.created:" + record.id,
+      }));
+      return record;
+    });
+  }
+  async update(id: string, input: UpdateGarden): Promise<Garden | null> {
+    return this.database.transaction(async (transaction) => {
+      const changed = or(
+        input.name !== undefined ? sql`${garden.name} is distinct from ${input.name}` : undefined,
+        input.latitude !== undefined ? sql`${garden.latitude} is distinct from ${input.latitude}` : undefined,
+        input.longitude !== undefined ? sql`${garden.longitude} is distinct from ${input.longitude}` : undefined,
+        input.timezone !== undefined ? sql`${garden.timezone} is distinct from ${input.timezone}` : undefined,
+        input.units !== undefined ? sql`${garden.units} is distinct from ${input.units}` : undefined,
+        input.conditions !== undefined ? sql`${garden.conditions} is distinct from ${input.conditions}` : undefined,
+        input.monitoringEnabled !== undefined ? sql`${garden.monitoringEnabled} is distinct from ${input.monitoringEnabled}` : undefined,
+        input.locationConfirmed !== undefined ? sql`${garden.locationConfirmed} is distinct from ${input.locationConfirmed}` : undefined,
+      );
+      if (!changed) {
+        const [record] = await transaction.select().from(garden).where(and(eq(garden.id, id), eq(garden.organizationId, this.organizationId))).limit(1);
+        return record ?? null;
+      }
+      const [record] = await transaction.update(garden)
+        .set({ ...input, revision: sql`${garden.revision} + 1`, updatedAt: new Date() })
+        .where(and(eq(garden.id, id), eq(garden.organizationId, this.organizationId), changed)).returning();
+      if (!record) {
+        const [current] = await transaction.select().from(garden).where(and(eq(garden.id, id), eq(garden.organizationId, this.organizationId))).limit(1);
+        return current ?? null;
+      }
+      await transaction.execute(this.events.statement("resource.garden.updated", { resourceId: record.id, revision: record.revision }, {
+        schemaVersion: 1, idempotencyKey: "resource.garden.updated:" + record.id + ":" + record.revision,
+      }));
+      return record;
+    });
+  }
+  async remove(id: string): Promise<boolean> {
+    return this.database.transaction(async (transaction) => {
+      const [record] = await transaction.delete(garden).where(and(eq(garden.id, id), eq(garden.organizationId, this.organizationId))).returning();
+      if (!record) return false;
+      await transaction.execute(this.events.statement("resource.garden.deleted", { resourceId: record.id, revision: record.revision }, {
+        schemaVersion: 1, idempotencyKey: "resource.garden.deleted:" + record.id,
+      }));
+      return true;
+    });
+  }
+}

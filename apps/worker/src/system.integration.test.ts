@@ -62,6 +62,25 @@ suite("local product path", () => {
       const cookie = signIn.headers.get("set-cookie")?.split(";")[0];
       expect(cookie).toBeTruthy();
 
+      // A verified account receives one private household and garden without a subscription.
+      const bootstrap = await app.request("http://localhost:8787/api/workspace/bootstrap", {
+        method: "POST", headers: { origin: environment.WEB_ORIGIN, cookie: cookie! },
+      }, environment);
+      expect(bootstrap.status).toBe(200);
+      const workspace = (await bootstrap.json() as { workspace: { organizationId: string; gardenId: string } }).workspace;
+      const gardenHeaders = { origin: environment.WEB_ORIGIN, cookie: cookie!, "x-trestle-tenant": workspace.organizationId };
+      const initialGarden = await app.request(`http://localhost:8787/api/gardens/${workspace.gardenId}`, { headers: gardenHeaders }, environment);
+      expect(initialGarden.status).toBe(200);
+      await expect(initialGarden.json()).resolves.toMatchObject({ garden: { id: workspace.gardenId, name: "My Garden" } });
+      const savedGarden = await app.request(`http://localhost:8787/api/gardens/${workspace.gardenId}`, {
+        method: "PATCH", headers: { ...gardenHeaders, "content-type": "application/json" }, body: JSON.stringify({ name: "Backyard Garden", timezone: "America/Los_Angeles" }),
+      }, environment);
+      expect(savedGarden.status).toBe(200);
+      await expect(savedGarden.json()).resolves.toMatchObject({ garden: { name: "Backyard Garden", timezone: "America/Los_Angeles", revision: 2 } });
+      const freeBilling = await app.request("http://localhost:8787/api/billing/subscription", { headers: gardenHeaders }, environment);
+      expect(freeBilling.status).toBe(200);
+      await expect(freeBilling.json()).resolves.toMatchObject({ subscription: null });
+
       const create = await app.request("http://localhost:8787/api/auth/organization/create", {
         method: "POST", headers: { "content-type": "application/json", origin: environment.WEB_ORIGIN, cookie: cookie! },
         body: JSON.stringify({ name: "System Test Organization", slug }),

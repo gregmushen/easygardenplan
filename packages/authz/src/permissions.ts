@@ -24,6 +24,9 @@ export const permissions = definePermissions({
   "organization.webhooks.replay": { plane: "organization", description: "Replay a failed webhook delivery while its payload is retained" },
   "organization.settings.manage": { plane: "organization", description: "Change organization settings such as regional defaults" },
 
+  "garden.read": { plane: "application", description: "Read the household garden plan", principals: ["user", "api_key"] },
+  "garden.write": { plane: "application", description: "Change the household garden plan", principals: ["user", "api_key"] },
+  "catalog.publish": { plane: "application", description: "Publish reviewed crop knowledge" },
   "resource.read": { plane: "application", description: "Read tenant-owned application resources", principals: ["user", "api_key"] },
   "resource.write": { plane: "application", description: "Create, update, and delete tenant-owned application resources", principals: ["user", "api_key"] },
   "application.roles.read": { plane: "application", description: "List application-role assignments in the organization" },

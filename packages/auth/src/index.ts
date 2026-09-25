@@ -8,6 +8,8 @@ import { eq, sql } from "drizzle-orm";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { createAuthMiddleware } from "better-auth/api";
 import { organization } from "better-auth/plugins";
+export { deleteDefaultHouseholds, ensureDefaultHousehold, type DefaultHousehold } from "./household.js";
+import { deleteDefaultHouseholds, ensureDefaultHousehold } from "./household.js";
 
 export interface AuthEnvironment {
   DATABASE_URL: string;
@@ -55,7 +57,7 @@ export function createAuth(environment: AuthEnvironment, options: AuthOptions = 
     ...(environment.EMAIL_STAGING_REDIRECT ? { stagingRedirect: environment.EMAIL_STAGING_REDIRECT } : {}),
   });
   return betterAuth({
-    appName: "easygardenplan",
+    appName: "Easy Garden Plan",
     baseURL,
     secret: environment.BETTER_AUTH_SECRET,
     trustedOrigins: [baseURL, webOrigin],
@@ -108,11 +110,17 @@ export function createAuth(environment: AuthEnvironment, options: AuthOptions = 
           // and its assurance row still exist; inside one (passkey registration with createSession)
           // Better Auth defers it until the transaction commits.
           after: async (created, context) => {
+            await ensureDefaultHousehold(createDatabase(environment.DATABASE_URL, environment.DATABASE_DRIVER), created.userId);
             await recordSessionAssurance(createDatabase(environment.DATABASE_URL, environment.DATABASE_DRIVER), environment, created, context?.context.session?.session ?? null, context?.path ?? "");
           },
         },
       },
       user: {
+        delete: {
+          before: async (deleted) => {
+            await deleteDefaultHouseholds(createDatabase(environment.DATABASE_URL, environment.DATABASE_DRIVER), deleted.id);
+          },
+        },
         update: {
           // Enrollment completes when the first code verifies; sign-in challenges never update the user.
           after: async (user, context) => {

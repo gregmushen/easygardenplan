@@ -44,6 +44,27 @@ function billingInvoiceEvent(name: string, description: string) {
 export const billingInvoicePaidEvent = billingInvoiceEvent("billing.invoice.paid", "A subscription invoice was paid");
 export const billingInvoicePaymentFailedEvent = billingInvoiceEvent("billing.invoice.payment_failed", "A subscription invoice payment failed");
 
+export const gardenCreatedApplicationEvent = defineEvent({
+  name: "resource.garden.created", schemaVersion: 1,
+  description: "A Garden resource was created.", sensitivity: "internal",
+  payload: z.object({ resourceId: z.uuid() }),
+  resource: { type: "garden", id: (payload: { resourceId: string }) => payload.resourceId },
+
+});
+export const gardenUpdatedApplicationEvent = defineEvent({
+  name: "resource.garden.updated", schemaVersion: 1,
+  description: "A Garden resource was updated.", sensitivity: "internal",
+  payload: z.object({ resourceId: z.uuid(), revision: z.number().int().positive() }),
+  resource: { type: "garden", id: (payload: { resourceId: string }) => payload.resourceId },
+
+});
+export const gardenDeletedApplicationEvent = defineEvent({
+  name: "resource.garden.deleted", schemaVersion: 1,
+  description: "A Garden resource was deleted.", sensitivity: "internal",
+  payload: z.object({ resourceId: z.uuid(), revision: z.number().int().positive() }),
+  resource: { type: "garden", id: (payload: { resourceId: string }) => payload.resourceId },
+
+});
 // trestle:resource-event-definitions
 export const applicationEventCatalog = defineEventCatalog([
   billingSubscriptionActivatedEvent,
@@ -53,5 +74,8 @@ export const applicationEventCatalog = defineEventCatalog([
   billingCheckoutCompletedEvent,
   billingInvoicePaidEvent,
   billingInvoicePaymentFailedEvent,
+  gardenCreatedApplicationEvent,
+  gardenUpdatedApplicationEvent,
+  gardenDeletedApplicationEvent,
   // trestle:resource-event-list
 ]);

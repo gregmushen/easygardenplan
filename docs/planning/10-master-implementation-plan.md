@@ -472,8 +472,8 @@ Update this table as the build progresses. Use `not started`, `in progress`, `bl
 | Phase | Status | Evidence / next action |
 |---|---|---|
 | 0 Scaffold | Complete | Evidence: `docs/build/phase-00-evidence.md` |
-| 1 Household/garden | In progress | Implement automatic household and private Garden aggregate |
-| 2 Knowledge | Not started | Schema and research fixtures |
+| 1 Household/garden | Complete | Evidence: `docs/build/phase-01-evidence.md` |
+| 2 Knowledge | In progress | Implement versioned crop knowledge and provenance import |
 | 3 Location/climate | Not started | Provider configuration and imports |
 | 4 Bed editor | Not started | Geometry prototype |
 | 5 Planner | Not started | Depends on published rules, climate and geometry |

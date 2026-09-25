@@ -119,3 +119,4 @@ export function createPlatformDatabase(connectionString: string, driver: Databas
 }
 
 export type Database = ReturnType<typeof createDatabase>;
+export * from "./garden-schema.js";

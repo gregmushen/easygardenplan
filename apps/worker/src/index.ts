@@ -1,7 +1,9 @@
+import { gardenCreatedEvent, gardenUpdatedEvent, gardenDeletedEvent, handleGardenCreated, handleGardenUpdated, handleGardenDeleted } from "./resources/garden-events.js";
+import { gardenRoutes } from "./resources/garden-routes.js";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 
-import { createAuth, type AuthEnvironment } from "@easygardenplan/auth";
+import { createAuth, ensureDefaultHousehold, type AuthEnvironment } from "@easygardenplan/auth";
 import { getPlan, planEntitlements, plans } from "@easygardenplan/billing";
 import { healthResponseSchema } from "@easygardenplan/contracts";
 import { createLogger, createMetrics, loggerSecretsFromEnvironment, safeErrorDiagnostic } from "@easygardenplan/context";
@@ -447,6 +449,15 @@ app.on(["GET", "POST"], "/api/auth/*", (context) =>
   createAuth(context.env, { correlationId: context.get("correlationId") }).handler(context.req.raw),
 );
 
+app.post("/api/workspace/bootstrap", async (context) => {
+  const expectedOrigin = context.env.WEB_ORIGIN ?? context.env.BETTER_AUTH_URL ?? "http://localhost:42069";
+  if (context.req.header("origin") !== expectedOrigin) return context.json({ error: "Invalid request origin" }, 403);
+  const current = await createAuth(context.env, { correlationId: context.get("correlationId") }).api.getSession({ headers: context.req.raw.headers });
+  if (!current) return context.json({ error: "Unauthorized" }, 401);
+  const workspace = await ensureDefaultHousehold(createDatabase(context.env.DATABASE_URL, context.env.DATABASE_DRIVER), current.user.id);
+  return context.json({ workspace });
+});
+
 app.route("/", accessRoutes);
 app.route("/", machineAccessRoutes);
 app.route("/", regionalRoutes);
@@ -553,6 +564,12 @@ app.onError((error, context) => {
   createLogger({ correlationId: context.get("correlationId") }, undefined, { secretValues: loggerSecretsFromEnvironment(context.env) }).error("http.request.failed", { code: mapped.code, retryable: mapped.retryable, durationMs: Date.now() - context.get("requestStartedAt"), ...safeErrorDiagnostic(error) });
   return context.json({ error: mapped.code, message: mapped.message, retryable: mapped.retryable }, mapped.status);
 });
+
+app.route("/", gardenRoutes);
+
+eventConsumers.register(gardenCreatedEvent, handleGardenCreated, { authority: "tenant" });
+eventConsumers.register(gardenUpdatedEvent, handleGardenUpdated, { authority: "tenant" });
+eventConsumers.register(gardenDeletedEvent, handleGardenDeleted, { authority: "tenant" });
 
 type WorkerEnvironment = AuthEnvironment & { TRESTLE_EVENTS?: CloudflareQueueBinding<EventEnvelope | NativeWebhookWakeup>; TRESTLE_WORKFLOW?: CloudflareWorkflowBinding; TRESTLE_WORKFLOWS_ENABLED?: string };
 export default {

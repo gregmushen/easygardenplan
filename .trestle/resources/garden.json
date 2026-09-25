@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 2,
+  "name": "Garden",
+  "tenant": true,
+  "crud": true,
+  "fields": [
+    {
+      "name": "name",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "latitude",
+      "type": "string",
+      "required": false
+    },
+    {
+      "name": "longitude",
+      "type": "string",
+      "required": false
+    },
+    {
+      "name": "timezone",
+      "type": "string",
+      "required": false
+    },
+    {
+      "name": "units",
+      "type": "string",
+      "required": false
+    },
+    {
+      "name": "conditions",
+      "type": "text",
+      "required": false
+    },
+    {
+      "name": "monitoringEnabled",
+      "type": "boolean",
+      "required": false
+    },
+    {
+      "name": "locationConfirmed",
+      "type": "boolean",
+      "required": false
+    }
+  ],
+  "webhookEvents": [],
+  "authorization": {
+    "read": "garden.read",
+    "write": "garden.write"
+  },
+  "pagination": {
+    "defaultLimit": 25,
+    "maxLimit": 100
+  },
+  "persistence": {
+    "table": "garden",
+    "schema": "packages/db/src/garden-schema.ts"
+  },
+  "contracts": "packages/contracts/src/resources/garden.ts",
+  "files": [
+    "packages/contracts/src/resources/garden.ts",
+    "packages/domain/src/resources/garden.ts",
+    "packages/data/src/resources/garden-repository.ts",
+    "packages/db/src/garden-schema.ts",
+    "apps/worker/src/resources/garden-routes.ts",
+    "apps/app/src/resources/garden.tsx",
+    "packages/contracts/src/resources/garden.test.ts",
+    "packages/db/src/garden-rls.integration.test.ts",
+    "apps/app/src/api/garden.ts",
+    "apps/worker/src/resources/garden-events.ts",
+    "packages/data/src/resources/garden-events.integration.test.ts"
+  ],
+  "registrations": [
+    "apps/worker/src/index.ts",
+    "apps/app/src/main.tsx"
+  ],
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/api/gardens",
+      "auth": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/gardens",
+      "auth": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/gardens/:id",
+      "auth": true
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/gardens/:id",
+      "auth": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/gardens/:id",
+      "auth": true
+    }
+  ]
+}

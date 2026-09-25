@@ -26,5 +26,5 @@ test("Southwind hands off to hydrated app routes and browser-accessible API", as
 
   await page.goto(new URL("/settings/billing", appURL).toString());
   await expect(page.getByRole("heading", { name: "Plan and usage" })).toBeVisible();
-  await expect(page.getByText("Select an organization to view billing.")).toBeVisible();
+  await expect(page.getByText("Sign in to view plan details.")).toBeVisible();
 });
