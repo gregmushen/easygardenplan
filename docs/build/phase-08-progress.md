@@ -21,6 +21,7 @@ Status: **in progress**. Transition-deduplicated feed entries, email intents, fe
 - PostgreSQL integration proves concurrent weather evaluation creates one warning/feed/intent, a delivered warning permits one resolution intent, renewed risk creates one new intent, concurrent claims have one winner, a stale token cannot complete, and an out-of-order accepted receipt cannot regress delivered state.
 - The local notification runtime integration proves duplicate handling emits one warning, continuing risk emits none, resolution emits one clear message, an obsolete warning is suppressed before send, and a preference disabled after intent creation is honored before send.
 - Lease recovery fixtures prove an expired worker loses its fencing token, a later worker can reclaim the intent, and provider retry reuses the stable provider idempotency key with a new attempt token.
+- The product operations report exposes privacy-safe totals for every delivery state, suppression reasons and hourly outcome history for the latest seven days. It does not include recipient addresses or recommendation content.
 
 ## Validation
 
@@ -33,5 +34,4 @@ Status: **in progress**. Transition-deduplicated feed entries, email intents, fe
 - Implement routine/digest aggregation and prove immediately emailed versions cannot appear in a digest.
 - Decide whether a future scheduler should delay non-urgent messages until the quiet window ends. The launch-safe behavior currently suppresses them explicitly rather than scheduling provider delivery that cannot be rechecked at send time.
 - Define task-level applicability for recommendations that identify tasks rather than plantings. Planting completion, supersession and preferences are rechecked in the claim transaction, garden deletion cascades pending intents, and entitlement downgrade is enforced by the event runtime.
-- Expose delivery outcome history to operators, including suppressed, bounce, complaint and permanently failed cases.
 - Run a controlled staging send to an allowlisted recipient and retain provider acceptance and webhook-delivery evidence separately.
