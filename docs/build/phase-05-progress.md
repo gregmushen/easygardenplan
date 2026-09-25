@@ -6,7 +6,7 @@ Status: **in progress**. The complete synthetic product path is implemented and 
 
 ## Implemented and proved
 
-- Tenant-safe crop selections include method, retained-plant quantity, priority, soft/only bed preference and optimistic revisions.
+- Tenant-safe crop selections include an optional published variety, method, retained-plant quantity, priority, soft/only bed preference and optimistic revisions. The variety picker appears only when the selected crop has reviewed published varieties.
 - Immutable plan versions freeze the garden revision, bed geometry revisions, selection revisions, climate association, catalog release, season year, timezone and algorithm version.
 - The deterministic `grid-v1` planner uses full spacing footprints, polygon containment, exclusions, pairwise clearance, stable ordering and a bounded effort budget.
 - Missing and conflicting spacing/window rules remain explicit. Requested quantity always equals placed plus unplaced quantity, and heuristic exhaustion has a distinct reason from missing constraints.
@@ -22,6 +22,5 @@ Status: **in progress**. The complete synthetic product path is implemented and 
 ## Remaining exit evidence
 
 - Publish and validate a real reviewed catalog with launch crop/method/region coverage after Exa access and source review are available.
-- Add variety selection to the customer picker once published varieties exist.
 - Validate the representative nationwide matrix against real climate imports and reviewed horticultural cases.
 - Phase 6 owns creation of executable future tasks from an activated plan; activation is already atomic and immutable.

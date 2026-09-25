@@ -1,13 +1,14 @@
 import { expect, test } from "@playwright/test";
 import { eq } from "drizzle-orm";
-import { catalogRelease, catalogReleaseRule, climateDatasetVersion, createDatabase, crop, evidenceItem, garden, knowledgeSource, organization, ruleFamily, ruleVersion } from "../../packages/db/src/index.js";
+import { catalogRelease, catalogReleaseRule, climateDatasetVersion, createDatabase, crop, cropVariety, evidenceItem, garden, knowledgeSource, organization, ruleFamily, ruleVersion } from "../../packages/db/src/index.js";
 
 const appURL = process.env.APP_URL ?? "http://localhost:42069";
 
 async function seedPlanningCatalog() {
   const connectionString = process.env.TRESTLE_BROWSER_DATABASE_URL; if (!connectionString) throw new Error("Browser database is required");
-  const database = createDatabase(connectionString, "postgres-js"); const nonce = crypto.randomUUID(); const cropId = crypto.randomUUID(); const sourceId = crypto.randomUUID(); const evidenceId = crypto.randomUUID(); const familyIds = [crypto.randomUUID(), crypto.randomUUID(), crypto.randomUUID()]; const ruleIds = [crypto.randomUUID(), crypto.randomUUID(), crypto.randomUUID()]; const releaseId = crypto.randomUUID();
+  const database = createDatabase(connectionString, "postgres-js"); const nonce = crypto.randomUUID(); const cropId = crypto.randomUUID(); const varietyId = crypto.randomUUID(); const sourceId = crypto.randomUUID(); const evidenceId = crypto.randomUUID(); const familyIds = [crypto.randomUUID(), crypto.randomUUID(), crypto.randomUUID()]; const ruleIds = [crypto.randomUUID(), crypto.randomUUID(), crypto.randomUUID()]; const releaseId = crypto.randomUUID();
   await database.insert(crop).values({ id: cropId, slug: `browser-crop-${nonce}`, commonName: "Browser fixture tomato", status: "published" });
+  await database.insert(cropVariety).values({ id: varietyId, cropId, name: "Browser fixture slicer", normalizedName: `browser-fixture-slicer-${nonce}`, status: "published" });
   await database.insert(knowledgeSource).values({ id: sourceId, url: `https://example.test/browser-${nonce}`, title: "Browser fixture", publisher: "Tests", sourceType: "fixture", accessedAt: new Date() });
   await database.insert(evidenceItem).values({ id: evidenceId, sourceId, normalizedClaim: "Synthetic browser fact", scope: { fixture: true } });
   await database.insert(ruleFamily).values([{ id: familyIds[0]!, cropId, ruleType: "spacing", method: "direct_sow", contextKey: nonce }, { id: familyIds[1]!, cropId, ruleType: "planting_window", method: "direct_sow", contextKey: nonce }, { id: familyIds[2]!, cropId, ruleType: "maturity", method: "direct_sow", contextKey: nonce }]);
@@ -96,8 +97,9 @@ test("a new gardener receives one private workspace and can save the garden", as
   expect(printHref).toContain("print.svg");
   await expect(page.getByRole("heading", { name: "Build a planting proposal" })).toBeVisible();
   await expect(page.getByLabel("Crop")).toContainText("Browser fixture tomato");
+  await page.getByLabel("Variety").selectOption({ label: "Browser fixture slicer" });
   await page.getByRole("button", { name: "Add crop" }).click();
-  await expect(page.getByText(/Browser fixture tomato: 4 retained plants/u)).toBeVisible();
+  await expect(page.getByText(/Browser fixture tomato · Browser fixture slicer: 4 retained plants/u)).toBeVisible();
   await page.getByRole("button", { name: "Generate proposal" }).click();
   await expect(page.getByText(/4 placed, 0 unplaced/u)).toBeVisible();
   await expect(page.getByText("Why these rules were used", { exact: true })).toBeVisible();

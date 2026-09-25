@@ -1,5 +1,5 @@
 import { applicabilitySchema, editorialDraftSchema, editorialPublicationSchema, publishedRuleSchema, rulePayloadSchema, type GrowingMethod, type PublishedRule, type RuleType } from "@easygardenplan/contracts";
-import { catalogRelease, catalogReleaseRule, crop, evidenceItem, knowledgeSource, reviewDecision, ruleFamily, ruleVersion, type Database } from "@easygardenplan/db";
+import { catalogRelease, catalogReleaseRule, crop, cropVariety, evidenceItem, knowledgeSource, reviewDecision, ruleFamily, ruleVersion, type Database } from "@easygardenplan/db";
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { safeResearchSourceUrl } from "./research-runs.js";
 
@@ -82,11 +82,11 @@ export class KnowledgeRepository {
     });
   }
 
-  async published(releaseId?: string): Promise<{ releaseId: string | null; rules: PublishedRule[]; crops: Array<{ id: string; slug: string; commonName: string; scientificName: string | null }> }> {
+  async published(releaseId?: string): Promise<{ releaseId: string | null; rules: PublishedRule[]; crops: Array<{ id: string; slug: string; commonName: string; scientificName: string | null }>; varieties: Array<{ id: string; cropId: string; name: string }> }> {
     const [release] = releaseId
       ? await this.database.select().from(catalogRelease).where(and(eq(catalogRelease.id, releaseId), eq(catalogRelease.status, "published"))).limit(1)
       : await this.database.select().from(catalogRelease).where(eq(catalogRelease.status, "published")).orderBy(desc(catalogRelease.publishedAt)).limit(1);
-    if (!release) return { releaseId: null, rules: [], crops: [] };
+    if (!release) return { releaseId: null, rules: [], crops: [], varieties: [] };
     const releaseCondition = releaseId
       ? eq(catalogReleaseRule.releaseId, release.id)
       : and(eq(catalogReleaseRule.releaseId, release.id), eq(ruleVersion.state, "published"));
@@ -95,7 +95,8 @@ export class KnowledgeRepository {
       .where(releaseCondition);
     const cropIds = [...new Set(rows.map(({ cropId }) => cropId))];
     const plants = cropIds.length ? await this.database.select({ id: crop.id, slug: crop.slug, commonName: crop.commonName, scientificName: crop.scientificName }).from(crop).where(and(inArray(crop.id, cropIds), eq(crop.status, "published"))).orderBy(asc(crop.commonName)) : [];
-    return { releaseId: release.id, rules: rows.map((row) => publishedRuleSchema.parse(row)), crops: plants };
+    const varieties = cropIds.length ? await this.database.select({ id: cropVariety.id, cropId: cropVariety.cropId, name: cropVariety.name }).from(cropVariety).where(and(inArray(cropVariety.cropId, cropIds), eq(cropVariety.status, "published"))).orderBy(asc(cropVariety.name)) : [];
+    return { releaseId: release.id, rules: rows.map((row) => publishedRuleSchema.parse(row)), crops: plants, varieties };
   }
 
   async withdraw(ruleVersionId: string, replacementId?: string): Promise<void> {
