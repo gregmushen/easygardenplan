@@ -3,3 +3,4 @@ export type DomainId<Resource extends string> = string & {
 };
 export * from "./regional/index.js";
 export * from "./resources/garden.js";
+export * from "./geometry.js";

@@ -9,3 +9,4 @@ export type HealthResponse = z.infer<typeof healthResponseSchema>;
 export * from "./resources/garden.js";
 export * from "./knowledge.js";
 export * from "./location.js";
+export * from "./geometry.js";

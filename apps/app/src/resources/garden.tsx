@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { authClient } from "../auth-client.js";
 import { createGardenApi } from "../api/garden.js";
 import { LocationSetup } from "../location-setup.js";
+import { BedEditor } from "../bed-editor.js";
 
 const apiOrigin = (import.meta.env.VITE_API_ORIGIN as string | undefined)?.replace(/\/$/u, "") ?? "";
 type Workspace = { organizationId: string; gardenId: string };
@@ -75,5 +76,6 @@ export function GardenScreen() {
       {save.isSuccess && <span className="ml-4 text-sm font-medium text-emerald-700">Saved</span>}
     </form>
     {gardenQuery.data && workspace.data && <LocationSetup garden={gardenQuery.data} organizationId={workspace.data.organizationId} onUpdated={(garden) => { setDraft(draftFrom(garden)); queryClient.setQueryData(["garden", session.user.id, workspace.data?.gardenId], garden); }} />}
+    {gardenQuery.data && workspace.data && <BedEditor garden={gardenQuery.data} organizationId={workspace.data.organizationId} />}
   </section>;
 }

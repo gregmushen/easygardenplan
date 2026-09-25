@@ -47,6 +47,16 @@ test("a new gardener receives one private workspace and can save the garden", as
   await expect(page.getByLabel("Latitude")).toHaveValue("34.0522");
   await expect(page.getByText("Pin confirmed", { exact: true })).toBeVisible();
   await expect(page.getByText("Status:", { exact: false })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Draw your growing space" })).toBeVisible();
+  await page.getByRole("button", { name: "Save bed", exact: true }).click();
+  await expect(page.getByText("Bed revision saved.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Main bed · revision 1" })).toBeVisible();
+  await page.getByRole("button", { name: "Main bed · revision 1" }).click();
+  await page.getByLabel("Outer boundary vertex 2 X").fill("4");
+  await page.getByRole("button", { name: "Save new revision" }).click();
+  await expect(page.getByRole("button", { name: "Main bed · revision 2" })).toBeVisible();
+  const printHref = await page.getByRole("link", { name: "Print diagram" }).getAttribute("href");
+  expect(printHref).toContain("print.svg");
 
   const bootstrap = await page.context().request.post(`${appURL}/api/workspace/bootstrap`, { headers: { origin: appURL } });
   const workspace = (await bootstrap.json() as { workspace: { organizationId: string } }).workspace;

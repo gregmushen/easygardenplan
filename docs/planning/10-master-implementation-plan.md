@@ -475,8 +475,8 @@ Update this table as the build progresses. Use `not started`, `in progress`, `bl
 | 1 Household/garden | Complete | Evidence: `docs/build/phase-01-evidence.md` |
 | 2 Knowledge | In progress | Deterministic pipeline proof: `docs/build/phase-02-progress.md`; live Exa run and reviewed catalog remain |
 | 3 Location/climate | In progress | Deterministic pipeline proof: `docs/build/phase-03-progress.md`; controlled providers and real datasets remain |
-| 4 Bed editor | In progress | Implement projection, immutable geometry revisions and editor |
-| 5 Planner | Not started | Depends on published rules, climate and geometry |
+| 4 Bed editor | In progress | Deterministic/editor proof: `docs/build/phase-04-progress.md`; touch and real measurement trials remain |
+| 5 Planner | In progress | Implement selections, deterministic proposals and activation |
 | 6 Progress | Not started | Depends on activated plans |
 | 7 Monitoring | Not started | Adopt verified background runtime |
 | 8 Notifications | Not started | Depends on recommendation transitions |

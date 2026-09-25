@@ -14,9 +14,6 @@ const userAnchorSchema = z.object({ hardinessZone: z.string().min(1).nullable().
 
 export const locationRoutes = new Hono<{ Bindings: AuthEnvironment; Variables: AppVariables }>();
 locationRoutes.use("/api/location/*", requireExecutionContext);
-locationRoutes.use("/api/gardens/:id/location", requireExecutionContext);
-locationRoutes.use("/api/gardens/:id/climate", requireExecutionContext);
-locationRoutes.use("/api/gardens/:id/climate/*", requireExecutionContext);
 
 function geocoder(environment: AuthEnvironment): Geocoder | null {
   if (environment.GEOAPIFY_API_KEY) return new GeoapifyGeocoder({ apiKey: environment.GEOAPIFY_API_KEY });
