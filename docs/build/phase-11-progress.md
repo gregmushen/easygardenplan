@@ -70,5 +70,5 @@ Stripe subscription reconciliation is now also queued after the signed receipt i
 
 - Local and recorded fixtures establish software behavior but cannot establish nationwide horticultural accuracy.
 - The current public price remains `Coming soon`; no paid-launch claim is made until a reviewed Stripe price exists.
-- The application bundle has a build-time size warning and should be split before traffic makes initial load performance material.
+- The application now code-splits account, framework, garden, editorial, webhook and location-map code. The ordinary entry chunk is 123 kB minified; the optional MapLibre chunk remains about 1.04 MB and loads only with location tools.
 - Quiet-hour fields are persisted but delivery deferral/digest behavior is not complete; launch messaging must not claim those features.

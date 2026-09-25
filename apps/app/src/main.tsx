@@ -1,15 +1,16 @@
-import { GardenScreen } from "./resources/garden.js";
 import { useForm } from "@tanstack/react-form";
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, Outlet, RouterProvider, createRootRoute, createRoute, createRouter, useNavigate } from "@tanstack/react-router";
-import { StrictMode, useEffect, useState } from "react";
+import { lazy, StrictMode, Suspense, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { healthResponseSchema } from "@easygardenplan/contracts";
 import { authClient } from "./auth-client";
 import { billingSubscriptionQueryKey } from "./tenant-query.js";
-import { WebhookInspection } from "./webhook-inspection";
-import { EditorialScreen } from "./editorial";
 import "./styles.css";
+
+const GardenScreen = lazy(async () => ({ default: (await import("./resources/garden.js")).GardenScreen }));
+const WebhookInspection = lazy(async () => ({ default: (await import("./webhook-inspection.js")).WebhookInspection }));
+const EditorialScreen = lazy(async () => ({ default: (await import("./editorial.js")).EditorialScreen }));
 
 const apiOrigin = (import.meta.env.VITE_API_ORIGIN as string | undefined)?.replace(/\/$/u, "") ?? "";
 const api = (path: string) => `${apiOrigin}${path}`;
@@ -181,4 +182,4 @@ declare module "@tanstack/react-router" { interface Register { router: typeof ro
 
 const element = document.querySelector("#root");
 if (!element) throw new Error("Missing #root element");
-createRoot(element).render(<StrictMode><QueryClientProvider client={queryClient}><RouterProvider router={router} /></QueryClientProvider></StrictMode>);
+createRoot(element).render(<StrictMode><QueryClientProvider client={queryClient}><Suspense fallback={<p className="p-8 text-slate-600">Loading…</p>}><RouterProvider router={router} /></Suspense></QueryClientProvider></StrictMode>);
