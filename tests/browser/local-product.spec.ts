@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 import { eq } from "drizzle-orm";
 import { catalogRelease, catalogReleaseRule, climateDatasetVersion, createDatabase, crop, cropVariety, evidenceItem, garden, knowledgeSource, organization, ruleFamily, ruleVersion } from "../../packages/db/src/index.js";
 
@@ -69,6 +70,8 @@ test("a new gardener receives one private workspace and can save the garden", as
   await expect(page.getByText("Pin confirmed", { exact: true })).toBeVisible();
   await expect(page.getByText("Status:", { exact: false })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Draw your growing space" })).toBeVisible();
+  const accessibility = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
+  expect(accessibility.violations, accessibility.violations.map(({ id, help, nodes }) => `${id}: ${help} (${nodes.length})`).join("\n")).toEqual([]);
   await page.getByRole("button", { name: "Pan view" }).click();
   await expect(page.getByRole("button", { name: "Outer boundary vertex 1", exact: true })).toHaveCount(0);
   await page.getByRole("button", { name: "Reset view" }).click();
@@ -79,7 +82,7 @@ test("a new gardener receives one private workspace and can save the garden", as
   await page.getByRole("button", { name: "Draw new boundary" }).click();
   const closePolygon = page.getByRole("button", { name: "Close polygon" });
   await expect(closePolygon).toBeDisabled();
-  const preview = page.getByRole("img", { name: "Interactive metric bed preview" });
+  const preview = page.getByRole("group", { name: "Interactive metric bed preview" });
   await preview.scrollIntoViewIfNeeded();
   const previewBox = await preview.boundingBox();
   expect(previewBox).not.toBeNull();

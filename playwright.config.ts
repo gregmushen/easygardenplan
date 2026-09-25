@@ -2,6 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 const deployed = process.env.TRESTLE_BROWSER_MODE === "deployed";
 const mobile = process.env.TRESTLE_BROWSER_DEVICE === "mobile";
+const matrix = process.env.TRESTLE_BROWSER_MATRIX === "1";
 const databaseUrl = process.env.TRESTLE_BROWSER_DATABASE_URL;
 const sitePort = Number(process.env.TRESTLE_BROWSER_SITE_PORT ?? 42068);
 const appPort = Number(process.env.TRESTLE_BROWSER_APP_PORT ?? 42069);
@@ -35,6 +36,11 @@ export default defineConfig({
   workers: 1,
   reporter: process.env.CI ? "github" : "list",
   use: { ...(mobile ? devices["Pixel 7"] : devices["Desktop Chrome"]), baseURL: deployed ? process.env.APP_URL! : appOrigin, trace: deployed ? "off" : "retain-on-failure" },
+  ...(matrix ? { projects: [
+    { name: "chromium", use: devices["Desktop Chrome"] },
+    { name: "firefox", use: devices["Desktop Firefox"] },
+    { name: "webkit", use: devices["Desktop Safari"] },
+  ] } : {}),
   ...(deployed ? {} : { webServer: [
     {
       name: "Worker",

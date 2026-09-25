@@ -51,7 +51,7 @@ Stripe subscription reconciliation is now also queued after the signed receipt i
   - Database: 134 passed, 13 skipped environment-specific cases.
   - Integrations: 92 passed, 4 skipped live-provider cases.
   - All other workspace suites and production builds passed.
-- Local product browser path: passed on desktop Chromium and the Pixel 7 Chromium touch-emulation profile, including account, garden, location, touch/click boundary drawing, bed revision, sourced plan, print link, progress, Free/Pro downgrade preservation and deletion. These automated profiles reduce the remaining device matrix; they do not replace physical-device, screen-reader, WebKit or Firefox review.
+- Local product browser path: passed on desktop Chromium, Firefox and WebKit plus the Pixel 7 Chromium touch-emulation profile, including account, garden, location, touch/click boundary drawing, bed revision, sourced plan, print link, progress, Free/Pro downgrade preservation and deletion. A WCAG 2.0/2.1 A/AA scan runs on the loaded garden editor in all four profiles and passes. These automated profiles do not replace physical-device and screen-reader review.
 - Clean-database migration rehearsal: all 54 journal entries applied to a disposable database, producing 72 public tables with 39 tables reporting forced RLS. The disposable database was removed after inspection.
 - Product operations snapshot: executed successfully and returned aggregate crop coverage, forecast freshness, monitoring due work, event backlog, delivery outcomes, billing lag and provider usage without customer locations or message content.
 - Trestle SetupPlan validation/diff, architecture check and local doctor were rerun after the mobile-editor work; the plan remains converged and doctor reported 106 passed, 0 warnings and 0 failures.
@@ -61,7 +61,7 @@ Stripe subscription reconciliation is now also queued after the signed receipt i
 - Obtain and configure Geoapify, restricted MapTiler, Exa, NWS, Resend and Stripe staging/production values; publish real reviewed climate and crop datasets.
 - Run the required end-to-end path in staging with real runtime roles, Queue delivery, scheduled monitoring, NWS retrieval, Stripe test state and an allowlisted Resend recipient.
 - Record live geocoder attribution and visually inspect tile attribution with the paid-plan key. The MapTiler policy/export review is recorded and customer print output is enforced as application geometry without provider imagery.
-- Complete keyboard, screen-reader, touch and supported browser/device review.
+- Complete physical mobile and screen-reader review; automated keyboard, touch emulation, WCAG scanning and Chromium/Firefox/WebKit coverage now pass.
 - Measure provider requests and cost at the agreed launch volume; connect provider invoices/rate data to the aggregate usage snapshot.
 - Rehearse the supported prior-revision migration, run the protected production backup restore workflow, and record rollback/forward-recovery notes.
 - Close the incomplete claims listed in Phases 2–10. Production deployment and domain cutover require a separate explicit go-live decision.
