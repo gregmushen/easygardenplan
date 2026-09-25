@@ -84,6 +84,15 @@ test("a new gardener receives one private workspace and can save the garden", as
   await expect(page.getByLabel("Outer boundary vertex 2 X")).not.toHaveValue("3");
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   await expect(page.getByLabel("Outer boundary vertex 2 X")).toHaveValue("3");
+  await page.getByRole("button", { name: "Add exclusion" }).click();
+  await expect(page.getByLabel("Exclusion 1 vertex 1 X")).toBeVisible();
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect(page.getByLabel("Exclusion 1 vertex 1 X")).toHaveCount(0);
+  await page.getByRole("button", { name: "Redo", exact: true }).click();
+  await page.getByRole("button", { name: "Remove exclusion 1" }).click();
+  await expect(page.getByLabel("Exclusion 1 vertex 1 X")).toHaveCount(0);
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect(page.getByLabel("Exclusion 1 vertex 1 X")).toBeVisible();
   await page.getByLabel("Sunlight condition").selectOption("full_sun");
   await page.getByLabel("Sunlight observed hours").fill("7");
   await page.getByLabel("Bed rotation degrees").fill("15");
