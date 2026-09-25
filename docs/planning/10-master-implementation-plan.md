@@ -275,7 +275,7 @@ Implementation note: at the pinned baseline, `trestle plan init` rejects the sta
 ### Work
 
 - [x] Adopt and verify the framework's tenant-authority handler API and provenance lifecycle in the generated application.
-- [ ] Implement NWS forecast and official-alert adapters with normalized fixtures, source/retrieval freshness and coverage metadata.
+- [x] Implement NWS forecast and official-alert adapters with normalized fixtures, source/retrieval freshness and coverage metadata.
 - [x] Implement the narrow due-location index, leases, cursors and shared forecast cache.
 - [x] Register private evaluation handlers with tenant authority and the Pro entitlement requirement.
 - [x] Evaluate active plantings/future tasks only against published stage-specific rules and usable forecast intervals.
@@ -308,7 +308,8 @@ Implementation note: at the pinned baseline, `trestle plan init` rejects the sta
 - [x] Create one delivery intent per transition, recipient and channel under a unique constraint.
 - [ ] Coalesce affected crops for the same garden/action episode and exclude immediately emailed versions from digests.
 - [x] Claim delivery intents with bounded leases/fencing and use stable provider idempotency keys.
-- [ ] Recheck entitlement, preferences, current risk/recommendation state and affected task/planting immediately before send.
+- [x] Recheck entitlement, preferences, current risk/recommendation state and affected planting immediately before send.
+- [ ] Define task identities for task-specific recommendations and recheck their status immediately before send.
 - [x] Project verified Resend receipts without regressing delivery state on out-of-order receipts.
 - [x] Expose accepted, delivered, bounced, suppressed, failed and unknown outcomes operationally.
 - [x] Send a resolution email only to a recipient whose warning was accepted/delivered according to the defined ambiguity policy.
@@ -361,7 +362,8 @@ Implementation note: at the pinned baseline, `trestle plan init` rejects the sta
 - [x] Provide a representative sample plan without exposing private data or requiring sign-in.
 - [x] Complete account, preferences, attribution, privacy, terms/support and deletion flows.
 - [x] Add product-specific doctor/readiness checks for Geoapify, MapTiler, Exa, climate datasets, NWS, Stripe and Resend.
-- [ ] Add dashboards/queries for crop coverage, forecast freshness, overdue eligible gardens, evaluation backlog, delivery outcomes, billing lag and provider usage/cost.
+- [x] Add dashboards/queries for crop coverage, forecast freshness, overdue eligible gardens, evaluation backlog, delivery outcomes, billing lag and provider usage.
+- [ ] Add provider unit costs and budget thresholds after launch credentials and contracted rates are known.
 - [x] Add bounded operational replay/recovery actions that honor current authority, event age and recommendation validity.
 - [x] Review logs, analytics and error reporting for exact coordinates, addresses, email content and provider secrets.
 - [ ] Verify MapTiler attribution and ensure printed exports do not include provider imagery without established rights.
@@ -393,7 +395,7 @@ Locate a real test garden → draw and measure a concave bed → choose crops �
 - [x] Multiple planting seasons, cross-year windows, leap day and daylight-saving transitions.
 - [x] Concave/excluded geometry, measured correction, stale edits, pinned placements and partial fit.
 - [x] Missing/conflicted crop guidance and weak/unavailable climate association.
-- [ ] Stale forecast, fresh retrieval of old data, missing forecast intervals and canceled official alerts.
+- [x] Stale forecast, fresh retrieval of old data, missing forecast intervals and canceled official alerts.
 - [x] Duplicate/concurrent jobs, expired provenance, provider outages and ambiguous email outcomes.
 - [x] Duplicate/out-of-order billing and entitlement changes during queued work.
 - [ ] Keyboard/touch/accessibility flows and supported browser/device matrix.

@@ -14,6 +14,12 @@ function fixtureForecast(now: Date): NormalizedForecast {
   return { provider: "nws", sourceKey: "fixture/grid", sourceUpdatedAt: now.toISOString(), retrievedAt: now.toISOString(), validFrom: start.toISOString(), validThrough: end.toISOString(), fingerprint: "f".repeat(64), normalizationVersion: 1, intervals: [{ start: start.toISOString(), end: end.toISOString(), temperatureCelsius: 0 }] };
 }
 
+export function isForecastSourceStale(sourceUpdatedAt: string, now: Date, maximumAgeMinutes: string | undefined): boolean {
+  const maximumAge = Number(maximumAgeMinutes);
+  const sourceTime = new Date(sourceUpdatedAt).getTime();
+  return !Number.isFinite(maximumAge) || maximumAge <= 0 || !Number.isFinite(sourceTime) || now.getTime() - sourceTime > maximumAge * 60_000;
+}
+
 export async function evaluateGardenWeather(input: { gardenId: string; environment: AuthEnvironment; context: EventHandlerContext<Database> }) {
   const { context } = input; if (!context.data || !context.organizationId) throw new Error("Weather evaluation requires tenant authority");
   const repository = new MonitoringRepository(context.data, context.organizationId, context.clock);
@@ -56,8 +62,7 @@ export async function evaluateGardenWeather(input: { gardenId: string; environme
     else if (event.eventType === "transplanted") stageBySelection.set(event.selectionId, "transplanted");
     else if (event.eventType === "removed") stageBySelection.delete(event.selectionId);
   }
-  const configuredSourceAge = Number(input.environment.NWS_MAX_SOURCE_AGE_MINUTES);
-  const sourceStale = input.environment.NWS_MODE === "live" && (!Number.isFinite(configuredSourceAge) || configuredSourceAge <= 0 || context.clock.now().getTime() - new Date(forecast.sourceUpdatedAt).getTime() > configuredSourceAge * 60_000);
+  const sourceStale = input.environment.NWS_MODE === "live" && isForecastSourceStale(forecast.sourceUpdatedAt, context.clock.now(), input.environment.NWS_MAX_SOURCE_AGE_MINUTES);
   const publisher = createEventPublisher({ organizationId: context.organizationId, correlationId: context.event.correlationId, clock: context.clock });
   let evaluated = 0;
   for (const rule of snapshot.rules) {

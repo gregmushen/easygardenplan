@@ -24,4 +24,9 @@ describe("NWS adapter", () => {
     const adapter = new NwsAdapter({ userAgent: "test", fetch: async () => new Response(null, { status: 429 }) });
     await expect(adapter.forecast(1, 2)).rejects.toMatchObject({ reason: "rate_limited" });
   });
+
+  it("rejects a forecast with no covered intervals", async () => {
+    const adapter = new NwsAdapter({ userAgent: "test", fetch: async (input) => Response.json(String(input).includes("/points/") ? point : { properties: { ...hourly.properties, periods: [] } }) });
+    await expect(adapter.forecast(1, 2)).rejects.toThrow();
+  });
 });

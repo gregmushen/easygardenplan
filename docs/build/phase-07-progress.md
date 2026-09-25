@@ -13,6 +13,7 @@ Status: **in progress**. Deterministic monitoring, background authority, schedul
 - A persisted state exists per garden, hazard and crop/stage group with `unknown`, `clear`, `active` and `resolved`, supporting snapshot, current episode, clear-confirmation count and revision.
 - PostgreSQL advisory locking serializes overlapping evaluation attempts. Recommendation versions and semantic transitions are append-only; state and the transition outbox event commit in one transaction.
 - The fixed-clock sequence proves warning once → repeated active silent → stale/unavailable becomes unknown without resolution → two fresh clear confirmations → resolution once → repeated clear silent → renewed warning in a new episode.
+- Freshness fixtures prove that a fresh retrieval of provider data with an old source timestamp is still stale, missing source-age configuration fails closed, and an hourly response with no forecast intervals is rejected.
 - Action/effected-set changes create a material-change transition; mere forecast fingerprint/retrieval changes remain silent.
 - A narrow due index stores garden/tenant IDs, location revision, due time and bounded lease state without coordinates. Platform discovery claims it with `SKIP LOCKED`, then opens tenant-scoped data to commit a tenant-provenanced evaluation event.
 - The evaluation consumer declares tenant authority and the current `weather.monitoring` entitlement. The framework re-verifies the committed event, tenant and current entitlement at each Queue/Workflow execution.
