@@ -365,6 +365,13 @@
       "when": 1790345145599,
       "tag": "0051_breezy_lorna_dane",
       "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "7",
+      "when": 1790345389538,
+      "tag": "0052_majestic_madelyne_pryor",
+      "breakpoints": true
     }
   ]
 }

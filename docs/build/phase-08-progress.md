@@ -2,7 +2,7 @@
 
 Recorded: September 25, 2026
 
-Status: **in progress**. Transition-deduplicated feed entries, email intents, fenced claims, local and daily-digest delivery, preferences, quiet-hour suppression, task applicability and receipt projection are implemented and verified. Routine-guidance classification and controlled staging delivery remain.
+Status: **in progress**. Transition-deduplicated feed entries, email intents, fenced claims, local and daily-digest delivery, urgency-aware preferences, quiet-hour suppression, task applicability and receipt projection are implemented and verified. Affected-crop presentation and controlled staging delivery remain.
 
 ## Implemented and proved
 
@@ -17,6 +17,7 @@ Status: **in progress**. Transition-deduplicated feed entries, email intents, fe
 - Notification preferences have authenticated read/update endpoints and gardener-facing controls for warnings and resolution messages. Quiet-hour fields are validated and stored for the forthcoming scheduler.
 - Gardeners can set a quiet window in the garden timezone and separately allow urgent protection messages overnight. Warning delivery obeys that override; resolutions and warnings without the override are suppressed as `quiet_hours` while the in-app history remains available. Overnight, daytime, DST-boundary and all-day-window fixtures cover the time calculation.
 - Preferences now distinguish urgent warnings, resolutions, routine guidance and daily digests. Digest assembly has one durable identity per garden, recipient and garden-local calendar date, freezes its included recommendation-version IDs, and excludes versions already accepted or delivered as immediate email.
+- Reviewed climate-response rules classify delivery as `urgent` or `routine_digest`, with old rules defaulting safely to urgent. The class participates in the material-action fingerprint and is stored on each immutable recommendation version. Routine advice creates the in-app record and daily due work but records its immediate intent as `digest_only`; an integration fixture proves the action appears in the next digest instead of sending immediately.
 - A privacy-minimal due-work index schedules each garden-local date for 7 a.m. the following morning. The existing hourly Worker claims due rows with `SKIP LOCKED`; a DST-boundary concurrency fixture proves two schedulers produce one digest and one captured email.
 - Digest sending has its own bounded lease, fencing token and stable provider idempotency key. The claim rechecks the recipient's current verification and preferences, removes versions sent immediately since assembly, keeps only the latest version in each recommendation episode, and coalesces duplicate action text before rendering.
 - The tenant runtime resolves the household recipient through a narrow `SECURITY DEFINER` function instead of reading the global auth user table. The function returns no row when a tenant asks for another organization, and both immediate and digest delivery run successfully through `trestle_app` permissions.
@@ -31,12 +32,11 @@ Status: **in progress**. Transition-deduplicated feed entries, email intents, fe
 
 ## Validation
 
-- `pnpm check` passes after the digest scheduler and task-identity changes: all typechecks and builds succeeded; the full Worker suite ran 145 tests and the data suite ran 29 tests with the local PostgreSQL gates enabled. The new coverage includes DST scheduling, concurrent schedulers, concurrent digest claims, late immediate-send exclusion, task-status suppression, fencing, receipt projection and cross-tenant recipient denial.
+- `pnpm check` passes after the digest scheduler and task-identity changes: all typechecks and builds succeeded; the full Worker suite ran 145 tests. Focused contract, domain, data and Worker suites also pass after urgency classification, including 30 data tests with local PostgreSQL enabled. Coverage includes DST scheduling, concurrent schedulers, concurrent digest claims, routine digest routing, late immediate-send exclusion, task-status suppression, fencing, receipt projection and cross-tenant recipient denial.
 - Product browser flow: 1 passed in 17.7 seconds with the notification-preference request present in the garden screen.
 - Local PostgreSQL migration `0050_rapid_joseph.sql` applied successfully with forced RLS, tenant/platform grants and the tenant-constrained recipient resolver.
 
 ## Remaining exit evidence
 
 - Decide whether a future scheduler should delay non-urgent messages until the quiet window ends. The launch-safe behavior currently suppresses them explicitly rather than scheduling provider delivery that cannot be rechecked at send time.
-- Classify and generate routine guidance independently from risk transitions. The preferences and digest transport support it, but the product does not yet create that recommendation class.
 - Run a controlled staging send to an allowlisted recipient and retain provider acceptance and webhook-delivery evidence separately.

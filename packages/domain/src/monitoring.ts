@@ -6,6 +6,7 @@ export type RiskCandidate = Readonly<{
   action: string;
   affectedIds: readonly string[];
   affectedTaskIds?: readonly string[];
+  deliveryClass?: "urgent" | "routine_digest";
   validFrom: string;
   validThrough: string;
   evidenceFingerprint: string;
@@ -37,7 +38,7 @@ export type RiskDecision = Readonly<{
 }>;
 
 export function candidateActionFingerprint(candidate: RiskCandidate): string {
-  return JSON.stringify({ hazard: candidate.hazard, groupKey: candidate.groupKey, action: candidate.action, affectedIds: [...candidate.affectedIds].sort(), affectedTaskIds: [...(candidate.affectedTaskIds ?? [])].sort(), validFrom: candidate.validFrom, validThrough: candidate.validThrough });
+  return JSON.stringify({ hazard: candidate.hazard, groupKey: candidate.groupKey, action: candidate.action, affectedIds: [...candidate.affectedIds].sort(), affectedTaskIds: [...(candidate.affectedTaskIds ?? [])].sort(), deliveryClass: candidate.deliveryClass ?? "urgent", validFrom: candidate.validFrom, validThrough: candidate.validThrough });
 }
 
 /** Pure episode state machine. Missing or stale data can never resolve risk. */
@@ -63,10 +64,10 @@ export function decideRiskTransition(previous: PreviousRisk, observation: RiskOb
   return { nextState: "clear", episodeId: previous.episodeId, actionFingerprint: previous.actionFingerprint, clearConfirmationCount: 0, transition: null, retainActiveEpisode: false };
 }
 
-export function evaluateColdRisk(input: { intervals: readonly { start: string; end: string; temperatureCelsius: number }[]; thresholdCelsius: number; clearAboveCelsius?: number; action: string; affectedIds: readonly string[]; groupKey: string; evidenceFingerprint: string; now: Date; horizonThrough: Date }): RiskObservation {
+export function evaluateColdRisk(input: { intervals: readonly { start: string; end: string; temperatureCelsius: number }[]; thresholdCelsius: number; clearAboveCelsius?: number; action: string; affectedIds: readonly string[]; groupKey: string; evidenceFingerprint: string; deliveryClass?: "urgent" | "routine_digest"; now: Date; horizonThrough: Date }): RiskObservation {
   const usable = input.intervals.filter((interval) => new Date(interval.end) > input.now && new Date(interval.start) < input.horizonThrough);
   if (usable.length === 0) return { status: "insufficient_inputs" };
   const minimum = Math.min(...usable.map(({ temperatureCelsius }) => temperatureCelsius));
   if (minimum > input.thresholdCelsius) return minimum <= (input.clearAboveCelsius ?? input.thresholdCelsius) ? { status: "evaluated", hold: true } : { status: "evaluated" };
-  return { status: "evaluated", candidate: { hazard: "cold", groupKey: input.groupKey, action: input.action, affectedIds: input.affectedIds, validFrom: usable[0]!.start, validThrough: usable.at(-1)!.end, evidenceFingerprint: input.evidenceFingerprint, minimumForecastCelsius: minimum, thresholdCelsius: input.thresholdCelsius } };
+  return { status: "evaluated", candidate: { hazard: "cold", groupKey: input.groupKey, action: input.action, affectedIds: input.affectedIds, deliveryClass: input.deliveryClass ?? "urgent", validFrom: usable[0]!.start, validThrough: usable.at(-1)!.end, evidenceFingerprint: input.evidenceFingerprint, minimumForecastCelsius: minimum, thresholdCelsius: input.thresholdCelsius } };
 }

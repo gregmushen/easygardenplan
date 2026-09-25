@@ -71,7 +71,7 @@ export async function evaluateGardenWeather(input: { gardenId: string; environme
     const affectedIds = snapshot.selections.filter((selection) => selection.cropId === rule.cropId && stageBySelection.get(selection.id) === response.stage).map(({ id }) => id);
     if (affectedIds.length === 0) continue;
     const groupKey = `${rule.cropId}:${response.stage}`;
-    const observation = sourceStale ? { status: "stale" as const } : evaluateColdRisk({ intervals: forecast.intervals, thresholdCelsius: response.thresholdCelsius.maximum, clearAboveCelsius: response.clearAboveCelsius, action: response.action, affectedIds, groupKey, evidenceFingerprint: forecast.fingerprint, now: context.clock.now(), horizonThrough: new Date(context.clock.now().getTime() + 48 * 60 * 60_000) });
+    const observation = sourceStale ? { status: "stale" as const } : evaluateColdRisk({ intervals: forecast.intervals, thresholdCelsius: response.thresholdCelsius.maximum, clearAboveCelsius: response.clearAboveCelsius, action: response.action, affectedIds, groupKey, evidenceFingerprint: forecast.fingerprint, deliveryClass: response.deliveryClass, now: context.clock.now(), horizonThrough: new Date(context.clock.now().getTime() + 48 * 60 * 60_000) });
     await repository.evaluate({ gardenId: input.gardenId, hazard: "cold", groupKey, observation, snapshotId: stored.id, resolutionConfirmations: response.resolutionConfirmations, event: (payload) => publisher.statement(recommendationTransitionedEvent.name, payload, { idempotencyKey: `recommendation-transition:${payload.transitionId}`, causationId: context.event.id }) });
     evaluated++;
   }

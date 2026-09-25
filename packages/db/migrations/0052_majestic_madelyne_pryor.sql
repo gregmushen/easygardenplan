@@ -1,0 +1,2 @@
+ALTER TABLE "recommendation_version" ADD COLUMN "delivery_class" text DEFAULT 'urgent' NOT NULL;--> statement-breakpoint
+ALTER TABLE "recommendation_version" ADD CONSTRAINT "recommendation_version_delivery_class_check" CHECK ("recommendation_version"."delivery_class" IN ('urgent', 'routine_digest'));

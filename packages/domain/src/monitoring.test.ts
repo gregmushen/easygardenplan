@@ -28,11 +28,12 @@ describe("weather risk transitions", () => {
     const active = decideRiskTransition(base, { status: "evaluated", candidate }, { newEpisodeId: () => "episode-1" });
     expect(decideRiskTransition(previous(active), { status: "evaluated", candidate: { ...candidate, evidenceFingerprint: "forecast-b" } }).transition).toBeNull();
     expect(decideRiskTransition(previous(active), { status: "evaluated", candidate: { ...candidate, action: "Move plants indoors" } }).transition).toBe("material_change");
+    expect(decideRiskTransition(previous(active), { status: "evaluated", candidate: { ...candidate, deliveryClass: "routine_digest" } }).transition).toBe("material_change");
   });
 
   it("evaluates only covered future intervals against an explicit reviewed threshold", () => {
     const result = evaluateColdRisk({ intervals: [{ start: "2026-10-01T06:00:00.000Z", end: "2026-10-01T07:00:00.000Z", temperatureCelsius: 1 }], thresholdCelsius: 2, action: "Cover", affectedIds: ["one"], groupKey: "crop:stage", evidenceFingerprint: "a", now: new Date("2026-10-01T05:00:00.000Z"), horizonThrough: new Date("2026-10-02T05:00:00.000Z") });
-    expect(result.candidate?.minimumForecastCelsius).toBe(1);
+    expect(result.candidate).toMatchObject({ minimumForecastCelsius: 1, deliveryClass: "urgent" });
   });
 
   it("holds an active episode inside the reviewed hysteresis band", () => {

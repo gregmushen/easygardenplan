@@ -144,6 +144,23 @@ suite("weather episode persistence", () => {
     expect(due?.dueAt.toISOString()).toBe("2026-10-01T14:00:00.000Z");
   });
 
+  it("routes reviewed routine guidance to the digest instead of immediate email", async () => {
+    await database!.insert(notificationPreference).values({ organizationId, userId, routineEmailEnabled: true, digestEmailEnabled: true }).onConflictDoUpdate({ target: [notificationPreference.organizationId, notificationPreference.userId], set: { routineEmailEnabled: true, digestEmailEnabled: true } });
+    const routineClock = { now: () => new Date("2026-10-02T05:00:00.000Z") };
+    const routineRepository = new MonitoringRepository(database!, organizationId, routineClock);
+    const routineCandidate = { ...candidate, groupKey: "crop:routine", deliveryClass: "routine_digest" as const, action: "Review tomorrow's planting window before setting out seedlings.", evidenceFingerprint: "fixture-routine" };
+    const routine = await routineRepository.evaluate({ gardenId, hazard: "cold", groupKey: routineCandidate.groupKey, observation: { status: "evaluated", candidate: routineCandidate } });
+    const [intent] = await database!.select().from(notificationDeliveryIntent).where(eq(notificationDeliveryIntent.transitionId, routine.transition!.id));
+    expect(intent).toMatchObject({ status: "suppressed", suppressionReason: "digest_only" });
+    expect(routine.recommendation).toMatchObject({ deliveryClass: "routine_digest" });
+    const delivery = new NotificationRepository(database!, organizationId, routineClock);
+    const digest = await delivery.createDigest(gardenId, userId, "2026-10-01");
+    expect(digest.includedRecommendationVersionIds).toContain(routine.recommendation!.id);
+    const claim = await delivery.claimDigest(digest.id);
+    expect(claim?.actions).toContain("Review tomorrow's planting window before setting out seedlings.");
+    await delivery.retryDigest(claim!.digestId, claim!.attemptToken);
+  });
+
   it("suppresses overnight warnings when the recipient disabled urgent quiet-hour delivery", async () => {
     await database!.insert(notificationPreference).values({ organizationId, userId, urgentEmailEnabled: true, quietHoursStart: "22:00", quietHoursEnd: "07:00", urgentDuringQuietHours: false }).onConflictDoUpdate({ target: [notificationPreference.organizationId, notificationPreference.userId], set: { urgentEmailEnabled: true, quietHoursStart: "22:00", quietHoursEnd: "07:00", urgentDuringQuietHours: false } });
     const quietCandidate = { ...candidate, groupKey: "crop:quiet", evidenceFingerprint: "fixture-quiet" };

@@ -16,7 +16,8 @@ describe("knowledge contracts", () => {
     const base = { state: "known", type: "climate_response", hazard: "cold", stage: "seedling", thresholdCelsius: { minimum: 0, maximum: 2 }, action: "Cover plants" };
     expect(() => rulePayloadSchema.parse(base)).toThrow();
     expect(() => rulePayloadSchema.parse({ ...base, clearAboveCelsius: 2, resolutionConfirmations: 2 })).toThrow();
-    expect(rulePayloadSchema.parse({ ...base, clearAboveCelsius: 3, resolutionConfirmations: 2 })).toMatchObject({ clearAboveCelsius: 3, resolutionConfirmations: 2 });
+    expect(rulePayloadSchema.parse({ ...base, clearAboveCelsius: 3, resolutionConfirmations: 2 })).toMatchObject({ clearAboveCelsius: 3, resolutionConfirmations: 2, deliveryClass: "urgent" });
+    expect(rulePayloadSchema.parse({ ...base, clearAboveCelsius: 3, resolutionConfirmations: 2, deliveryClass: "routine_digest" })).toMatchObject({ deliveryClass: "routine_digest" });
   });
 
   it("rejects private customer data in research briefs", () => {
