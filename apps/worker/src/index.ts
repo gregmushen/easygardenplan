@@ -29,6 +29,7 @@ import { monitoringRoutes } from "./monitoring-routes.js";
 import { handleWeatherEvaluationRequested, weatherEvaluationRequestedConsumer } from "./monitoring-runtime.js";
 import { handleRecommendationTransitioned, recommendationTransitionedConsumer } from "./notification-runtime.js";
 import { scheduleDueWeatherEvaluations } from "./monitoring-scheduler.js";
+import { scheduleDueGardenDigests } from "./digest-scheduler.js";
 import { auditTenantAction } from "./audit.js";
 import { requireExecutionContext, type AppVariables } from "./execution-context.js";
 import { mapHttpError } from "./http-errors.js";
@@ -685,9 +686,11 @@ export default {
     // Application crons declared in wrangler.jsonc arrive with their own expression: handle them here.
     // Framework maintenance runs only on its own tick (or a local invocation that names no cron).
     if (event?.cron === weatherMonitoringCron) {
-      const result = await scheduleDueWeatherEvaluations(environment);
-      createLogger({ environment: environment.APP_ENV ?? "local" }, undefined, { secretValues: loggerSecretsFromEnvironment(environment) }).info("weather.scheduling.completed", result);
-      if (result.failed > 0) throw new Error("Weather scheduling left incomplete work");
+      const [weather, digests] = await Promise.all([scheduleDueWeatherEvaluations(environment), scheduleDueGardenDigests(environment)]);
+      const log = createLogger({ environment: environment.APP_ENV ?? "local" }, undefined, { secretValues: loggerSecretsFromEnvironment(environment) });
+      log.info("weather.scheduling.completed", weather);
+      log.info("digest.scheduling.completed", digests);
+      if (weather.failed > 0 || digests.failed > 0) throw new Error("Application scheduling left incomplete work");
       return;
     }
     if (event?.cron !== undefined && event.cron !== frameworkMaintenanceCron) return;

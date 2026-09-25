@@ -1,4 +1,4 @@
-import { createDatabase, garden, gardenPlanVersion, gardenProgressEvent, notificationDeliveryIntent, notificationDigest, notificationFeedEntry, notificationPreference, organization, recommendationTransition, user, weatherForecastSnapshot, weatherOfficialAlertGarden, weatherOfficialAlertSnapshot } from "@easygardenplan/db";
+import { createDatabase, garden, gardenPlanVersion, gardenProgressEvent, notificationDeliveryIntent, notificationDigest, notificationDigestDue, notificationFeedEntry, notificationPreference, organization, recommendationTransition, user, weatherForecastSnapshot, weatherOfficialAlertGarden, weatherOfficialAlertSnapshot } from "@easygardenplan/db";
 import { and, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { MonitoringRepository } from "./monitoring-repository.js";
@@ -103,14 +103,31 @@ suite("weather episode persistence", () => {
     const pendingCandidate = { ...candidate, groupKey: "crop:digest-pending", evidenceFingerprint: "fixture-digest-pending" };
     const sentWarning = await repository!.evaluate({ gardenId, hazard: "cold", groupKey: sentCandidate.groupKey, observation: { status: "evaluated", candidate: sentCandidate } });
     const pendingWarning = await repository!.evaluate({ gardenId, hazard: "cold", groupKey: pendingCandidate.groupKey, observation: { status: "evaluated", candidate: pendingCandidate } });
+    const retainedCandidate = { ...candidate, groupKey: "crop:digest-retained", evidenceFingerprint: "fixture-digest-retained", action: "Water the covered seedlings after sunrise." };
+    const retainedWarning = await repository!.evaluate({ gardenId, hazard: "cold", groupKey: retainedCandidate.groupKey, observation: { status: "evaluated", candidate: retainedCandidate } });
     await database!.update(notificationDeliveryIntent).set({ status: "accepted", providerDeliveryId: "digest-sent", acceptedAt: new Date(), updatedAt: new Date() }).where(eq(notificationDeliveryIntent.transitionId, sentWarning.transition!.id));
     const digests = new NotificationRepository(database!, organizationId, { now: () => new Date("2026-10-01T14:00:00.000Z") });
     const created = await digests.createDigest(gardenId, userId, "2026-09-30");
     const repeated = await digests.createDigest(gardenId, userId, "2026-09-30");
     expect(repeated.id).toBe(created.id);
     expect(created.includedRecommendationVersionIds).toContain(pendingWarning.recommendation!.id);
+    expect(created.includedRecommendationVersionIds).toContain(retainedWarning.recommendation!.id);
     expect(created.includedRecommendationVersionIds).not.toContain(sentWarning.recommendation!.id);
     expect(await database!.select().from(notificationDigest).where(eq(notificationDigest.id, created.id))).toHaveLength(1);
+    await database!.update(notificationDeliveryIntent).set({ status: "accepted", providerDeliveryId: "digest-late-sent", acceptedAt: new Date(), updatedAt: new Date() }).where(eq(notificationDeliveryIntent.transitionId, pendingWarning.transition!.id));
+    const claims = await Promise.all([digests.claimDigest(created.id), digests.claimDigest(created.id)]);
+    expect(claims.filter(Boolean)).toHaveLength(1);
+    const claim = claims.find(Boolean)!;
+    expect(claim.actions).toContain("Water the covered seedlings after sunrise.");
+    expect(new Set(claim.actions).size).toBe(claim.actions.length);
+    const [rechecked] = await database!.select().from(notificationDigest).where(eq(notificationDigest.id, created.id));
+    expect(rechecked?.includedRecommendationVersionIds).not.toContain(pendingWarning.recommendation!.id);
+    expect(await digests.acceptDigest(claim.digestId, crypto.randomUUID(), "wrong-digest-token", new Date())).toBe(false);
+    expect(await digests.acceptDigest(claim.digestId, claim.attemptToken, "digest-delivery", new Date())).toBe(true);
+    expect(await projectEmailDelivery(database!, { emailDeliveryId: "digest-delivery", status: "delivered", occurredAt: new Date("2026-10-01T14:01:00.000Z") })).toBe(1);
+    expect((await database!.select().from(notificationDigest).where(eq(notificationDigest.id, created.id)))[0]?.status).toBe("delivered");
+    const [due] = await database!.select().from(notificationDigestDue).where(and(eq(notificationDigestDue.gardenId, gardenId), eq(notificationDigestDue.recipientUserId, userId), eq(notificationDigestDue.localDate, "2026-09-30")));
+    expect(due?.dueAt.toISOString()).toBe("2026-10-01T14:00:00.000Z");
   });
 
   it("suppresses overnight warnings when the recipient disabled urgent quiet-hour delivery", async () => {

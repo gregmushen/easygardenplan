@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { affectedPlantingsComplete, isWithinQuietHours, selectDigestRecommendationIds } from "./notification-repository.js";
+import { affectedPlantingsComplete, digestDueAt, isWithinQuietHours, localDateAt, selectDigestRecommendationIds } from "./notification-repository.js";
 
 const first = "11111111-1111-4111-8111-111111111111";
 const second = "22222222-2222-4222-8222-222222222222";
@@ -68,5 +68,16 @@ describe("selectDigestRecommendationIds", () => {
     ];
     expect(selectDigestRecommendationIds(entries, new Set([first]), "America/Los_Angeles", "2026-10-02")).toEqual([second]);
     expect(selectDigestRecommendationIds(entries, new Set(), "America/Los_Angeles", "2026-10-01")).toEqual([first]);
+  });
+});
+
+describe("daily digest clock", () => {
+  it("schedules seven in the garden timezone across both DST boundaries", () => {
+    const spring = digestDueAt("2026-03-07", "America/Los_Angeles");
+    const autumn = digestDueAt("2026-10-31", "America/Los_Angeles");
+    expect(spring.toISOString()).toBe("2026-03-08T14:00:00.000Z");
+    expect(autumn.toISOString()).toBe("2026-11-01T15:00:00.000Z");
+    expect(localDateAt(spring, "America/Los_Angeles")).toBe("2026-03-08");
+    expect(localDateAt(autumn, "America/Los_Angeles")).toBe("2026-11-01");
   });
 });

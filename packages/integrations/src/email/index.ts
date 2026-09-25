@@ -9,6 +9,7 @@ export * from "./templates/reset-password.js";
 export * from "./templates/invitation.js";
 export * from "./templates/security-alert.js";
 export * from "./templates/garden-recommendation.js";
+export * from "./templates/garden-digest.js";
 
 import { LocalEmailAdapter } from "./adapters/local.js";
 import { ResendEmailAdapter } from "./adapters/resend.js";

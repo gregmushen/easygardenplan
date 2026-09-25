@@ -481,7 +481,7 @@ Update this table as the build progresses. Use `not started`, `in progress`, `bl
 | 5 Planner | In progress | Synthetic end-to-end and reviewed-override proof: `docs/build/phase-05-progress.md`; real reviewed catalog/climate validation remains |
 | 6 Progress | In progress | Deterministic product proof: `docs/build/phase-06-progress.md`; accessibility/offline review and real catalog validation remain |
 | 7 Monitoring | In progress | Deterministic/background, official-alert persistence and reviewed anti-flapping proof: `docs/build/phase-07-progress.md`; launch rules, official-alert action policy and staging Queue evidence remain |
-| 8 Notifications | In progress | Deterministic delivery, quiet-hour and planting-suppression proof: `docs/build/phase-08-progress.md`; digests, task-specific applicability and staging delivery remain |
+| 8 Notifications | In progress | Deterministic immediate and 7 a.m. garden-local digest delivery proof: `docs/build/phase-08-progress.md`; routine guidance, task-specific applicability and staging delivery remain |
 | 9 Billing | In progress | Deterministic product proof: `docs/build/phase-09-progress.md`; controlled Stripe evidence remains |
 | 10 Public/operations | In progress | Local public/readiness/deletion/aggregate operations proof: `docs/build/phase-10-progress.md`; staging drills, provider cost and restore evidence remain |
 | 11 Launch | In progress | Local matrix and no-go review: `docs/build/phase-11-progress.md`; controlled staging/provider/accessibility/restore gates remain |

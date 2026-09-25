@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { boolean, check, foreignKey, index, jsonb, pgPolicy, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { boolean, check, foreignKey, index, integer, jsonb, pgPolicy, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { organization, user } from "./auth-schema.js";
 import { garden } from "./garden-schema.js";
 import { recommendationTransition, recommendationVersion } from "./monitoring-schema.js";
@@ -32,6 +32,12 @@ export const notificationDigest = pgTable("notification_digest", {
   idempotencyKey: text("idempotency_key").notNull(),
   status: text("status").default("pending").notNull(),
   suppressionReason: text("suppression_reason"),
+  providerDeliveryId: text("provider_delivery_id"),
+  attemptToken: uuid("attempt_token"),
+  leaseExpiresAt: timestamp("lease_expires_at", { withTimezone: true }),
+  acceptedAt: timestamp("accepted_at", { withTimezone: true }),
+  deliveredAt: timestamp("delivered_at", { withTimezone: true }),
+  failedAt: timestamp("failed_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
 }, (table) => [
@@ -40,8 +46,31 @@ export const notificationDigest = pgTable("notification_digest", {
   uniqueIndex("notification_digest_tenant_key").on(table.organizationId, table.id),
   foreignKey({ columns: [table.organizationId, table.gardenId], foreignColumns: [garden.organizationId, garden.id], name: "notification_digest_tenant_garden_fk" }).onDelete("cascade"),
   check("notification_digest_date_check", sql`${table.localDate} ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'`),
-  check("notification_digest_status_check", sql`${table.status} in ('pending','accepted','delivered','failed','suppressed')`),
+  index("notification_digest_pending_idx").on(table.status, table.leaseExpiresAt),
+  check("notification_digest_status_check", sql`${table.status} in ('pending','sending','accepted','delivered','bounced','complained','failed','suppressed')`),
   pgPolicy("notification_digest_tenant", { for: "all", to: "trestle_app", using: sql`${table.organizationId} = current_setting('app.organization_id', true)`, withCheck: sql`${table.organizationId} = current_setting('app.organization_id', true)` }),
+]).enableRLS();
+
+/** Privacy-minimal cross-tenant clock index. Content and addresses remain tenant-scoped. */
+export const notificationDigestDue = pgTable("notification_digest_due", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: text("organization_id").notNull().references(() => organization.id, { onDelete: "cascade" }),
+  gardenId: uuid("garden_id").notNull(),
+  recipientUserId: text("recipient_user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  localDate: text("local_date").notNull(),
+  dueAt: timestamp("due_at", { withTimezone: true }).notNull(),
+  leaseToken: uuid("lease_token"),
+  leaseExpiresAt: timestamp("lease_expires_at", { withTimezone: true }),
+  failureCount: integer("failure_count").default(0).notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
+}, (table) => [
+  uniqueIndex("notification_digest_due_identity_uidx").on(table.gardenId, table.recipientUserId, table.localDate),
+  uniqueIndex("notification_digest_due_tenant_key").on(table.organizationId, table.id),
+  index("notification_digest_due_at_idx").on(table.dueAt),
+  foreignKey({ columns: [table.organizationId, table.gardenId], foreignColumns: [garden.organizationId, garden.id], name: "notification_digest_due_tenant_garden_fk" }).onDelete("cascade"),
+  check("notification_digest_due_date_check", sql`${table.localDate} ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'`),
+  pgPolicy("notification_digest_due_tenant", { for: "all", to: "trestle_app", using: sql`${table.organizationId} = current_setting('app.organization_id', true)`, withCheck: sql`${table.organizationId} = current_setting('app.organization_id', true)` }),
+  pgPolicy("notification_digest_due_platform", { for: "all", to: "trestle_platform", using: sql`true`, withCheck: sql`true` }),
 ]).enableRLS();
 
 export const notificationFeedEntry = pgTable("notification_feed_entry", {

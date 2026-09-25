@@ -351,6 +351,13 @@
       "when": 1790344097808,
       "tag": "0049_bored_hannibal_king",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1790344463686,
+      "tag": "0050_rapid_joseph",
+      "breakpoints": true
     }
   ]
 }
