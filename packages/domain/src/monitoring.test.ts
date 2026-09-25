@@ -34,4 +34,10 @@ describe("weather risk transitions", () => {
     const result = evaluateColdRisk({ intervals: [{ start: "2026-10-01T06:00:00.000Z", end: "2026-10-01T07:00:00.000Z", temperatureCelsius: 1 }], thresholdCelsius: 2, action: "Cover", affectedIds: ["one"], groupKey: "crop:stage", evidenceFingerprint: "a", now: new Date("2026-10-01T05:00:00.000Z"), horizonThrough: new Date("2026-10-02T05:00:00.000Z") });
     expect(result.candidate?.minimumForecastCelsius).toBe(1);
   });
+
+  it("holds an active episode inside the reviewed hysteresis band", () => {
+    const observation = evaluateColdRisk({ intervals: [{ start: "2026-10-01T06:00:00.000Z", end: "2026-10-01T07:00:00.000Z", temperatureCelsius: 3 }], thresholdCelsius: 2, clearAboveCelsius: 4, action: "Cover", affectedIds: ["one"], groupKey: "crop:stage", evidenceFingerprint: "a", now: new Date("2026-10-01T05:00:00.000Z"), horizonThrough: new Date("2026-10-02T05:00:00.000Z") });
+    expect(observation).toEqual({ status: "evaluated", hold: true });
+    expect(decideRiskTransition({ state: "active", episodeId: "episode-1", actionFingerprint: "action", clearConfirmationCount: 1 }, observation)).toMatchObject({ nextState: "active", transition: null, clearConfirmationCount: 0 });
+  });
 });

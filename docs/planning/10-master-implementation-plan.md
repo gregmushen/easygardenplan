@@ -281,7 +281,7 @@ Implementation note: at the pinned baseline, `trestle plan init` rejects the sta
 - [x] Evaluate active plantings/future tasks only against published stage-specific rules and usable forecast intervals.
 - [x] Persist risk state per garden, hazard and affected crop/stage group: unknown, clear, active and resolved.
 - [x] Serialize episode transitions; emit warning, material-change, resolution and renewed-risk events exactly as defined in 09.
-- [ ] Implement hysteresis/confirmation policy from reviewed hazard rules to prevent threshold flapping.
+- [x] Implement hysteresis/confirmation policy from reviewed hazard rules to prevent threshold flapping.
 - [x] Treat stale/unavailable data as unknown, never resolved.
 - [x] Implement fresh authorized recovery rather than replaying expired advice.
 

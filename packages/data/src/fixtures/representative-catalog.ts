@@ -12,7 +12,7 @@ const payloads: Record<RuleType, RulePayload> = {
   maturity: { state: "known", type: "maturity", days: { minimum: 60, maximum: 90, minimumInclusive: true, maximumInclusive: true }, anchor: "transplant", sourceUnit: "calendar_days" },
   environmental_prerequisite: { state: "known", type: "environmental_prerequisite", condition: "soil_temperature_c", range: { minimum: 10, maximum: 35, minimumInclusive: true, maximumInclusive: true }, sourceUnit: "celsius" },
   support: { state: "known", type: "support", required: true, guidance: "Synthetic fixture support instruction", stage: "vegetative" },
-  climate_response: { state: "known", type: "climate_response", hazard: "cold", stage: "seedling", thresholdCelsius: { minimum: 0, maximum: 5, minimumInclusive: true, maximumInclusive: true }, action: "Synthetic fixture action" },
+  climate_response: { state: "known", type: "climate_response", hazard: "cold", stage: "seedling", thresholdCelsius: { minimum: 0, maximum: 5, minimumInclusive: true, maximumInclusive: true }, clearAboveCelsius: 6, resolutionConfirmations: 2, action: "Synthetic fixture action" },
   instruction: { state: "known", type: "instruction", stage: "transplant", text: "Synthetic fixture instruction" },
 };
 
