@@ -14,7 +14,7 @@ Status: **in progress**. The deterministic editorial and publication pipeline is
 - Atomic publication with accepted-review and evidence checks. Published rule content is database-protected from mutation; corrections create new versions. Explicit historical releases continue to resolve withdrawn versions while the current catalog excludes them.
 - Ordinary gardener access is limited to published catalog data; editorial routes require `catalog.publish`.
 - A deterministic representative fixture covers all nine initial rule shapes and eight launch climate/region classes. It is explicitly synthetic and is not horticultural advice.
-- A repeatable official-source normalizer now produces 77 scoped editorial candidates for 39 vegetables from Clemson Cooperative Extension Table 2. The idempotent draft importer expands transplant methods into 87 reviewable rule families without publishing them. Evidence is in `crop-catalog-candidate-evidence.md`.
+- Repeatable official-source normalizers now produce 91 scoped editorial candidates for 45 vegetables and herbs from Clemson Cooperative Extension and six University of Minnesota Extension pages. The idempotent draft importer expands method applicability into 113 reviewable rule families without publishing them. Evidence is in `crop-catalog-candidate-evidence.md`.
 - Regional identity now flows from Geoapify state codes into the garden and frozen plan, so reviewed state-scoped rules can be selected without widening their source scope.
 
 ## Proof
@@ -26,7 +26,7 @@ Status: **in progress**. The deterministic editorial and publication pipeline is
 - Contract tests reject malformed ranges and customer data in research briefs and preserve all four knowledge states.
 - Worker system tests prove a gardener can read the published catalog and receives `403` from editorial list and publication routes.
 - Generated coverage artifact: `docs/build/phase-02-coverage.json` — 216 contract cells: 72 supported, 0 partial, 144 missing and 0 conflicted. Missing cells remain explicit.
-- Source-candidate artifact: `data/knowledge-candidates/clemson-planning-a-garden-2026-09-25.json` — 39 crops, 77 facts, one explicit omission; two local imports proved 87 drafts then 87 idempotent skips.
+- Source-candidate artifacts: the Clemson bundle has 39 crops, 77 facts and one explicit omission; the Minnesota herb bundle has six crops and 14 facts. Paired local imports proved 113 drafts followed by 113 idempotent skips.
 
 ## Verification
 
@@ -38,5 +38,5 @@ Status: **in progress**. The deterministic editorial and publication pipeline is
 ## Remaining exit evidence
 
 - Configure the encrypted `EXA_API_KEY` credential and record one controlled live research run.
-- Review and publish the 39-crop South Carolina candidate set, then use source-backed research to add other US regions, herbs and remaining rule families without widening any source's scope.
+- Review and publish the 45-crop candidate queue, then use source-backed research to add other US regions and remaining rule families without widening any source's scope.
 - Regenerate the coverage report from that reviewed catalog and record its supported, partial, missing and conflicted product coverage.

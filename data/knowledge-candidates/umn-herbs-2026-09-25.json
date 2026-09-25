@@ -1,0 +1,441 @@
+{
+  "schemaVersion": 1,
+  "normalizationVersion": 1,
+  "status": "editorial_candidates",
+  "disclaimer": "Source-scoped candidate facts require editorial review before catalog publication.",
+  "sources": {
+    "basil": {
+      "url": "https://extension.umn.edu/node/10256",
+      "title": "Growing basil in home gardens",
+      "publisher": "University of Minnesota Extension",
+      "sourceType": "university_extension",
+      "accessedAt": "2026-09-25T00:00:00.000Z",
+      "contentChecksumSha256": "eae7a331778f0d79659ade3c5739863fcdf7225a67e38a18aa033268b95b7a81"
+    },
+    "chives": {
+      "url": "https://extension.umn.edu/node/10266",
+      "title": "Growing chives in home gardens",
+      "publisher": "University of Minnesota Extension",
+      "sourceType": "university_extension",
+      "accessedAt": "2026-09-25T00:00:00.000Z",
+      "contentChecksumSha256": "b5a9ff887f1bfcea6cdce054202209ec0e145a97a4ca14575719890d6a2764fb"
+    },
+    "dill": {
+      "url": "https://extension.umn.edu/node/10276",
+      "title": "Growing dill in home gardens",
+      "publisher": "University of Minnesota Extension",
+      "sourceType": "university_extension",
+      "accessedAt": "2026-09-25T00:00:00.000Z",
+      "contentChecksumSha256": "392aed839d910774780340d845a22ff3eef3cc5cbf753626083639144340c67f"
+    },
+    "horseradish": {
+      "url": "https://extension.umn.edu/node/10281",
+      "title": "Growing horseradish in home gardens",
+      "publisher": "University of Minnesota Extension",
+      "sourceType": "university_extension",
+      "accessedAt": "2026-09-25T00:00:00.000Z",
+      "contentChecksumSha256": "b3415ee1799b810d2068ae1c4cd559201788eddaafc55a6894d476f96dbc7716"
+    },
+    "parsley": {
+      "url": "https://extension.umn.edu/node/10286",
+      "title": "Growing parsley in home gardens",
+      "publisher": "University of Minnesota Extension",
+      "sourceType": "university_extension",
+      "accessedAt": "2026-09-25T00:00:00.000Z",
+      "contentChecksumSha256": "5422f09cd711b8e24ed51ddebf9e216649d6953eef1b719af822afc4e0ed540f"
+    },
+    "sorrel": {
+      "url": "https://extension.umn.edu/node/10291",
+      "title": "Growing sorrel in home gardens",
+      "publisher": "University of Minnesota Extension",
+      "sourceType": "university_extension",
+      "accessedAt": "2026-09-25T00:00:00.000Z",
+      "contentChecksumSha256": "8a06c04b790de4f05073af44070b8bdc0c67c682848dfb13275e5cfe3a87657e"
+    }
+  },
+  "scope": {
+    "regionIds": [
+      "us-mn"
+    ]
+  },
+  "counts": {
+    "crops": 6,
+    "candidates": 14
+  },
+  "candidates": [
+    {
+      "sourceKey": "basil",
+      "cropSlug": "basil",
+      "commonName": "Basil",
+      "scientificName": "Ocimum basilicum",
+      "methods": [
+        "direct_sow",
+        "indoor_start",
+        "purchased_start"
+      ],
+      "regionIds": [
+        "us-mn"
+      ],
+      "locator": "Planting/growing guidance",
+      "ruleType": "spacing",
+      "originalUnits": "inches",
+      "normalizedClaim": "Basil: 6-12 inches between mature plants.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.1524,
+          "maximum": 0.3048,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "individual",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "sourceKey": "basil",
+      "cropSlug": "basil",
+      "commonName": "Basil",
+      "scientificName": "Ocimum basilicum",
+      "methods": [
+        "direct_sow",
+        "indoor_start",
+        "purchased_start"
+      ],
+      "regionIds": [
+        "us-mn"
+      ],
+      "locator": "Planting/growing guidance",
+      "ruleType": "light",
+      "originalUnits": "direct sun hours",
+      "normalizedClaim": "Basil: the source recommends full sun with at least 6 hours of direct light.",
+      "payload": {
+        "state": "known",
+        "type": "light",
+        "exposures": [
+          "full_sun"
+        ],
+        "minimumDirectSunHours": 6
+      }
+    },
+    {
+      "sourceKey": "basil",
+      "cropSlug": "basil",
+      "commonName": "Basil",
+      "scientificName": "Ocimum basilicum",
+      "methods": [
+        "indoor_start"
+      ],
+      "regionIds": [
+        "us-mn"
+      ],
+      "locator": "Planting/growing guidance",
+      "ruleType": "seed_start_lead",
+      "originalUnits": "weeks",
+      "normalizedClaim": "Basil: start indoors 6-8 weeks before transplanting outdoors.",
+      "payload": {
+        "state": "known",
+        "type": "seed_start_lead",
+        "daysBeforeTransplant": {
+          "minimum": 42,
+          "maximum": 56,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        }
+      }
+    },
+    {
+      "sourceKey": "chives",
+      "cropSlug": "chives",
+      "commonName": "Chives",
+      "scientificName": "Allium schoenoprasum",
+      "methods": [
+        "direct_sow",
+        "purchased_start"
+      ],
+      "regionIds": [
+        "us-mn"
+      ],
+      "locator": "Planting/growing guidance",
+      "ruleType": "spacing",
+      "originalUnits": "inches",
+      "normalizedClaim": "Chives: 6-12 inches between mature plants.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.1524,
+          "maximum": 0.3048,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "individual",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "sourceKey": "chives",
+      "cropSlug": "chives",
+      "commonName": "Chives",
+      "scientificName": "Allium schoenoprasum",
+      "methods": [
+        "direct_sow",
+        "purchased_start"
+      ],
+      "regionIds": [
+        "us-mn"
+      ],
+      "locator": "Planting/growing guidance",
+      "ruleType": "light",
+      "originalUnits": "direct sun hours",
+      "normalizedClaim": "Chives: the source recommends full sun with at least 6 hours of direct light.",
+      "payload": {
+        "state": "known",
+        "type": "light",
+        "exposures": [
+          "full_sun"
+        ],
+        "minimumDirectSunHours": 6
+      }
+    },
+    {
+      "sourceKey": "dill",
+      "cropSlug": "dill",
+      "commonName": "Dill",
+      "scientificName": "Anethum graveolens",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-mn"
+      ],
+      "locator": "Planting/growing guidance",
+      "ruleType": "spacing",
+      "originalUnits": "inches",
+      "normalizedClaim": "Dill: 10-12 inches between mature plants.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.254,
+          "maximum": 0.3048,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "individual",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "sourceKey": "dill",
+      "cropSlug": "dill",
+      "commonName": "Dill",
+      "scientificName": "Anethum graveolens",
+      "methods": [
+        "direct_sow"
+      ],
+      "regionIds": [
+        "us-mn"
+      ],
+      "locator": "Planting/growing guidance",
+      "ruleType": "light",
+      "originalUnits": "direct sun hours",
+      "normalizedClaim": "Dill: the source recommends full sun with at least 6 hours of direct light.",
+      "payload": {
+        "state": "known",
+        "type": "light",
+        "exposures": [
+          "full_sun"
+        ],
+        "minimumDirectSunHours": 6
+      }
+    },
+    {
+      "sourceKey": "horseradish",
+      "cropSlug": "horseradish",
+      "commonName": "Horseradish",
+      "scientificName": "Armoracia rusticana",
+      "methods": [
+        "purchased_start"
+      ],
+      "regionIds": [
+        "us-mn"
+      ],
+      "locator": "Planting/growing guidance",
+      "ruleType": "spacing",
+      "originalUnits": "inches",
+      "normalizedClaim": "Horseradish: 12-12 inches between mature plants.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.3048,
+          "maximum": 0.3048,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "individual",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "sourceKey": "horseradish",
+      "cropSlug": "horseradish",
+      "commonName": "Horseradish",
+      "scientificName": "Armoracia rusticana",
+      "methods": [
+        "purchased_start"
+      ],
+      "regionIds": [
+        "us-mn"
+      ],
+      "locator": "Planting/growing guidance",
+      "ruleType": "light",
+      "originalUnits": "source exposure",
+      "normalizedClaim": "Horseradish: the source recommends full sun.",
+      "payload": {
+        "state": "known",
+        "type": "light",
+        "exposures": [
+          "full_sun"
+        ]
+      }
+    },
+    {
+      "sourceKey": "parsley",
+      "cropSlug": "parsley",
+      "commonName": "Parsley",
+      "scientificName": "Petroselinum crispum",
+      "methods": [
+        "direct_sow",
+        "indoor_start",
+        "purchased_start"
+      ],
+      "regionIds": [
+        "us-mn"
+      ],
+      "locator": "Planting/growing guidance",
+      "ruleType": "spacing",
+      "originalUnits": "inches",
+      "normalizedClaim": "Parsley: 10-12 inches between mature plants.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.254,
+          "maximum": 0.3048,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "individual",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "sourceKey": "parsley",
+      "cropSlug": "parsley",
+      "commonName": "Parsley",
+      "scientificName": "Petroselinum crispum",
+      "methods": [
+        "direct_sow",
+        "indoor_start",
+        "purchased_start"
+      ],
+      "regionIds": [
+        "us-mn"
+      ],
+      "locator": "Planting/growing guidance",
+      "ruleType": "light",
+      "originalUnits": "direct sun hours",
+      "normalizedClaim": "Parsley: the source recommends full sun with at least 6 hours of direct light.",
+      "payload": {
+        "state": "known",
+        "type": "light",
+        "exposures": [
+          "full_sun"
+        ],
+        "minimumDirectSunHours": 6
+      }
+    },
+    {
+      "sourceKey": "parsley",
+      "cropSlug": "parsley",
+      "commonName": "Parsley",
+      "scientificName": "Petroselinum crispum",
+      "methods": [
+        "indoor_start"
+      ],
+      "regionIds": [
+        "us-mn"
+      ],
+      "locator": "Planting/growing guidance",
+      "ruleType": "seed_start_lead",
+      "originalUnits": "weeks",
+      "normalizedClaim": "Parsley: start indoors 6-8 weeks before transplanting outdoors.",
+      "payload": {
+        "state": "known",
+        "type": "seed_start_lead",
+        "daysBeforeTransplant": {
+          "minimum": 42,
+          "maximum": 56,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        }
+      }
+    },
+    {
+      "sourceKey": "sorrel",
+      "cropSlug": "sorrel",
+      "commonName": "Sorrel",
+      "scientificName": "Rumex scutatus / Rumex acetosa",
+      "methods": [
+        "direct_sow",
+        "indoor_start"
+      ],
+      "regionIds": [
+        "us-mn"
+      ],
+      "locator": "Planting/growing guidance",
+      "ruleType": "spacing",
+      "originalUnits": "inches",
+      "normalizedClaim": "Sorrel: 12-12 inches between mature plants.",
+      "payload": {
+        "state": "known",
+        "type": "spacing",
+        "withinRowMeters": {
+          "minimum": 0.3048,
+          "maximum": 0.3048,
+          "minimumInclusive": true,
+          "maximumInclusive": true
+        },
+        "pattern": "individual",
+        "sourceUnit": "inches"
+      }
+    },
+    {
+      "sourceKey": "sorrel",
+      "cropSlug": "sorrel",
+      "commonName": "Sorrel",
+      "scientificName": "Rumex scutatus / Rumex acetosa",
+      "methods": [
+        "direct_sow",
+        "indoor_start"
+      ],
+      "regionIds": [
+        "us-mn"
+      ],
+      "locator": "Planting/growing guidance",
+      "ruleType": "light",
+      "originalUnits": "source exposure",
+      "normalizedClaim": "Sorrel: the source recommends full sun.",
+      "payload": {
+        "state": "known",
+        "type": "light",
+        "exposures": [
+          "full_sun"
+        ]
+      }
+    }
+  ]
+}

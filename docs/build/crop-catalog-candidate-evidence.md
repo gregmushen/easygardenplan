@@ -14,4 +14,12 @@ Every fact retains the source URL, publisher, access time, content checksum, Tab
 
 The implementation also closed the regional-matching gap found during this import. Geoapify state codes are normalized to region identifiers such as `us-sc`, saved with the garden, frozen in every plan input, and matched against published rule scope. Tests prove a South Carolina rule is selected for `us-sc` and rejected with an explicit trace for `us-wa` or missing region context.
 
-These records remain drafts. They are not public advice until a catalog editor inspects the evidence, records an accepted review decision, and publishes an immutable release. Other US regions, herbs, planting windows, climate responses and source corroboration still require research and review.
+These records remain drafts. They are not public advice until a catalog editor inspects the evidence, records an accepted review decision, and publishes an immutable release. Other US regions, broader herb coverage, planting windows, climate responses and source corroboration still require research and review.
+
+## Minnesota herb bundle
+
+Six reviewed-in-2024/2026 University of Minnesota Extension pages were normalized for basil, chives, dill, horseradish, parsley and sorrel. The committed bundle retains a separate URL and checksum for every page and contains 14 scoped facts: spacing and light for all six herbs plus indoor seed-start lead times for basil and parsley. Method expansion produced 26 `us-mn` draft families.
+
+The source normalizer checks the exact spacing evidence before producing output. The first local import created six crops and 26 drafts; the second created none and skipped all 26. Facts such as “after danger of frost” were not forced into an invented bounded planting window, and sorrel's “three weeks before last frost” was not mislabeled as days before transplanting.
+
+Across the two committed official-source bundles, the review queue now contains 45 crops, 91 candidate facts and 113 idempotent draft families. Herbs are no longer absent, but this is still candidate breadth rather than nationwide published coverage.

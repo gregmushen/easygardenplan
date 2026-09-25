@@ -15,6 +15,7 @@
     "knowledge:coverage": "tsx scripts/knowledge-coverage.ts",
     "knowledge:normalize-source": "tsx scripts/catalog-source-normalize.ts",
     "knowledge:import-candidates": "tsx scripts/catalog-candidate-import.ts",
+    "knowledge:normalize-herbs": "tsx scripts/herb-source-normalize.ts",
     "operations:product": "tsx scripts/product-operations.ts",
     "validation:migrations": "tsx scripts/migration-rehearsal.ts",
     "climate:import": "tsx scripts/climate-import.ts",
