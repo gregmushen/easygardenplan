@@ -2,7 +2,7 @@
 
 Recorded: September 25, 2026
 
-Status: **in progress**. Deterministic monitoring, background authority, scheduling, NWS normalization and transition persistence are implemented and verified. The phase remains open for a reviewed launch cold-response catalog, a configured NWS source-age policy, official-alert risk evaluation, relocation/downgrade browser cases and deployed Queue evidence.
+Status: **in progress**. Deterministic monitoring, background authority, scheduling, NWS normalization and transition persistence are implemented and verified. The phase remains open for a reviewed launch cold-response catalog, official-alert risk evaluation, relocation/downgrade browser cases and deployed Queue evidence.
 
 ## Implemented and proved
 
@@ -19,6 +19,7 @@ Status: **in progress**. Deterministic monitoring, background authority, schedul
 - A narrow due index stores garden/tenant IDs, location revision, due time and bounded lease state without coordinates. Platform discovery claims it with `SKIP LOCKED`, then opens tenant-scoped data to commit a tenant-provenanced evaluation event.
 - The evaluation consumer declares tenant authority and the current `weather.monitoring` entitlement. The framework re-verifies the committed event, tenant and current entitlement at each Queue/Workflow execution.
 - Monitoring eligibility is updated atomically when a garden's location or monitoring preference changes. Hourly scheduling is an application cron; Trestle's framework minute tick remains separate.
+- Staging and production explicitly select live NWS mode and fail closed when the provider's own update timestamp is more than six hours old. Local and preview environments retain deterministic fixture mode. The Queue-config test proves Trestle rendering preserves this application policy and the required NWS identity credential.
 - Free guidance and persisted monitoring status are visible in the garden. Pro evaluation requests are entitlement-gated at both HTTP and background boundaries.
 - PostgreSQL integration: concurrent warning evaluation created one warning; resolution and renewed risk created one semantic transition each; shared snapshots deduplicated; due work was claimed once and emitted one committed tenant event.
 
@@ -35,7 +36,7 @@ References: [NWS API Web Service](https://www.weather.gov/documentation/services
 ## Remaining exit evidence
 
 - Publish reviewed cold-response rules with stage thresholds/actions and run the representative nationwide matrix.
-- Set and validate `NWS_MAX_SOURCE_AGE_MINUTES` from documented/measured provider semantics before live advice; missing configuration makes live source freshness unusable rather than assuming safety.
+- Reassess the six-hour `NWS_MAX_SOURCE_AGE_MINUTES` ceiling with staging observations before launch. Missing or invalid configuration still makes live source freshness unusable rather than assuming safety.
 - Define the reviewed event/action policy that turns a point-matched official alert into recommendation state, and validate polygon/partial-area provider behavior in staging. Cancellation normalization and persistence are covered locally; an empty active-alert response is deliberately not treated as an all-clear.
 - Exercise deletion, relocation, planting completion and entitlement downgrade between scheduling and execution.
 - Run the Queue and hourly application cron in staging with real runtime roles and retain a normalized live snapshot/evaluation trace there.
