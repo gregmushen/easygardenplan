@@ -1,8 +1,23 @@
 import { expect, test } from "@playwright/test";
+import { catalogRelease, catalogReleaseRule, createDatabase, crop, evidenceItem, knowledgeSource, ruleFamily, ruleVersion } from "../../packages/db/src/index.js";
 
 const appURL = process.env.APP_URL ?? "http://localhost:42069";
 
+async function seedPlanningCatalog() {
+  const connectionString = process.env.TRESTLE_BROWSER_DATABASE_URL; if (!connectionString) throw new Error("Browser database is required");
+  const database = createDatabase(connectionString, "postgres-js"); const nonce = crypto.randomUUID(); const cropId = crypto.randomUUID(); const sourceId = crypto.randomUUID(); const evidenceId = crypto.randomUUID(); const familyIds = [crypto.randomUUID(), crypto.randomUUID()]; const ruleIds = [crypto.randomUUID(), crypto.randomUUID()]; const releaseId = crypto.randomUUID();
+  await database.insert(crop).values({ id: cropId, slug: `browser-crop-${nonce}`, commonName: "Browser fixture tomato", status: "published" });
+  await database.insert(knowledgeSource).values({ id: sourceId, url: `https://example.test/browser-${nonce}`, title: "Browser fixture", publisher: "Tests", sourceType: "fixture", accessedAt: new Date() });
+  await database.insert(evidenceItem).values({ id: evidenceId, sourceId, normalizedClaim: "Synthetic browser fact", scope: { fixture: true } });
+  await database.insert(ruleFamily).values([{ id: familyIds[0]!, cropId, ruleType: "spacing", method: "direct_sow", contextKey: nonce }, { id: familyIds[1]!, cropId, ruleType: "planting_window", method: "direct_sow", contextKey: nonce }]);
+  const applicability = { methods: ["direct_sow"], regionIds: [], climateRegimes: [], hardinessZones: [], varietyIds: [] };
+  await database.insert(ruleVersion).values([{ id: ruleIds[0]!, familyId: familyIds[0]!, version: 1, state: "published", applicability, payload: { state: "known", type: "spacing", withinRowMeters: { minimum: 0.5, maximum: 0.5, minimumInclusive: true, maximumInclusive: true }, pattern: "individual", sourceUnit: "meters" }, evidenceIds: [evidenceId], publishedAt: new Date() }, { id: ruleIds[1]!, familyId: familyIds[1]!, version: 1, state: "published", applicability, payload: { state: "known", type: "planting_window", windows: [{ kind: "calendar", startMonth: 3, startDay: 1, endMonth: 4, endDay: 15, endYearOffset: 0 }] }, evidenceIds: [evidenceId], publishedAt: new Date() }]);
+  await database.insert(catalogRelease).values({ id: releaseId, name: `browser-${nonce}`, status: "published", publishedBy: "browser-test", publishedAt: new Date() }); await database.insert(catalogReleaseRule).values(ruleIds.map((ruleVersionId) => ({ releaseId, ruleVersionId })));
+  await database.$client.end();
+}
+
 test("a new gardener receives one private workspace and can save the garden", async ({ page }) => {
+  await seedPlanningCatalog();
   const nonce = crypto.randomUUID().slice(0, 12);
   const email = `garden-${nonce}@example.test`;
   const password = `Garden-test-${nonce}!`;
@@ -57,6 +72,17 @@ test("a new gardener receives one private workspace and can save the garden", as
   await expect(page.getByRole("button", { name: "Main bed · revision 2" })).toBeVisible();
   const printHref = await page.getByRole("link", { name: "Print diagram" }).getAttribute("href");
   expect(printHref).toContain("print.svg");
+  await expect(page.getByRole("heading", { name: "Build a planting proposal" })).toBeVisible();
+  await expect(page.getByLabel("Crop")).toContainText("Browser fixture tomato");
+  await page.getByRole("button", { name: "Add crop" }).click();
+  await expect(page.getByText(/Browser fixture tomato: 4 retained plants/u)).toBeVisible();
+  await page.getByRole("button", { name: "Generate proposal" }).click();
+  await expect(page.getByText(/4 placed, 0 unplaced/u)).toBeVisible();
+  await expect(page.getByText(/through/u)).toBeVisible();
+  await page.getByRole("button", { name: "Save pinned position" }).click();
+  await expect(page.getByRole("heading", { name: /Plan version 2 · proposal/u })).toBeVisible();
+  await page.getByRole("button", { name: "Activate this plan" }).click();
+  await expect(page.getByRole("heading", { name: /active/u })).toBeVisible();
 
   const bootstrap = await page.context().request.post(`${appURL}/api/workspace/bootstrap`, { headers: { origin: appURL } });
   const workspace = (await bootstrap.json() as { workspace: { organizationId: string } }).workspace;

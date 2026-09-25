@@ -75,18 +75,20 @@ export class KnowledgeRepository {
     });
   }
 
-  async published(releaseId?: string): Promise<{ releaseId: string | null; rules: PublishedRule[] }> {
+  async published(releaseId?: string): Promise<{ releaseId: string | null; rules: PublishedRule[]; crops: Array<{ id: string; slug: string; commonName: string; scientificName: string | null }> }> {
     const [release] = releaseId
       ? await this.database.select().from(catalogRelease).where(and(eq(catalogRelease.id, releaseId), eq(catalogRelease.status, "published"))).limit(1)
       : await this.database.select().from(catalogRelease).where(eq(catalogRelease.status, "published")).orderBy(desc(catalogRelease.publishedAt)).limit(1);
-    if (!release) return { releaseId: null, rules: [] };
+    if (!release) return { releaseId: null, rules: [], crops: [] };
     const releaseCondition = releaseId
       ? eq(catalogReleaseRule.releaseId, release.id)
       : and(eq(catalogReleaseRule.releaseId, release.id), eq(ruleVersion.state, "published"));
     const rows = await this.database.select({ id: ruleVersion.id, familyId: ruleVersion.familyId, cropId: ruleFamily.cropId, varietyId: ruleFamily.varietyId, ruleType: ruleFamily.ruleType, version: ruleVersion.version, applicability: ruleVersion.applicability, payload: ruleVersion.payload, publishedAt: ruleVersion.publishedAt, evidenceIds: ruleVersion.evidenceIds })
       .from(catalogReleaseRule).innerJoin(ruleVersion, eq(ruleVersion.id, catalogReleaseRule.ruleVersionId)).innerJoin(ruleFamily, eq(ruleFamily.id, ruleVersion.familyId))
       .where(releaseCondition);
-    return { releaseId: release.id, rules: rows.map((row) => publishedRuleSchema.parse(row)) };
+    const cropIds = [...new Set(rows.map(({ cropId }) => cropId))];
+    const plants = cropIds.length ? await this.database.select({ id: crop.id, slug: crop.slug, commonName: crop.commonName, scientificName: crop.scientificName }).from(crop).where(and(inArray(crop.id, cropIds), eq(crop.status, "published"))).orderBy(asc(crop.commonName)) : [];
+    return { releaseId: release.id, rules: rows.map((row) => publishedRuleSchema.parse(row)), crops: plants };
   }
 
   async withdraw(ruleVersionId: string, replacementId?: string): Promise<void> {

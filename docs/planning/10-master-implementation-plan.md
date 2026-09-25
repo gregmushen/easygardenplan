@@ -476,8 +476,8 @@ Update this table as the build progresses. Use `not started`, `in progress`, `bl
 | 2 Knowledge | In progress | Deterministic pipeline proof: `docs/build/phase-02-progress.md`; live Exa run and reviewed catalog remain |
 | 3 Location/climate | In progress | Deterministic pipeline proof: `docs/build/phase-03-progress.md`; controlled providers and real datasets remain |
 | 4 Bed editor | In progress | Deterministic/editor proof: `docs/build/phase-04-progress.md`; touch and real measurement trials remain |
-| 5 Planner | In progress | Implement selections, deterministic proposals and activation |
-| 6 Progress | Not started | Depends on activated plans |
+| 5 Planner | In progress | Synthetic end-to-end proof: `docs/build/phase-05-progress.md`; real reviewed catalog/climate validation and override relationships remain |
+| 6 Progress | In progress | Build tasks, calendar views and append-only actual progress on activated plans |
 | 7 Monitoring | Not started | Adopt verified background runtime |
 | 8 Notifications | Not started | Depends on recommendation transitions |
 | 9 Billing | Not started | Finish platform billing follow-ups |

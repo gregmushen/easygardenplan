@@ -6,6 +6,7 @@ import { authClient } from "../auth-client.js";
 import { createGardenApi } from "../api/garden.js";
 import { LocationSetup } from "../location-setup.js";
 import { BedEditor } from "../bed-editor.js";
+import { PlanBuilder } from "../plan-builder.js";
 
 const apiOrigin = (import.meta.env.VITE_API_ORIGIN as string | undefined)?.replace(/\/$/u, "") ?? "";
 type Workspace = { organizationId: string; gardenId: string };
@@ -77,5 +78,6 @@ export function GardenScreen() {
     </form>
     {gardenQuery.data && workspace.data && <LocationSetup garden={gardenQuery.data} organizationId={workspace.data.organizationId} onUpdated={(garden) => { setDraft(draftFrom(garden)); queryClient.setQueryData(["garden", session.user.id, workspace.data?.gardenId], garden); }} />}
     {gardenQuery.data && workspace.data && <BedEditor garden={gardenQuery.data} organizationId={workspace.data.organizationId} />}
+    {gardenQuery.data && workspace.data && <PlanBuilder garden={gardenQuery.data} organizationId={workspace.data.organizationId} />}
   </section>;
 }
