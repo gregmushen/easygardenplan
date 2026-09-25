@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { affectedPlantingsComplete, isWithinQuietHours } from "./notification-repository.js";
+import { affectedPlantingsComplete, isWithinQuietHours, selectDigestRecommendationIds } from "./notification-repository.js";
 
 const first = "11111111-1111-4111-8111-111111111111";
 const second = "22222222-2222-4222-8222-222222222222";
@@ -57,5 +57,16 @@ describe("isWithinQuietHours", () => {
   it("treats matching boundaries as an all-day quiet preference", () => {
     expect(isWithinQuietHours(new Date("2026-07-01T15:00:00.000Z"), "America/Los_Angeles", "08:00", "08:00")).toBe(true);
     expect(isWithinQuietHours(new Date(), "Etc/UTC", null, null)).toBe(false);
+  });
+});
+
+describe("selectDigestRecommendationIds", () => {
+  it("uses the garden-local date and excludes immediately sent versions", () => {
+    const entries = [
+      { recommendationVersionId: first, createdAt: new Date("2026-10-02T06:30:00.000Z") },
+      { recommendationVersionId: second, createdAt: new Date("2026-10-02T07:30:00.000Z") },
+    ];
+    expect(selectDigestRecommendationIds(entries, new Set([first]), "America/Los_Angeles", "2026-10-02")).toEqual([second]);
+    expect(selectDigestRecommendationIds(entries, new Set(), "America/Los_Angeles", "2026-10-01")).toEqual([first]);
   });
 });

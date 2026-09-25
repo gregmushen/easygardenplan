@@ -1,4 +1,4 @@
-import { createDatabase, garden, gardenPlanVersion, gardenProgressEvent, notificationDeliveryIntent, notificationFeedEntry, notificationPreference, organization, recommendationTransition, user, weatherForecastSnapshot, weatherOfficialAlertGarden, weatherOfficialAlertSnapshot } from "@easygardenplan/db";
+import { createDatabase, garden, gardenPlanVersion, gardenProgressEvent, notificationDeliveryIntent, notificationDigest, notificationFeedEntry, notificationPreference, organization, recommendationTransition, user, weatherForecastSnapshot, weatherOfficialAlertGarden, weatherOfficialAlertSnapshot } from "@easygardenplan/db";
 import { and, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { MonitoringRepository } from "./monitoring-repository.js";
@@ -96,6 +96,21 @@ suite("weather episode persistence", () => {
     expect(await deliveries.claim(warning.transition!.id)).toBeNull();
     const [intent] = await database!.select().from(notificationDeliveryIntent).where(eq(notificationDeliveryIntent.transitionId, warning.transition!.id));
     expect(intent).toMatchObject({ status: "suppressed", suppressionReason: "affected_plantings_complete" });
+  });
+
+  it("freezes one daily digest and excludes an immediately accepted version", async () => {
+    const sentCandidate = { ...candidate, groupKey: "crop:digest-sent", evidenceFingerprint: "fixture-digest-sent" };
+    const pendingCandidate = { ...candidate, groupKey: "crop:digest-pending", evidenceFingerprint: "fixture-digest-pending" };
+    const sentWarning = await repository!.evaluate({ gardenId, hazard: "cold", groupKey: sentCandidate.groupKey, observation: { status: "evaluated", candidate: sentCandidate } });
+    const pendingWarning = await repository!.evaluate({ gardenId, hazard: "cold", groupKey: pendingCandidate.groupKey, observation: { status: "evaluated", candidate: pendingCandidate } });
+    await database!.update(notificationDeliveryIntent).set({ status: "accepted", providerDeliveryId: "digest-sent", acceptedAt: new Date(), updatedAt: new Date() }).where(eq(notificationDeliveryIntent.transitionId, sentWarning.transition!.id));
+    const digests = new NotificationRepository(database!, organizationId, { now: () => new Date("2026-10-01T14:00:00.000Z") });
+    const created = await digests.createDigest(gardenId, userId, "2026-09-30");
+    const repeated = await digests.createDigest(gardenId, userId, "2026-09-30");
+    expect(repeated.id).toBe(created.id);
+    expect(created.includedRecommendationVersionIds).toContain(pendingWarning.recommendation!.id);
+    expect(created.includedRecommendationVersionIds).not.toContain(sentWarning.recommendation!.id);
+    expect(await database!.select().from(notificationDigest).where(eq(notificationDigest.id, created.id))).toHaveLength(1);
   });
 
   it("suppresses overnight warnings when the recipient disabled urgent quiet-hour delivery", async () => {

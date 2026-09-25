@@ -1,4 +1,4 @@
-import { garden, gardenProgressEvent, gardenRiskState, notificationDeliveryIntent, notificationPreference, recommendationEpisode, recommendationTransition, recommendationVersion, user, type Database } from "@easygardenplan/db";
+import { garden, gardenProgressEvent, gardenRiskState, notificationDeliveryIntent, notificationDigest, notificationFeedEntry, notificationPreference, recommendationEpisode, recommendationTransition, recommendationVersion, user, type Database } from "@easygardenplan/db";
 import { and, desc, eq, inArray, isNull, lt, or, sql } from "drizzle-orm";
 
 export type ClaimedNotification = {
@@ -42,6 +42,12 @@ export function isWithinQuietHours(now: Date, timezone: string, start: string | 
   return startMinute < endMinute ? local >= startMinute && local < endMinute : local >= startMinute || local < endMinute;
 }
 
+export function selectDigestRecommendationIds(entries: Array<{ recommendationVersionId: string; createdAt: Date }>, immediatelySentIds: ReadonlySet<string>, timezone: string, localDate: string): string[] {
+  const formatter = new Intl.DateTimeFormat("en-CA", { timeZone: timezone, year: "numeric", month: "2-digit", day: "2-digit" });
+  const dateAt = (value: Date) => { const parts = formatter.formatToParts(value); return `${parts.find(({ type }) => type === "year")?.value}-${parts.find(({ type }) => type === "month")?.value}-${parts.find(({ type }) => type === "day")?.value}`; };
+  return [...new Set(entries.filter(({ createdAt, recommendationVersionId }) => dateAt(createdAt) === localDate && !immediatelySentIds.has(recommendationVersionId)).map(({ recommendationVersionId }) => recommendationVersionId))].sort();
+}
+
 export class NotificationRepository {
   constructor(private readonly database: Database, private readonly organizationId: string, private readonly clock: { now(): Date } = { now: () => new Date() }) {}
 
@@ -79,6 +85,25 @@ export class NotificationRepository {
 
   async retry(intentId: string, attemptToken: string): Promise<void> {
     await this.database.update(notificationDeliveryIntent).set({ status: "pending", attemptToken: null, leaseExpiresAt: null, updatedAt: this.clock.now() }).where(and(eq(notificationDeliveryIntent.organizationId, this.organizationId), eq(notificationDeliveryIntent.id, intentId), eq(notificationDeliveryIntent.status, "sending"), eq(notificationDeliveryIntent.attemptToken, attemptToken)));
+  }
+
+  async createDigest(gardenId: string, recipientUserId: string, localDate: string) {
+    return await this.database.transaction(async (transaction) => {
+      await transaction.execute(sql`select pg_advisory_xact_lock(hashtext(${`notification-digest:${gardenId}:${recipientUserId}:${localDate}`}))`);
+      const [existing] = await transaction.select().from(notificationDigest).where(and(eq(notificationDigest.organizationId, this.organizationId), eq(notificationDigest.gardenId, gardenId), eq(notificationDigest.recipientUserId, recipientUserId), eq(notificationDigest.localDate, localDate))).limit(1);
+      if (existing) return existing;
+      const [place] = await transaction.select({ timezone: garden.timezone }).from(garden).where(and(eq(garden.organizationId, this.organizationId), eq(garden.id, gardenId))).limit(1);
+      if (!place) throw new Error("Digest garden was not found");
+      const [preference] = await transaction.select().from(notificationPreference).where(and(eq(notificationPreference.organizationId, this.organizationId), eq(notificationPreference.userId, recipientUserId))).limit(1);
+      const entries = await transaction.select({ recommendationVersionId: notificationFeedEntry.recommendationVersionId, createdAt: notificationFeedEntry.createdAt }).from(notificationFeedEntry).where(and(eq(notificationFeedEntry.organizationId, this.organizationId), eq(notificationFeedEntry.gardenId, gardenId))).orderBy(notificationFeedEntry.createdAt);
+      const sent = await transaction.select({ recommendationVersionId: notificationDeliveryIntent.recommendationVersionId }).from(notificationDeliveryIntent).where(and(eq(notificationDeliveryIntent.organizationId, this.organizationId), eq(notificationDeliveryIntent.gardenId, gardenId), eq(notificationDeliveryIntent.recipientUserId, recipientUserId), inArray(notificationDeliveryIntent.status, ["accepted", "delivered"])));
+      const includedRecommendationVersionIds = selectDigestRecommendationIds(entries, new Set(sent.map(({ recommendationVersionId }) => recommendationVersionId)), place.timezone ?? "Etc/UTC", localDate);
+      const enabled = (preference?.digestEmailEnabled ?? true) && (preference?.routineEmailEnabled ?? true);
+      const now = this.clock.now();
+      const [digest] = await transaction.insert(notificationDigest).values({ organizationId: this.organizationId, gardenId, recipientUserId, localDate, includedRecommendationVersionIds, idempotencyKey: `garden-digest:${gardenId}:${recipientUserId}:${localDate}`, status: enabled && includedRecommendationVersionIds.length ? "pending" : "suppressed", suppressionReason: enabled ? "empty_digest" : "preference_disabled", createdAt: now, updatedAt: now }).returning();
+      if (!digest) throw new Error("Digest was not recorded");
+      return digest;
+    });
   }
 }
 

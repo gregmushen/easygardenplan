@@ -344,6 +344,13 @@
       "when": 1790343120616,
       "tag": "0048_nebulous_switch",
       "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1790344097808,
+      "tag": "0049_bored_hannibal_king",
+      "breakpoints": true
     }
   ]
 }

@@ -18,13 +18,13 @@ monitoringRoutes.get("/api/gardens/:gardenId/monitoring", requireExecutionContex
   return context.json({ risk: await repository.listRisk(context.req.param("gardenId")), recommendations: await repository.listRecommendations(context.req.param("gardenId")), feed: await repository.listFeed(context.req.param("gardenId")) });
 });
 
-const preferenceSchema = z.object({ urgentEmailEnabled: z.boolean(), resolutionEmailEnabled: z.boolean(), quietHoursStart: z.string().regex(/^([01][0-9]|2[0-3]):[0-5][0-9]$/u).nullable(), quietHoursEnd: z.string().regex(/^([01][0-9]|2[0-3]):[0-5][0-9]$/u).nullable(), urgentDuringQuietHours: z.boolean() }).refine((value) => (value.quietHoursStart === null) === (value.quietHoursEnd === null), "Both quiet-hour times are required");
+const preferenceSchema = z.object({ urgentEmailEnabled: z.boolean(), resolutionEmailEnabled: z.boolean(), routineEmailEnabled: z.boolean(), digestEmailEnabled: z.boolean(), quietHoursStart: z.string().regex(/^([01][0-9]|2[0-3]):[0-5][0-9]$/u).nullable(), quietHoursEnd: z.string().regex(/^([01][0-9]|2[0-3]):[0-5][0-9]$/u).nullable(), urgentDuringQuietHours: z.boolean() }).refine((value) => (value.quietHoursStart === null) === (value.quietHoursEnd === null), "Both quiet-hour times are required");
 
 monitoringRoutes.get("/api/notifications/preferences", requireExecutionContext, async (context) => {
   const execution = context.get("execution");
   if (execution.principal.kind !== "user") return context.json({ error: "User session required" }, 403);
   const [stored] = await execution.data.select().from(notificationPreference).where(and(eq(notificationPreference.organizationId, execution.tenant.organizationId), eq(notificationPreference.userId, execution.principal.id))).limit(1);
-  return context.json({ preference: stored ?? { urgentEmailEnabled: true, resolutionEmailEnabled: true, quietHoursStart: null, quietHoursEnd: null, urgentDuringQuietHours: true } });
+  return context.json({ preference: stored ?? { urgentEmailEnabled: true, resolutionEmailEnabled: true, routineEmailEnabled: true, digestEmailEnabled: true, quietHoursStart: null, quietHoursEnd: null, urgentDuringQuietHours: true } });
 });
 
 monitoringRoutes.put("/api/notifications/preferences", requireExecutionContext, async (context) => {
