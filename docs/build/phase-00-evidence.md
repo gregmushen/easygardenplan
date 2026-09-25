@@ -75,6 +75,13 @@ Known CLI deviation: `trestle plan init` at the pinned commit rejects the starte
 - PostgreSQL container: healthy; generated migrations apply successfully and repeat idempotently.
 - Local encrypted credentials: valid.
 
+## Hosted repository baseline
+
+- Canonical remote: `https://github.com/gregmushen/easygardenplan.git`.
+- GitHub environments exist for preview, staging and production; no provider credential was invented or copied into them.
+- CI run `36159176920` passed on commit `442423bb87c1591f54b52c885837bc5aff8b4c4b`: frozen install, Trestle validation and architecture, typecheck, PostgreSQL migration, full tests, production builds, Chromium product journey and Wrangler validation all succeeded.
+- Deploy run `36159176848` stopped before provisioning because staging encrypted credentials, email deployment configuration and Stripe settings are absent. It reported 110 doctor checks passed and three configuration failures; the production job was skipped.
+
 ## Incidents resolved during proof
 
 - Default PostgreSQL and web ports were occupied by unrelated local projects. Easy Garden Plan uses isolated ports and did not stop those processes.

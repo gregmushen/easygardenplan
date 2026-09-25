@@ -153,6 +153,14 @@ test("a new gardener receives one private workspace and can save the garden", as
   await expect(page.getByRole("heading", { name: /active/u })).toBeVisible();
   await expect(page.getByRole("heading", { name: "This week" })).toBeVisible();
   await expect(page.getByText(/Sow in the planned position/u).first()).toBeVisible();
+  const stakingPrintHref = await page.getByRole("link", { name: "Print staking plan" }).getAttribute("href");
+  expect(stakingPrintHref).toContain("print.svg");
+  const stakingPrint = await page.context().request.get(stakingPrintHref!);
+  expect(stakingPrint.status()).toBe(200);
+  const stakingPrintSvg = await stakingPrint.text();
+  expect(stakingPrintSvg).toContain('role="img"');
+  expect(stakingPrintSvg).toContain('aria-label="Staking plan version');
+  expect(stakingPrintSvg).not.toMatch(/<(?:image|foreignObject)\b/iu);
   await page.getByLabel("Progress date").fill(`${new Date().getFullYear()}-03-10`);
   await page.getByRole("button", { name: "Record progress" }).click();
   await expect(page.getByText(/sown/u).last()).toBeVisible();
@@ -168,6 +176,8 @@ test("a new gardener receives one private workspace and can save the garden", as
   await expect(page.getByText(/task postponed/u)).toBeVisible();
   await page.getByRole("button", { name: "Skip" }).first().click();
   await expect(page.getByText(/task skipped/u)).toBeVisible();
+  const calendarAccessibility = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
+  expect(calendarAccessibility.violations, calendarAccessibility.violations.map(({ id, help, nodes }) => `${id}: ${help} (${nodes.length})`).join("\n")).toEqual([]);
   await expect(page.getByRole("group", { name: "Email choices" })).toBeVisible();
   await page.getByLabel("Use quiet hours").check();
   await expect(page.getByLabel("Quiet hours start")).toHaveValue("22:00");

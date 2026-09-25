@@ -50,7 +50,7 @@ Stripe subscription reconciliation is now also queued after the signed receipt i
   - Worker with both PostgreSQL integration environments enabled: 152 passed, 0 skipped.
   - Database: 134 passed, 13 skipped environment-specific cases.
   - Integrations: 92 passed, 5 skipped protected live-provider cases.
-  - Data: 34 passed, 0 skipped with PostgreSQL enabled.
+  - Data: 35 passed, 0 skipped with PostgreSQL enabled.
   - All other workspace suites and production builds passed.
 - Local product browser path: passed on desktop Chromium, Firefox and WebKit plus the Pixel 7 Chromium touch-emulation profile, including account, garden, location, touch/click boundary drawing, bed revision, sourced plan, print link, progress, Free/Pro downgrade preservation and deletion. A WCAG 2.0/2.1 A/AA scan runs on the loaded garden editor in all four profiles and passes. These automated profiles do not replace physical-device and screen-reader review.
 - Clean-database migration rehearsal: the full journal applies to a disposable database, producing 72 public tables with 39 tables reporting forced RLS. The disposable database was removed after inspection.
@@ -58,6 +58,7 @@ Stripe subscription reconciliation is now also queued after the signed receipt i
 - Product operations snapshot: executed successfully and returned aggregate crop coverage, forecast freshness, monitoring due work, event backlog, delivery outcomes, billing lag and provider usage without customer locations or message content.
 - Local monitoring capacity: the 1,000-active-garden hourly pilot requires 1,000 evaluations per hour; the two-minute, 50-item scheduler supplies 1,500 slots per hour with bounded five-way tenant work. The conservative no-cache model projects 2.16 million NWS requests per 30 days, averaging 0.833 requests/second. Provider latency, burst acceptance and cost remain staging measurements. See `monitoring-capacity-evidence.md`.
 - Trestle SetupPlan validation/diff, architecture check and local doctor were rerun after the official climate import; the plan remains converged and doctor reported 106 passed, 0 warnings and 0 failures.
+- GitHub CI run `36159176920` passed every hosted gate on commit `442423bb87c1591f54b52c885837bc5aff8b4c4b`. Staging run `36159176848` failed closed before provisioning with 110 doctor checks passing and the three expected missing-configuration groups: encrypted staging credentials, email deployment settings and Stripe settings. Its production job remained skipped.
 
 ## Remaining controlled gates
 
