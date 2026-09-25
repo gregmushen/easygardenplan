@@ -1,6 +1,6 @@
 import { climateDatasetManifestSchema, climateAssociationSchema, type ClimateDatasetManifest, type Coordinate } from "@easygardenplan/contracts";
 import { climateAssociation, climateDatasetVersion, climateRecord, garden, type Database } from "@easygardenplan/db";
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, gte, lte, or, sql } from "drizzle-orm";
 
 export function distanceMeters(first: Coordinate, second: Coordinate): number {
   const radius = 6_371_008.8;
@@ -49,15 +49,9 @@ export class ClimateRepository {
     const combined = currentByKind.has("hardiness") || currentByKind.has("frost_normals") ? undefined : currentByKind.get("combined_fixture");
     const hardinessDataset = currentByKind.get("hardiness") ?? combined;
     const frostDataset = currentByKind.get("frost_normals") ?? combined;
-    const selectedIds = [...new Set([hardinessDataset?.id, frostDataset?.id].filter((id): id is string => Boolean(id)))];
-    const records = selectedIds.length ? await this.database.select().from(climateRecord).where(inArray(climateRecord.datasetVersionId, selectedIds)) : [];
-    const nearestFor = (datasetId: string | undefined) => records
-      .filter((record) => record.datasetVersionId === datasetId)
-      .map((record) => ({ record, distance: distanceMeters(input.coordinate, { latitude: Number(record.latitude), longitude: Number(record.longitude) }) }))
-      .sort((a, b) => a.distance - b.distance)[0];
-    const hardiness = nearestFor(hardinessDataset?.id);
-    const frost = frostDataset?.id === hardinessDataset?.id ? hardiness : nearestFor(frostDataset?.id);
     const maxReliable = input.maxReliableDistanceMeters ?? 75_000;
+    const hardiness = hardinessDataset ? await nearestClimateRecord(this.database, hardinessDataset.id, input.coordinate, maxReliable) : undefined;
+    const frost = frostDataset?.id === hardinessDataset?.id ? hardiness : frostDataset ? await nearestClimateRecord(this.database, frostDataset.id, input.coordinate, maxReliable) : undefined;
     const matchConfidence = (distance: number) => Math.max(0.1, 1 - distance / (maxReliable * 2));
     const evidenceFor = (dataset: typeof hardinessDataset, match: typeof hardiness) => dataset && match ? {
       kind: dataset.kind as "hardiness" | "frost_normals" | "combined_fixture", datasetVersionId: dataset.id, recordId: match.record.id,
@@ -97,6 +91,34 @@ export class ClimateRepository {
       return climateAssociationSchema.parse({ ...created, distanceMeters: null, elevationDifferenceMeters: null, confidence: Number(created?.confidence) });
     });
   }
+}
+
+async function nearestClimateRecord(database: Database, datasetVersionId: string, coordinate: Coordinate, maxReliableDistanceMeters: number) {
+  let best: { record: typeof climateRecord.$inferSelect; distance: number } | undefined;
+  for (const latitudeRadius of [1, 5, 20, 60]) {
+    const minimumLatitude = Math.max(-90, coordinate.latitude - latitudeRadius);
+    const maximumLatitude = Math.min(90, coordinate.latitude + latitudeRadius);
+    const longitudeRadius = Math.min(180, latitudeRadius / Math.max(0.1, Math.cos(coordinate.latitude * Math.PI / 180)));
+    const minimumLongitude = coordinate.longitude - longitudeRadius;
+    const maximumLongitude = coordinate.longitude + longitudeRadius;
+    const longitudeFilter = longitudeRadius >= 180 ? undefined : minimumLongitude < -180
+      ? or(gte(climateRecord.longitude, String(minimumLongitude + 360)), lte(climateRecord.longitude, String(maximumLongitude)))
+      : maximumLongitude > 180
+        ? or(gte(climateRecord.longitude, String(minimumLongitude)), lte(climateRecord.longitude, String(maximumLongitude - 360)))
+        : and(gte(climateRecord.longitude, String(minimumLongitude)), lte(climateRecord.longitude, String(maximumLongitude)));
+    const candidates = await database.select().from(climateRecord).where(and(
+      eq(climateRecord.datasetVersionId, datasetVersionId),
+      gte(climateRecord.latitude, String(minimumLatitude)),
+      lte(climateRecord.latitude, String(maximumLatitude)),
+      longitudeFilter,
+    )).orderBy(sql`power((${climateRecord.latitude})::double precision - ${coordinate.latitude}, 2) + power(least(abs((${climateRecord.longitude})::double precision - ${coordinate.longitude}), 360 - abs((${climateRecord.longitude})::double precision - ${coordinate.longitude})) * ${Math.max(0.1, Math.cos(coordinate.latitude * Math.PI / 180))}, 2)`).limit(12);
+    for (const record of candidates) {
+      const distance = distanceMeters(coordinate, { latitude: Number(record.latitude), longitude: Number(record.longitude) });
+      if (!best || distance < best.distance) best = { record, distance };
+    }
+    if (best && best.distance <= maxReliableDistanceMeters) return best;
+  }
+  return best;
 }
 
 export async function climateRecordsChecksum(records: ClimateDatasetManifest["records"]): Promise<string> {

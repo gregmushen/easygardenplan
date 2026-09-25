@@ -1,0 +1,1 @@
+CREATE INDEX "climate_record_coordinate_idx" ON "climate_record" USING btree ("dataset_version_id","latitude","longitude");

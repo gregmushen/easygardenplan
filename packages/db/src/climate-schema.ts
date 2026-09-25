@@ -33,7 +33,7 @@ export const climateRecord = pgTable("climate_record", {
   autumnFrostLocalDate: text("autumn_frost_local_date"),
   referencePeriod: text("reference_period"),
   probabilityPercent: numeric("probability_percent", { precision: 5, scale: 2 }),
-}, (table) => [uniqueIndex("climate_record_external_uidx").on(table.datasetVersionId, table.externalId), index("climate_record_dataset_idx").on(table.datasetVersionId)]);
+}, (table) => [uniqueIndex("climate_record_external_uidx").on(table.datasetVersionId, table.externalId), index("climate_record_dataset_idx").on(table.datasetVersionId), index("climate_record_coordinate_idx").on(table.datasetVersionId, table.latitude, table.longitude)]);
 
 export const climateAssociation = pgTable("climate_association", {
   id: uuid("id").defaultRandom().primaryKey(),

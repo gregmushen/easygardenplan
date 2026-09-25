@@ -52,6 +52,12 @@ suite("versioned climate import and tenant association", () => {
           expect.objectContaining({ kind: "frost_normals", sourceName: "NOAA frost-normal fixture", attribution: "NOAA fixture attribution" }),
         ],
       });
+      const wrappedFrostRecords = [{ ...frostRecords[0]!, externalId: `${nonce}-wrapped-frost`, coordinate: { latitude: 60, longitude: 179.8 }, springFrostLocalDate: "05-20", autumnFrostLocalDate: "09-10" }];
+      const wrappedFrostDataset = await new ClimateRepository(admin!).publishDataset({ ...manifest, kind: "frost_normals", sourceName: "NOAA antimeridian fixture", sourceRelease: `${nonce}-wrapped-frost`, checksumSha256: await climateRecordsChecksum(wrappedFrostRecords), attribution: "NOAA fixture attribution", records: wrappedFrostRecords });
+      datasetIds.push(wrappedFrostDataset.datasetVersionId);
+      const wrapped = await new ClimateRepository(tenantA).associateGarden({ gardenId: plot!.id, coordinate: { latitude: 60, longitude: -179.9 } });
+      expect(wrapped).toMatchObject({ state: "known", springFrostLocalDate: "05-20", autumnFrostLocalDate: "09-10" });
+      expect((wrapped as { sourceEvidence: Array<{ kind: string; distanceMeters: number }> }).sourceEvidence.find(({ kind }) => kind === "frost_normals")?.distanceMeters).toBeLessThan(20_000);
       expect(await new ClimateRepository(tenantB).current(plot!.id)).toBeNull();
       await expect(new ClimateRepository(tenantB).setUserAnchor({ gardenId: plot!.id, frostState: "unknown", rationale: "cross tenant attempt" })).rejects.toThrow("Garden not found");
     } finally { await tenantA.$client.end(); await tenantB.$client.end(); }

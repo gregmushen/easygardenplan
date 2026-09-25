@@ -18,9 +18,11 @@ NOAA source name, release, reference period and station/record identity must rem
 
 Hardiness and frost normals remain separately versioned datasets. Publishing one must never replace the other. A garden association selects the nearest usable record from the current release of each kind, freezes both dataset/record identities, source names, releases, attribution, distance, elevation difference and match confidence, and then combines the zone with the frost state/dates.
 
+National point datasets are searched in expanding latitude/longitude windows inside PostgreSQL, using a dataset/coordinate index and a small candidate limit before exact great-circle ranking. The application no longer loads or sorts an entire release in memory. Longitude windows and final distance calculation wrap across the antimeridian; an integration case proves a record at 179.8° matches a garden at -179.9°.
+
 The synthetic combined fixture is used only when neither real source kind is published. Once either real kind exists, missing counterparts remain explicitly unavailable instead of falling back to synthetic facts. Distance thresholds apply independently, so a reliable zone can coexist with uncertain frost dates or vice versa.
 
-Migration `0054_tricky_sentinel.sql` adds the frozen multi-source evidence to existing associations without changing their historical climate values. PostgreSQL integration proves a USDA/OSU-style hardiness record and a NOAA-style frost record combine into one association while retaining both attributions.
+Migration `0054_tricky_sentinel.sql` adds the frozen multi-source evidence to existing associations without changing their historical climate values. Migration `0055_glossy_dark_phoenix.sql` adds the dataset/coordinate lookup index. PostgreSQL integration proves a USDA/OSU-style hardiness record and a NOAA-style frost record combine into one association while retaining both attributions.
 
 ## Remaining controlled import work
 
