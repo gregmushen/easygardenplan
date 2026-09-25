@@ -27,6 +27,7 @@ export const representativeRules: PublishedRule[] = (Object.keys(payloads) as Ru
   payload: payloads[ruleType],
   publishedAt: new Date("2026-01-01T00:00:00.000Z"),
   evidenceIds: [evidenceId],
+  overridesRuleVersionIds: [],
 }));
 
 export const representativeRegionClasses = regionClasses;

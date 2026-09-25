@@ -9,7 +9,7 @@ export class KnowledgeRepository {
   constructor(private readonly database: Database) {}
 
   async listEditorialRules(): Promise<Array<Record<string, unknown>>> {
-    return await this.database.select({ id: ruleVersion.id, familyId: ruleVersion.familyId, version: ruleVersion.version, state: ruleVersion.state, applicability: ruleVersion.applicability, payload: ruleVersion.payload, evidenceIds: ruleVersion.evidenceIds, reviewDecisionId: ruleVersion.reviewDecisionId, createdAt: ruleVersion.createdAt })
+    return await this.database.select({ id: ruleVersion.id, familyId: ruleVersion.familyId, version: ruleVersion.version, state: ruleVersion.state, applicability: ruleVersion.applicability, payload: ruleVersion.payload, evidenceIds: ruleVersion.evidenceIds, overridesRuleVersionIds: ruleVersion.overridesRuleVersionIds, reviewDecisionId: ruleVersion.reviewDecisionId, createdAt: ruleVersion.createdAt })
       .from(ruleVersion).orderBy(asc(ruleVersion.createdAt));
   }
 
@@ -29,7 +29,7 @@ export class KnowledgeRepository {
       if (!family) [family] = await transaction.insert(ruleFamily).values({ cropId: draft.cropId, varietyId: draft.varietyId, ruleType: draft.ruleType, method: draft.method, contextKey: draft.contextKey }).returning();
       if (!family) throw new Error("Rule family was not created");
       const [latest] = await transaction.select({ version: ruleVersion.version }).from(ruleVersion).where(eq(ruleVersion.familyId, family.id)).orderBy(desc(ruleVersion.version)).limit(1);
-      const [version] = await transaction.insert(ruleVersion).values({ familyId: family.id, version: (latest?.version ?? 0) + 1, applicability: draft.applicability, payload: draft.payload, evidenceIds: [evidence.id] }).returning();
+      const [version] = await transaction.insert(ruleVersion).values({ familyId: family.id, version: (latest?.version ?? 0) + 1, applicability: draft.applicability, payload: draft.payload, evidenceIds: [evidence.id], overridesRuleVersionIds: draft.overridesRuleVersionIds }).returning();
       if (!version) throw new Error("Rule draft was not created");
       return { ruleVersionId: version.id, evidenceId: evidence.id };
     });
@@ -62,6 +62,13 @@ export class KnowledgeRepository {
         if (!decision) throw new Error("Every published rule requires an accepted review decision");
         const evidence = await transaction.select({ id: evidenceItem.id }).from(evidenceItem).where(inArray(evidenceItem.id, evidenceIds));
         if (evidence.length !== new Set(evidenceIds).size) throw new Error("Every evidence reference must exist");
+        const overrideIds = version.overridesRuleVersionIds as string[];
+        if (overrideIds.includes(version.id) || overrideIds.length !== new Set(overrideIds).size) throw new Error("Rule overrides must be unique and cannot reference themselves");
+        if (overrideIds.length) {
+          const [currentFamily] = await transaction.select().from(ruleFamily).where(eq(ruleFamily.id, version.familyId)).limit(1);
+          const targets = await transaction.select({ id: ruleVersion.id, state: ruleVersion.state, cropId: ruleFamily.cropId, ruleType: ruleFamily.ruleType, method: ruleFamily.method }).from(ruleVersion).innerJoin(ruleFamily, eq(ruleFamily.id, ruleVersion.familyId)).where(inArray(ruleVersion.id, overrideIds));
+          if (!currentFamily || targets.length !== overrideIds.length || targets.some((target) => target.state !== "published" || target.cropId !== currentFamily.cropId || target.ruleType !== currentFamily.ruleType || target.method !== currentFamily.method)) throw new Error("Every override must reference a published rule for the same crop, type and method");
+        }
       }
       const now = new Date();
       const [release] = await transaction.insert(catalogRelease).values({ name: command.releaseName, status: "published", publishedBy: command.reviewerId, publishedAt: now }).returning();
@@ -83,7 +90,7 @@ export class KnowledgeRepository {
     const releaseCondition = releaseId
       ? eq(catalogReleaseRule.releaseId, release.id)
       : and(eq(catalogReleaseRule.releaseId, release.id), eq(ruleVersion.state, "published"));
-    const rows = await this.database.select({ id: ruleVersion.id, familyId: ruleVersion.familyId, cropId: ruleFamily.cropId, varietyId: ruleFamily.varietyId, ruleType: ruleFamily.ruleType, version: ruleVersion.version, applicability: ruleVersion.applicability, payload: ruleVersion.payload, publishedAt: ruleVersion.publishedAt, evidenceIds: ruleVersion.evidenceIds })
+    const rows = await this.database.select({ id: ruleVersion.id, familyId: ruleVersion.familyId, cropId: ruleFamily.cropId, varietyId: ruleFamily.varietyId, ruleType: ruleFamily.ruleType, version: ruleVersion.version, applicability: ruleVersion.applicability, payload: ruleVersion.payload, publishedAt: ruleVersion.publishedAt, evidenceIds: ruleVersion.evidenceIds, overridesRuleVersionIds: ruleVersion.overridesRuleVersionIds })
       .from(catalogReleaseRule).innerJoin(ruleVersion, eq(ruleVersion.id, catalogReleaseRule.ruleVersionId)).innerJoin(ruleFamily, eq(ruleFamily.id, ruleVersion.familyId))
       .where(releaseCondition);
     const cropIds = [...new Set(rows.map(({ cropId }) => cropId))];

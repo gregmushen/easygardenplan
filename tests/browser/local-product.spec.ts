@@ -100,6 +100,7 @@ test("a new gardener receives one private workspace and can save the garden", as
   await expect(page.getByText(/Browser fixture tomato: 4 retained plants/u)).toBeVisible();
   await page.getByRole("button", { name: "Generate proposal" }).click();
   await expect(page.getByText(/4 placed, 0 unplaced/u)).toBeVisible();
+  await expect(page.getByText("Why these rules were used", { exact: true })).toBeVisible();
   await expect(page.getByText(/through/u).first()).toBeVisible();
   await page.getByRole("button", { name: "Save pinned position" }).click();
   await expect(page.getByRole("heading", { name: /Plan version 2 · proposal/u })).toBeVisible();

@@ -45,12 +45,13 @@ suite("knowledge editorial publication", () => {
     expect((await repository.published(release1.releaseId)).rules).toHaveLength(1);
     await expect(database!.update(ruleVersion).set({ payload: { ...payload, sourceUnit: "feet" } }).where(eq(ruleVersion.id, first.ruleVersionId))).rejects.toThrow();
 
-    const second = await repository.createDraft({ cropId: plant!.id, ruleType: "spacing", method: "direct_sow", contextKey: "default", applicability, payload: { ...payload, withinRowMeters: { minimum: 0.4, maximum: 0.6, minimumInclusive: true, maximumInclusive: true } }, source, evidence: { researchRunId: run!.id, normalizedClaim: "Synthetic corrected spacing fixture", scope: { region: "test" }, originalUnits: "meters" } });
+    const second = await repository.createDraft({ cropId: plant!.id, ruleType: "spacing", method: "direct_sow", contextKey: "default", applicability, payload: { ...payload, withinRowMeters: { minimum: 0.4, maximum: 0.6, minimumInclusive: true, maximumInclusive: true } }, overridesRuleVersionIds: [first.ruleVersionId], source, evidence: { researchRunId: run!.id, normalizedClaim: "Synthetic corrected spacing fixture", scope: { region: "test" }, originalUnits: "meters" } });
     await repository.review({ ruleVersionId: second.ruleVersionId, reviewerId: `fixture-reviewer-${nonce}`, decision: "accepted", rationale: "Correction reviewed" });
     const release2 = await repository.publish({ releaseName: `fixture-two-${nonce}`, ruleVersionIds: [second.ruleVersionId], reviewerId: `fixture-reviewer-${nonce}`, note: "correction" });
+    await expect(database!.update(ruleVersion).set({ overridesRuleVersionIds: [] }).where(eq(ruleVersion.id, second.ruleVersionId))).rejects.toThrow();
     await repository.withdraw(first.ruleVersionId, second.ruleVersionId);
     expect((await repository.published(release1.releaseId)).rules[0]?.version).toBe(1);
-    expect((await repository.published(release2.releaseId)).rules[0]?.version).toBe(2);
+    expect((await repository.published(release2.releaseId)).rules[0]).toMatchObject({ version: 2, overridesRuleVersionIds: [first.ruleVersionId] });
     expect((await repository.published()).rules[0]?.version).toBe(2);
     const cells = coverageMatrix({ cropIds: [plant!.id], methods: ["direct_sow"], ruleTypes: ["spacing", "light"], regionClasses: ["test-region"], rules: (await repository.published(release2.releaseId)).rules });
     expect(cells.map(({ status }) => status)).toEqual(["supported", "missing"]);

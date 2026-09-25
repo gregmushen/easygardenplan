@@ -33,7 +33,7 @@ const instructionSchema = z.object({ state: z.literal("known"), type: z.literal(
 export const knownRulePayloadSchema = z.discriminatedUnion("type", [spacingSchema, lightSchema, plantingWindowSchema, seedLeadSchema, maturitySchema, prerequisiteSchema, supportSchema, climateResponseSchema, instructionSchema]);
 export const rulePayloadSchema = z.union([knownRulePayloadSchema, unavailableSchema]);
 export const cropSchema = z.object({ id: z.string().uuid(), slug: z.string().min(1), commonName: z.string().min(1), scientificName: z.string().nullable(), status: z.enum(["draft", "published", "retired"]) });
-export const publishedRuleSchema = z.object({ id: z.string().uuid(), familyId: z.string().uuid(), cropId: z.string().uuid(), varietyId: z.string().uuid().nullable(), ruleType: ruleTypeSchema, version: z.number().int().positive(), applicability: applicabilitySchema, payload: rulePayloadSchema, publishedAt: z.coerce.date(), evidenceIds: z.array(z.string().uuid()).min(1) });
+export const publishedRuleSchema = z.object({ id: z.string().uuid(), familyId: z.string().uuid(), cropId: z.string().uuid(), varietyId: z.string().uuid().nullable(), ruleType: ruleTypeSchema, version: z.number().int().positive(), applicability: applicabilitySchema, payload: rulePayloadSchema, publishedAt: z.coerce.date(), evidenceIds: z.array(z.string().uuid()).min(1), overridesRuleVersionIds: z.array(z.string().uuid()).default([]) });
 
 export const researchBriefSchema = z.object({ cropNames: z.array(z.string().min(1)).min(1).max(20), methods: z.array(growingMethodSchema).min(1), regionClasses: z.array(z.string().min(1)).min(1), ruleTypes: z.array(ruleTypeSchema).min(1), customerData: z.never().optional() }).strict();
 export const editorialPublicationSchema = z.object({ releaseName: z.string().min(1).max(120), ruleVersionIds: z.array(z.string().uuid()).min(1), reviewerId: z.string().min(1), note: z.string().min(1).max(2000) }).strict();
@@ -45,6 +45,7 @@ export const editorialDraftSchema = z.object({
   contextKey: z.string().min(1).max(120).default("default"),
   applicability: applicabilitySchema,
   payload: rulePayloadSchema,
+  overridesRuleVersionIds: z.array(z.string().uuid()).max(50).default([]),
   source: z.object({ url: z.url(), title: z.string().min(1), publisher: z.string().min(1), sourceType: z.string().min(1), accessedAt: z.coerce.date(), attributionNotes: z.string().max(2000).optional(), contentChecksum: z.string().max(128).optional() }).strict(),
   evidence: z.object({ researchRunId: z.string().uuid().optional(), locator: z.string().max(500).optional(), permittedExcerpt: z.string().max(500).optional(), normalizedClaim: z.string().min(1).max(4000), scope: z.record(z.string(), z.unknown()), originalUnits: z.string().max(120).optional() }).strict(),
 }).strict();

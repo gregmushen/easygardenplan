@@ -7,19 +7,42 @@ export function circleFits(point: MetricPoint, radius: number, geometry: BedGeom
 
 function canonical(value: unknown): string { if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`; if (value && typeof value === "object") return `{${Object.entries(value as Record<string, unknown>).sort(([a], [b]) => a.localeCompare(b)).map(([key, item]) => `${JSON.stringify(key)}:${canonical(item)}`).join(",")}}`; return JSON.stringify(value); }
 async function fingerprint(value: unknown): Promise<string> { const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(canonical(value))); return [...new Uint8Array(digest)].map((item) => item.toString(16).padStart(2, "0")).join(""); }
-function applicableRules(input: PlanInputSnapshot, selection: PlanInputSnapshot["selections"][number], type: PublishedRule["ruleType"]): PublishedRule[] {
-  return input.rules.filter((rule) => rule.cropId === selection.cropId && rule.ruleType === type && rule.applicability.methods.includes(selection.method) && rule.payload.state === "known" && (rule.varietyId === null || rule.varietyId === selection.varietyId) && rule.applicability.regionIds.length === 0 && (rule.applicability.hardinessZones.length === 0 || (input.climate?.hardinessZone !== null && input.climate !== null && rule.applicability.hardinessZones.includes(input.climate.hardinessZone)))).sort((a, b) => a.id.localeCompare(b.id));
+function ruleApplicabilityReason(input: PlanInputSnapshot, selection: PlanInputSnapshot["selections"][number], rule: PublishedRule): string | null {
+  if (!rule.applicability.methods.includes(selection.method)) return "growing_method_does_not_match";
+  if (rule.payload.state !== "known") return `knowledge_state_${rule.payload.state}`;
+  if (rule.varietyId !== null && rule.varietyId !== selection.varietyId) return "variety_does_not_match";
+  if (rule.applicability.regionIds.length > 0) return "region_context_not_available";
+  if (rule.applicability.hardinessZones.length > 0 && (!input.climate?.hardinessZone || !rule.applicability.hardinessZones.includes(input.climate.hardinessZone))) return "hardiness_zone_does_not_match";
+  return null;
+}
+
+function resolveRules(input: PlanInputSnapshot, selection: PlanInputSnapshot["selections"][number], type: "spacing" | "planting_window"): { rules: PublishedRule[]; trace: PlanResult["ruleSelectionTrace"][number] } {
+  const candidates = input.rules.filter((rule) => rule.cropId === selection.cropId && rule.ruleType === type).sort((a, b) => a.id.localeCompare(b.id));
+  const applicable = candidates.filter((rule) => ruleApplicabilityReason(input, selection, rule) === null);
+  const overriddenIds = new Set(applicable.flatMap((rule) => rule.overridesRuleVersionIds));
+  const rules = applicable.filter((rule) => !overriddenIds.has(rule.id));
+  return {
+    rules,
+    trace: { selectionId: selection.id, ruleType: type, candidates: candidates.map((rule) => {
+      const reason = ruleApplicabilityReason(input, selection, rule);
+      if (reason) return { ruleVersionId: rule.id, outcome: "not_applicable" as const, reason };
+      if (overriddenIds.has(rule.id)) return { ruleVersionId: rule.id, outcome: "overridden" as const, reason: "explicit_reviewed_override" };
+      if (rules.length === 1) return { ruleVersionId: rule.id, outcome: "selected" as const, reason: "single_applicable_rule" };
+      return { ruleVersionId: rule.id, outcome: "conflicting" as const, reason: "multiple_applicable_rules_without_override" };
+    }) },
+  };
 }
 
 function daysInMonth(year: number, month: number): number { return new Date(Date.UTC(year, month, 0)).getUTCDate(); }
 function localDate(year: number, monthDay: string): string { const [month = 1, rawDay = 1] = monthDay.split("-").map(Number); const day = Math.min(rawDay, daysInMonth(year, month)); return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`; }
 function addCalendarDays(value: string, days: number): string { const [year, month, day] = value.split("-").map(Number) as [number, number, number]; const date = new Date(Date.UTC(year, month - 1, day)); date.setUTCDate(date.getUTCDate() + days); return date.toISOString().slice(0, 10); }
 
-export function resolveScheduleWindows(input: PlanInputSnapshot, selection: PlanInputSnapshot["selections"][number]): { windows: PlanResult["scheduleWindows"]; ruleIds: string[]; unresolved?: string } {
-  const rules = applicableRules(input, selection, "planting_window").filter((rule) => rule.payload.state === "known" && rule.payload.type === "planting_window");
-  if (rules.length === 0) return { windows: [], ruleIds: [], unresolved: "missing_planting_window_rule" };
-  if (rules.length > 1) return { windows: [], ruleIds: rules.map(({ id }) => id), unresolved: "conflicting_planting_window_rules" };
-  const rule = rules[0]!; if (rule.payload.state !== "known" || rule.payload.type !== "planting_window") return { windows: [], ruleIds: [], unresolved: "missing_planting_window_rule" };
+export function resolveScheduleWindows(input: PlanInputSnapshot, selection: PlanInputSnapshot["selections"][number]): { windows: PlanResult["scheduleWindows"]; ruleIds: string[]; trace: PlanResult["ruleSelectionTrace"][number]; unresolved?: string } {
+  const resolved = resolveRules(input, selection, "planting_window");
+  const rules = resolved.rules.filter((rule) => rule.payload.state === "known" && rule.payload.type === "planting_window");
+  if (rules.length === 0) return { windows: [], ruleIds: [], trace: resolved.trace, unresolved: "missing_planting_window_rule" };
+  if (rules.length > 1) return { windows: [], ruleIds: rules.map(({ id }) => id), trace: resolved.trace, unresolved: "conflicting_planting_window_rules" };
+  const rule = rules[0]!; if (rule.payload.state !== "known" || rule.payload.type !== "planting_window") return { windows: [], ruleIds: [], trace: resolved.trace, unresolved: "missing_planting_window_rule" };
   const windows: PlanResult["scheduleWindows"] = [];
   for (const window of rule.payload.windows) {
     if (window.kind === "calendar") {
@@ -27,19 +50,20 @@ export function resolveScheduleWindows(input: PlanInputSnapshot, selection: Plan
       continue;
     }
     const anchor = window.anchor.startsWith("spring_last_freeze") ? input.climate?.springFrostLocalDate : input.climate?.autumnFrostLocalDate;
-    if (!anchor || input.climate?.state !== "known" || window.anchor.endsWith("28f")) return { windows: [], ruleIds: [rule.id], unresolved: `missing_anchor:${window.anchor}` };
+    if (!anchor || input.climate?.state !== "known" || window.anchor.endsWith("28f")) return { windows: [], ruleIds: [rule.id], trace: resolved.trace, unresolved: `missing_anchor:${window.anchor}` };
     const anchorDate = localDate(input.seasonYear, anchor);
     windows.push({ selectionId: selection.id, ruleVersionId: rule.id, startLocalDate: addCalendarDays(anchorDate, window.startOffsetDays), endLocalDate: addCalendarDays(anchorDate, window.endOffsetDays), semantics: `anchor:${window.anchor}:${input.timezone}` });
   }
-  return { windows, ruleIds: [rule.id] };
+  return { windows, ruleIds: [rule.id], trace: resolved.trace };
 }
 
 export async function generatePlan(raw: unknown, effortBudget = 100_000): Promise<PlanResult> {
-  const input = planInputSnapshotSchema.parse(raw); let effort = 0; const placements: PlanResult["placements"] = []; const results: PlanResult["selections"] = []; const scheduleWindows: PlanResult["scheduleWindows"] = []; const unresolved: PlanResult["unresolved"] = []; const usedRules = new Set<string>();
+  const input = planInputSnapshotSchema.parse(raw); let effort = 0; const placements: PlanResult["placements"] = []; const results: PlanResult["selections"] = []; const scheduleWindows: PlanResult["scheduleWindows"] = []; const ruleSelectionTrace: PlanResult["ruleSelectionTrace"] = []; const unresolved: PlanResult["unresolved"] = []; const usedRules = new Set<string>();
   const selections = [...input.selections].sort((a, b) => b.priority - a.priority || a.id.localeCompare(b.id));
   for (const selection of selections) {
-    const schedule = resolveScheduleWindows(input, selection); schedule.ruleIds.forEach((id) => usedRules.add(id)); scheduleWindows.push(...schedule.windows); if (schedule.unresolved) unresolved.push({ selectionId: selection.id, kind: "schedule", code: schedule.unresolved });
-    const spacingRules = applicableRules(input, selection, "spacing").filter((rule) => rule.payload.state === "known" && rule.payload.type === "spacing");
+    const schedule = resolveScheduleWindows(input, selection); ruleSelectionTrace.push(schedule.trace); schedule.ruleIds.forEach((id) => usedRules.add(id)); scheduleWindows.push(...schedule.windows); if (schedule.unresolved) unresolved.push({ selectionId: selection.id, kind: "schedule", code: schedule.unresolved });
+    const spacingResolution = resolveRules(input, selection, "spacing"); ruleSelectionTrace.push(spacingResolution.trace);
+    const spacingRules = spacingResolution.rules.filter((rule) => rule.payload.state === "known" && rule.payload.type === "spacing");
     if (spacingRules.length !== 1) { const code = spacingRules.length ? "conflicting_spacing_rules" as const : "missing_spacing_rule" as const; results.push({ selectionId: selection.id, requested: selection.quantity, placed: 0, unplaced: selection.quantity, reasonCodes: [code] }); unresolved.push({ selectionId: selection.id, kind: "placement", code }); continue; }
     const rule = spacingRules[0]!;
     if (rule.payload.state !== "known" || rule.payload.type !== "spacing") throw new Error("Resolved spacing rule has an invalid payload");
@@ -62,6 +86,6 @@ export async function generatePlan(raw: unknown, effortBudget = 100_000): Promis
     const unplaced = selection.quantity - placed; const reasonCodes = unplaced ? [eligible.length ? budgetHit ? "search_budget_exhausted" as const : "layout_search_exhausted" as const : "no_eligible_bed" as const] : [];
     results.push({ selectionId: selection.id, requested: selection.quantity, placed, unplaced, reasonCodes }); if (unplaced) unresolved.push({ selectionId: selection.id, kind: "placement", code: reasonCodes[0]! });
   }
-  const result = { algorithmVersion: "grid-v1" as const, fingerprint: await fingerprint(input), placements, selections: results.sort((a, b) => a.selectionId.localeCompare(b.selectionId)), scheduleWindows: scheduleWindows.sort((a, b) => a.selectionId.localeCompare(b.selectionId) || a.startLocalDate.localeCompare(b.startLocalDate)), ruleVersionIds: [...usedRules].sort(), unresolved };
+  const result = { algorithmVersion: "grid-v1" as const, fingerprint: await fingerprint(input), placements, selections: results.sort((a, b) => a.selectionId.localeCompare(b.selectionId)), scheduleWindows: scheduleWindows.sort((a, b) => a.selectionId.localeCompare(b.selectionId) || a.startLocalDate.localeCompare(b.startLocalDate)), ruleVersionIds: [...usedRules].sort(), ruleSelectionTrace, unresolved };
   return planResultSchema.parse(result);
 }

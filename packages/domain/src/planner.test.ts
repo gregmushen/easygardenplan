@@ -13,6 +13,16 @@ describe("deterministic planner", () => {
     expect((await generatePlan({ ...input, rules: [] })).selections[0]).toMatchObject({ placed: 0, reasonCodes: ["missing_spacing_rule"] });
     expect((await generatePlan(input, 1)).selections[0]!.reasonCodes).toEqual(["search_budget_exhausted"]);
   });
+  it("uses an explicit reviewed override and records why each candidate was selected or excluded", async () => {
+    const replacement = { ...input.rules[0]!, id: id(13), familyId: id(14), version: 2, payload: { state: "known", type: "spacing", withinRowMeters: { minimum: 0.5, maximum: 0.5, minimumInclusive: true, maximumInclusive: true }, pattern: "individual", sourceUnit: "meters" }, overridesRuleVersionIds: [id(7)] };
+    const result = await generatePlan({ ...input, rules: [input.rules[0]!, replacement] });
+    expect(result.selections[0]?.reasonCodes).not.toContain("conflicting_spacing_rules");
+    expect(result.placements[0]?.spacingRuleVersionId).toBe(replacement.id);
+    expect(result.ruleSelectionTrace.find(({ ruleType }) => ruleType === "spacing")?.candidates).toEqual([
+      { ruleVersionId: id(7), outcome: "overridden", reason: "explicit_reviewed_override" },
+      { ruleVersionId: id(13), outcome: "selected", reason: "single_applicable_rule" },
+    ]);
+  });
   it("resolves cross-year, leap-day, anchored, and missing-anchor windows as local dates", async () => {
     const windowRule = { id: id(11), familyId: id(12), cropId: id(6), varietyId: null, ruleType: "planting_window", version: 1, applicability: { methods: ["direct_sow"], regionIds: [], climateRegimes: [], hardinessZones: [], varietyIds: [] }, payload: { state: "known", type: "planting_window", windows: [{ kind: "calendar", startMonth: 11, startDay: 1, endMonth: 2, endDay: 29, endYearOffset: 1 }, { kind: "anchor_offset", anchor: "spring_last_freeze_32f", startOffsetDays: -7, endOffsetDays: 7 }] }, publishedAt: new Date("2026-01-01"), evidenceIds: [id(9)] };
     const result = await generatePlan({ ...input, rules: [...input.rules, windowRule] });

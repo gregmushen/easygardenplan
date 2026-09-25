@@ -222,7 +222,7 @@ Implementation note: at the pinned baseline, `trestle plan init` rejects the sta
 
 - [ ] Add crop/variety/method selection, retained-plant quantity, soft/hard bed preferences and pinned positions.
 - [x] Freeze `PlanInputSnapshot` with garden, geometry, selections, climate, catalog and algorithm versions.
-- [ ] Implement rule resolution with selection traces, explicit conflicts and reviewed override relationships.
+- [x] Implement rule resolution with selection traces, explicit conflicts and reviewed override relationships.
 - [x] Implement local-date window evaluation for multiple seasons, cross-year windows, leap days and missing anchors.
 - [x] Implement deterministic placement footprints, obstacles, exclusions, stable ordering and bounded search from 08.
 - [x] Return requested/placed/unplaced counts and distinguish proven constraints from heuristic-search limits.
