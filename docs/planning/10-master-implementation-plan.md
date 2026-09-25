@@ -198,7 +198,7 @@ Implementation note: at the pinned baseline, `trestle plan init` rejects the sta
 - [ ] Prototype Terra Draw on desktop and touch; adopt it only if the required interactions and accessibility alternatives hold.
 - [ ] Implement draw, close, move, add/delete vertex, exclusion, undo/redo, pan/edit modes and keyboard/field alternatives.
 - [x] Validate self-intersections, degenerate edges, ring containment/overlap and supported request limits in browser and server.
-- [ ] Implement measured-edge calibration, translation and rotation with preview and explicit application.
+- [x] Implement measured-edge calibration, translation and rotation with preview and explicit application.
 - [x] Add manual sunlight observations and clear unknown state.
 - [x] Generate an app-owned printable dimensioned bed diagram without provider imagery.
 

@@ -12,11 +12,12 @@ Status: **in progress**. Metric geometry, immutable revisions, validation, calib
 - Interactive SVG points use Pointer Events for mouse, pen and touch dragging. Each drag is one undoable edit; pointer cancellation is handled.
 - Every SVG point is keyboard focusable and moves in 0.1-meter arrow-key steps or 0.5-meter Shift+arrow steps. The coordinate fields remain the precise editing path.
 - Coordinate editing includes add/delete vertex, exclusions, undo/redo and measured-edge scaling.
+- Rotation and east/west plus north/south translation are explicit revision inputs. The interactive preview applies the transform and pointer movement is mapped back through its inverse before changing authoritative local coordinates.
 - Each geometry revision records a dated manual sunlight observation with an explicit unknown state and optional observed hours.
 - Dimensioned printable SVG with edge lengths, north marker and no map-provider imagery.
 - Unit fixtures cover round trips, Alaska antimeridian behavior, concavity, contained exclusions, invalid bow-ties, outside exclusions and degenerate calibration.
 - Worker system path proves create → revision 2 → stale revision conflict → two-entry history → dimensioned print.
-- Local browser path proves manual location → seasonal context → keyboard point movement → undo → real pointer drag → undo → sunlight observation → create bed → edit a vertex → revision 2 → print link; 1 passed.
+- Local browser path proves manual location → seasonal context → keyboard point movement → undo → real pointer drag → undo → sunlight observation → transformed preview → persisted rotation/translation reload → create bed → edit a vertex → revision 2 → print link; 1 passed.
 
 ## Remaining exit evidence
 
