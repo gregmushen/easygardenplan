@@ -23,3 +23,7 @@ Six reviewed-in-2024/2026 University of Minnesota Extension pages were normalize
 The source normalizer checks the exact spacing evidence before producing output. The first local import created six crops and 26 drafts; the second created none and skipped all 26. Facts such as “after danger of frost” were not forced into an invented bounded planting window, and sorrel's “three weeks before last frost” was not mislabeled as days before transplanting.
 
 Across the two committed official-source bundles, the review queue now contains 45 crops, 91 candidate facts and 113 idempotent draft families. Herbs are no longer absent, but this is still candidate breadth rather than nationwide published coverage.
+
+## Editorial review surface
+
+The restricted review screen now exposes the evidence needed to make a real decision: crop, rule type, growing method, normalized claim, original units, recorded scope, source link and locator, applicability and full normalized payload. Each accept, reject or conflict decision requires its own rationale. A release requires both a name and a note. This replaces the earlier fixed-rationale accept button and repairs the missing release note that would have caused UI publication to fail contract validation.

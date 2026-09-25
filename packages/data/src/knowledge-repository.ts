@@ -9,8 +9,12 @@ export class KnowledgeRepository {
   constructor(private readonly database: Database) {}
 
   async listEditorialRules(): Promise<Array<Record<string, unknown>>> {
-    return await this.database.select({ id: ruleVersion.id, familyId: ruleVersion.familyId, version: ruleVersion.version, state: ruleVersion.state, applicability: ruleVersion.applicability, payload: ruleVersion.payload, evidenceIds: ruleVersion.evidenceIds, overridesRuleVersionIds: ruleVersion.overridesRuleVersionIds, reviewDecisionId: ruleVersion.reviewDecisionId, createdAt: ruleVersion.createdAt })
-      .from(ruleVersion).orderBy(asc(ruleVersion.createdAt));
+    const rules = await this.database.select({ id: ruleVersion.id, familyId: ruleVersion.familyId, cropId: ruleFamily.cropId, cropName: crop.commonName, varietyId: ruleFamily.varietyId, ruleType: ruleFamily.ruleType, method: ruleFamily.method, contextKey: ruleFamily.contextKey, version: ruleVersion.version, state: ruleVersion.state, applicability: ruleVersion.applicability, payload: ruleVersion.payload, evidenceIds: ruleVersion.evidenceIds, overridesRuleVersionIds: ruleVersion.overridesRuleVersionIds, reviewDecisionId: ruleVersion.reviewDecisionId, createdAt: ruleVersion.createdAt })
+      .from(ruleVersion).innerJoin(ruleFamily, eq(ruleFamily.id, ruleVersion.familyId)).innerJoin(crop, eq(crop.id, ruleFamily.cropId)).orderBy(asc(ruleVersion.createdAt));
+    const evidenceIds = [...new Set(rules.flatMap((rule) => rule.evidenceIds as string[]))];
+    const evidence = evidenceIds.length ? await this.database.select({ id: evidenceItem.id, locator: evidenceItem.locator, normalizedClaim: evidenceItem.normalizedClaim, scope: evidenceItem.scope, originalUnits: evidenceItem.originalUnits, sourceUrl: knowledgeSource.url, sourceTitle: knowledgeSource.title, sourcePublisher: knowledgeSource.publisher, sourceType: knowledgeSource.sourceType, sourceAccessedAt: knowledgeSource.accessedAt, sourceChecksum: knowledgeSource.contentChecksum }).from(evidenceItem).innerJoin(knowledgeSource, eq(knowledgeSource.id, evidenceItem.sourceId)).where(inArray(evidenceItem.id, evidenceIds)) : [];
+    const byId = new Map(evidence.map((item) => [item.id, item]));
+    return rules.map((rule) => ({ ...rule, evidence: (rule.evidenceIds as string[]).map((id) => byId.get(id)).filter(Boolean) }));
   }
 
   async createDraft(input: unknown): Promise<{ ruleVersionId: string; evidenceId: string }> {

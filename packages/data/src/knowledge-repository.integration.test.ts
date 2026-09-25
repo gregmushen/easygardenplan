@@ -36,6 +36,7 @@ suite("knowledge editorial publication", () => {
     const repository = new KnowledgeRepository(database!);
     const source = { url: `https://example.test/${nonce}`, title: "Synthetic fixture", publisher: "Test publisher", sourceType: "fixture", accessedAt: new Date(), attributionNotes: "Synthetic; not horticultural guidance" };
     const first = await repository.createDraft({ cropId: plant!.id, ruleType: "spacing", method: "direct_sow", contextKey: "default", applicability, payload, source, evidence: { researchRunId: run!.id, normalizedClaim: "Synthetic spacing fixture", scope: { region: "test" }, originalUnits: "meters" } });
+    expect((await repository.listEditorialRules()).find(({ id }) => id === first.ruleVersionId)).toMatchObject({ cropName: "Synthetic Tomato", ruleType: "spacing", method: "direct_sow", evidence: [{ normalizedClaim: "Synthetic spacing fixture", sourcePublisher: "Test publisher", sourceUrl: source.url }] });
     const [storedSource] = await database!.select().from(knowledgeSource).where(eq(knowledgeSource.url, source.url));
     const [storedFirst] = await database!.select().from(ruleVersion).where(eq(ruleVersion.id, first.ruleVersionId));
     ids.sourceId = storedSource!.id;

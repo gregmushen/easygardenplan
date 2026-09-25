@@ -9,6 +9,7 @@ Status: **in progress**. The deterministic editorial and publication pipeline is
 - Shared crop, alias, variety, source, research-run, evidence, rule-family/version, review-decision and catalog-release storage.
 - Typed applicability and nine rule payload families with explicit `known`, `not_applicable`, `unknown` and `conflicted` states.
 - Restricted editorial APIs and application screen for draft creation, review, publication, withdrawal and replacement.
+- The editorial review screen shows crop, method, regional applicability, normalized claims, source links, source locators and the exact rule payload. Accept, reject and conflict decisions require a written rationale, and release publication requires a release note.
 - A current Exa search adapter with deterministic request fingerprints, resumable provider-run storage, usage/cost capture, rate-limit handling and public-URL safeguards.
 - The protected staging provider workflow resolves the encrypted Exa credential through Trestle and performs one bounded source-discovery request, proving authentication, response normalization and cost/usage capture without publishing any result.
 - Atomic publication with accepted-review and evidence checks. Published rule content is database-protected from mutation; corrections create new versions. Explicit historical releases continue to resolve withdrawn versions while the current catalog excludes them.
